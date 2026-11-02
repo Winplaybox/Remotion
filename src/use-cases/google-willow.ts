@@ -74,5 +74,5 @@ export const GOOGLE_WILLOW_USE_CASE: ResearchUseCase = {
       },
     ],
   },
-  recommendedStyle: "exploded-teardown",
+  recommendedStyle: "blueprint-teardown",
 };

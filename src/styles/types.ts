@@ -1,9 +1,11 @@
 export type VideoStyleId =
-  | "dark-keynote"
   | "scifi-hud"
-  | "exploded-teardown"
-  | "whiteboard-explainer"
+  | "blueprint-teardown"
+  | "satellite-briefing"
+  | "living-screencast"
+  | "archive-lighttable"
   | "data-storytelling"
+  | "dark-keynote"
   | "swiss-motion";
 
 export interface VideoStyleConfig {
@@ -33,7 +35,7 @@ export interface VideoStyleConfig {
     zoomIntensity: number;
   };
   visualMotifs: {
-    gridStyle: "dots" | "cyber-grid" | "blueprint-lines" | "chalk-noise" | "clean";
+    gridStyle: "dots" | "cyber-grid" | "blueprint-lines" | "terminal-scan" | "radar-rings" | "archive-grain" | "clean";
     glowStrength: number;
     borderWidth: number;
     cornerRadius: number;

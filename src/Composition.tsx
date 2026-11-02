@@ -13,26 +13,23 @@ import { KineticCaptions } from "./components/KineticCaptions";
 import { AudioWaveform } from "./components/AudioWaveform";
 import { ResearchCitationBadge } from "./components/ResearchCitationBadge";
 import { LemoWake } from "./components/LemoWake";
-import { LemoWakeAvatar } from "./components/LemoWakeAvatar";
 import { VIDEO_STYLES } from "./styles/catalog";
 import { VideoStyleId } from "./styles/types";
-import { getUseCase } from "./use-cases";
+import { getUseCase, UseCaseId } from "./use-cases";
 
 export interface ShortsMainVideoProps {
-  useCaseId?: "deepseek-r1" | "google-willow" | "transformer-attention";
+  useCaseId?: UseCaseId;
   styleId?: VideoStyleId;
-  showAvatar?: boolean;
 }
 
 export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
-  useCaseId = "transformer-attention",
+  useCaseId = "blackwell-b200",
   styleId,
-  showAvatar = true,
 }) => {
   const frame = useCurrentFrame();
   const useCase = getUseCase(useCaseId);
-  const activeStyleId = styleId || useCase.recommendedStyle || "dark-keynote";
-  const activeStyle = VIDEO_STYLES[activeStyleId] || VIDEO_STYLES["dark-keynote"];
+  const activeStyleId = styleId || useCase.recommendedStyle || "blueprint-teardown";
+  const activeStyle = VIDEO_STYLES[activeStyleId] || VIDEO_STYLES["blueprint-teardown"];
 
   const { timeline, hook, diagram, takeaway, citation } = useCase;
 
@@ -57,13 +54,6 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
   const sec2B = timeline.sections[2];
   const sec3 = timeline.sections[3];
 
-  const avatarStyleMode =
-    activeStyleId === "scifi-hud"
-      ? "scifi"
-      : activeStyleId === "exploded-teardown"
-      ? "blueprint"
-      : "keynote";
-
   return (
     <div
       style={{
@@ -79,7 +69,7 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
       }}
     >
       <ParallaxLayers>
-        {/* 1. Persistent Top Header: Traceable Evidence Citation (FACTS.md) */}
+        {/* 1. Persistent Top Header: Traceable Evidence Citation */}
         <div
           style={{
             position: "absolute",
@@ -98,7 +88,7 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
           />
         </div>
 
-        {/* 2. Persistent Bottom Bar: Live Narration Waveform & Style Indicator */}
+        {/* 2. Persistent Bottom Bar: Live Narration Waveform & Style Indicator (Zero Avatars) */}
         <div
           style={{
             position: "absolute",
@@ -128,7 +118,7 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
         </div>
 
         {/* ========================================================
-            SCENE 1: RESEARCH HOOK & INTUITION (0 - 90 frames)
+            SCENE 1: RESEARCH HOOK & EVIDENCE (0 - 90 frames)
             ======================================================== */}
         <Sequence durationInFrames={sec1.durationInFrames} name={sec1.id}>
           <div
@@ -176,7 +166,7 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
         </Sequence>
 
         {/* ========================================================
-            SCENE 2A: TECHNICAL CORE / 3D SCENE (90 - 145 frames)
+            SCENE 2A: TECHNICAL CORE / 3D HERO (90 - 145 frames)
             ======================================================== */}
         <Sequence from={sec2A.startFrame} durationInFrames={sec2A.durationInFrames} name={sec2A.id}>
           <div
@@ -203,27 +193,6 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
               sublabel="Hardware-Accelerated Compute Architecture"
             />
           </div>
-
-          {/* Lemo-Wake Layered Presenter (Speaker 2: Puck / Inquirer) */}
-          {showAvatar && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: 300,
-                right: 70,
-                zIndex: 45,
-              }}
-            >
-              <LemoWakeAvatar
-                name="Puck"
-                role="Lead Inquirer"
-                isSpeaking={true}
-                accentColor={activeStyle.palette.primaryAccent}
-                styleMode={avatarStyleMode}
-                avatarVariant="engineer"
-              />
-            </div>
-          )}
 
           <div
             style={{
@@ -271,27 +240,6 @@ export const ShortsMainVideo: React.FC<ShortsMainVideoProps> = ({
               delay={sec2B.startFrame}
             />
           </div>
-
-          {/* Lemo-Wake Layered Presenter (Speaker 1: Aoede / Lead Scientist) */}
-          {showAvatar && (
-            <div
-              style={{
-                position: "absolute",
-                bottom: 300,
-                right: 70,
-                zIndex: 45,
-              }}
-            >
-              <LemoWakeAvatar
-                name="Aoede"
-                role="Lead AI Scientist"
-                isSpeaking={true}
-                accentColor={activeStyle.palette.primaryAccent}
-                styleMode={avatarStyleMode}
-                avatarVariant="researcher"
-              />
-            </div>
-          )}
 
           <div
             style={{
@@ -370,9 +318,8 @@ export const MainComposition: React.FC = () => {
       width={1080}
       height={1920}
       defaultProps={{
-        useCaseId: "deepseek-r1",
-        styleId: "scifi-hud",
-        showAvatar: true,
+        useCaseId: "blackwell-b200" as UseCaseId,
+        styleId: "blueprint-teardown" as VideoStyleId,
       }}
     />
   );

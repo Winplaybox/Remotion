@@ -10,3 +10,4 @@ reports/
 *.mp4
 !output/previews/phase1-cinematic-proof.mp4
 !output/previews/deepseek-r1-scifi-proof.mp4
+!output/previews/blackwell-b200-teardown.mp4

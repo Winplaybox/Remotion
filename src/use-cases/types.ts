@@ -13,8 +13,16 @@ export interface UseCaseSection {
   subtitleText: string;
 }
 
+export type UseCaseId =
+  | "blackwell-b200"
+  | "satellite-datacenter"
+  | "claude-code-agent"
+  | "dartmouth-dossier"
+  | "deepseek-r1"
+  | "google-willow";
+
 export interface ResearchUseCase {
-  id: "deepseek-r1" | "google-willow" | "transformer-attention";
+  id: UseCaseId;
   title: string;
   category: string;
   citation: {
@@ -36,7 +44,7 @@ export interface ResearchUseCase {
     title: string;
     badge: string;
     sublabel: string;
-    diagramType: "pipeline" | "lattice" | "attention";
+    diagramType: "pipeline" | "lattice" | "chiplet" | "satellite" | "terminal" | "archive";
   };
   takeaway: {
     title: string;
