@@ -1,0 +1,134 @@
+{
+  "channelId": "ch-01-ai-future",
+  "channelName": "AI, Technology & Future Explained",
+  "primarySource": "Stanford AI Index 2026",
+  "totalBatchEpisodes": 15,
+  "styleRotation": [
+    "data-physicalization",
+    "visual-investigation",
+    "exploded-teardown",
+    "archive-light-table"
+  ],
+  "episodes": [
+    {
+      "episodeNumber": 1,
+      "episodeId": "EP01",
+      "title": "AI Is Advancing Faster Than You Think",
+      "theme": "Capability trends & performance velocity",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 1: Research & Development",
+      "style": "data-physicalization"
+    },
+    {
+      "episodeNumber": 2,
+      "episodeId": "EP02",
+      "title": "Can AI Really Beat Human Experts?",
+      "theme": "Benchmark interpretation & saturation tables",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 2: Technical Performance",
+      "style": "visual-investigation"
+    },
+    {
+      "episodeNumber": 3,
+      "episodeId": "EP03",
+      "title": "Why AI Models Need So Much Data",
+      "theme": "Training datasets & token scaling",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 1: Data Ingestion & Synthetic Scarcity",
+      "style": "exploded-teardown"
+    },
+    {
+      "episodeNumber": 4,
+      "episodeId": "EP04",
+      "title": "What Makes an AI Intelligent?",
+      "theme": "Transformer architecture & attention matrices",
+      "sourceRef": "Vaswani et al. 2017 / Stanford AI Index 2026 • Architecture Synthesis",
+      "style": "archive-light-table"
+    },
+    {
+      "episodeNumber": 5,
+      "episodeId": "EP05",
+      "title": "The Hidden Cost of Artificial Intelligence",
+      "theme": "Cloud compute, energy grids & water footprint",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 6: Environment, Energy & Water",
+      "style": "visual-investigation"
+    },
+    {
+      "episodeNumber": 6,
+      "episodeId": "EP06",
+      "title": "Why AI Hallucinations Happen",
+      "theme": "Reliability limits vs. math reasoning",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 2: Benchmark Hallucination Rates",
+      "style": "data-physicalization"
+    },
+    {
+      "episodeNumber": 7,
+      "episodeId": "EP07",
+      "title": "Can We Actually Trust AI?",
+      "theme": "NIST AI Risk Management Framework & safety bounds",
+      "sourceRef": "NIST AI RMF 1.0 / Stanford AI Index 2026 • Chapter 3: Safety & Governance",
+      "style": "archive-light-table"
+    },
+    {
+      "episodeNumber": 8,
+      "episodeId": "EP08",
+      "title": "How AI Is Changing Scientific Research",
+      "theme": "AI in protein folding & material science",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 4: Science & Medicine",
+      "style": "exploded-teardown"
+    },
+    {
+      "episodeNumber": 9,
+      "episodeId": "EP09",
+      "title": "Why AI Companies Need So Much Computing Power",
+      "theme": "GPU clusters & TPU supply chains",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 1: Compute Infrastructure",
+      "style": "exploded-teardown"
+    },
+    {
+      "episodeNumber": 10,
+      "episodeId": "EP10",
+      "title": "Open-Source AI vs. Closed AI",
+      "theme": "Ecosystem distribution & weights accessibility",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 5: Open vs Closed Model Performance",
+      "style": "data-physicalization"
+    },
+    {
+      "episodeNumber": 11,
+      "episodeId": "EP11",
+      "title": "How AI Is Changing the Job Market",
+      "theme": "Employment shifts & entry-level productivity",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 7: Economy, Jobs & Enterprise",
+      "style": "visual-investigation"
+    },
+    {
+      "episodeNumber": 12,
+      "episodeId": "EP12",
+      "title": "Why Measuring AI Performance Is Difficult",
+      "theme": "Evaluation gaps & benchmark saturation",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 2: The Saturated Benchmark Crisis",
+      "style": "archive-light-table"
+    },
+    {
+      "episodeNumber": 13,
+      "episodeId": "EP13",
+      "title": "Can AI Understand Images and Videos?",
+      "theme": "Multimodal architectures",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 2: Vision-Language-Action Models",
+      "style": "exploded-teardown"
+    },
+    {
+      "episodeNumber": 14,
+      "episodeId": "EP14",
+      "title": "What Is AI Governance?",
+      "theme": "Safety accountability & regulatory frameworks",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 8: Policy, Law & Legislative Velocity",
+      "style": "archive-light-table"
+    },
+    {
+      "episodeNumber": 15,
+      "episodeId": "EP15",
+      "title": "Why AI Research Is Becoming More Expensive",
+      "theme": "Research economics & frontier capex",
+      "sourceRef": "Stanford AI Index 2026 • Chapter 1: Frontier Capex & Training Economics",
+      "style": "data-physicalization"
+    }
+  ]
+}
