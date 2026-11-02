@@ -2,10 +2,11 @@ name: Daily Content Audit
 
 on:
   schedule:
-    - cron: "0 8 * * *"
-      # Scheduled daily at 08:00 IST for Research & SEO
-    - cron: "0 18 * * *"
-      # Scheduled daily at 18:00 IST for Analytics & Retention
+    # GitHub Actions cron schedules evaluate in UTC.
+    # 08:00 IST (UTC+5:30) corresponds to 02:30 UTC
+    - cron: "30 2 * * *"
+    # 18:00 IST (UTC+5:30) corresponds to 12:30 UTC
+    - cron: "30 12 * * *"
   workflow_dispatch:
     inputs:
       audit_type:
@@ -48,6 +49,7 @@ jobs:
         run: npm run audit:scheduled -- ${{ github.event.inputs.audit_type || 'full' }}
 
       - name: Upload Audit Report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: daily-audit-${{ github.run_id }}

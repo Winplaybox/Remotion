@@ -31,6 +31,7 @@
     "build": "remotion bundle",
     "upgrade": "remotion upgrade",
     "lint": "eslint src && tsc",
+    "test": "tsx --test tests/**/*.test.ts",
     "audit:scheduled": "tsx automation/daily-orchestrator.ts",
     "style:frame": "remotion still ShortsMainComposition output/previews/style-frame.png --frame=160",
     "render:test": "remotion render ShortsMainComposition output/previews/phase1-cinematic-proof.mp4"
