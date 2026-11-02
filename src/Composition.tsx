@@ -12,21 +12,14 @@ import { ThreeHeroScene } from "./components/ThreeHeroScene";
 import { KineticCaptions } from "./components/KineticCaptions";
 import { AudioWaveform } from "./components/AudioWaveform";
 import { ResearchCitationBadge } from "./components/ResearchCitationBadge";
-import { DualSpeakerAvatar } from "./components/DualSpeakerAvatar";
 import { LemoWake } from "./components/LemoWake";
 
 export const ShortsMainVideo: React.FC = () => {
   const frame = useCurrentFrame();
 
-  // Global Camera Movement: Gentle push-in with subtle pan
-  const cameraZoom = interpolate(frame, [0, 300], [1, 1.05]);
-  const cameraPanY = interpolate(frame, [0, 300], [0, -15]);
-
-  // Dual-speaker turn coordination (Google AI Studio Multi-Speaker TTS)
-  // Frames 0 - 90: Speaker 1 (Aria - Lead Researcher / Aoede)
-  // Frames 90 - 200: Speaker 2 (Dev - Tech Inquirer / Puck)
-  // Frames 200 - 300: Speaker 1 (Aria - Wrap-up & CTA / Aoede)
-  const activeSpeaker: 0 | 1 = frame >= 90 && frame < 200 ? 1 : 0;
+  // Cinematic Camera Rig: Continuous subtle push-in & parallax drift
+  const cameraZoom = interpolate(frame, [0, 300], [1, 1.04]);
+  const cameraPanY = interpolate(frame, [0, 300], [0, -12]);
 
   return (
     <div
@@ -40,7 +33,7 @@ export const ShortsMainVideo: React.FC = () => {
       }}
     >
       <ParallaxLayers>
-        {/* Persistent Top Header: Research Citation Badge */}
+        {/* 1. Persistent Top Header: Verified Research Citation */}
         <div
           style={{
             position: "absolute",
@@ -59,11 +52,11 @@ export const ShortsMainVideo: React.FC = () => {
           />
         </div>
 
-        {/* Persistent Bottom Bar: Narration Audio Waveform Indicator */}
+        {/* 2. Persistent Bottom Bar: Live Narration Waveform */}
         <div
           style={{
             position: "absolute",
-            bottom: 60,
+            bottom: 70,
             left: 0,
             right: 0,
             display: "flex",
@@ -73,36 +66,24 @@ export const ShortsMainVideo: React.FC = () => {
             zIndex: 50,
           }}
         >
+          <AudioWaveform barCount={26} color="#00F5FF" />
           <div
             style={{
               fontFamily: "'Segoe UI', Roboto, sans-serif",
-              fontSize: "15px",
+              fontSize: "14px",
               color: "#64748B",
-              letterSpacing: "2px",
+              letterSpacing: "2.5px",
               textTransform: "uppercase",
+              fontWeight: 600,
             }}
           >
-            Google AI Studio Multi-Speaker Audio • Aoede + Puck
+            Google AI Studio Speech Generation • 44.1kHz Multi-Speaker
           </div>
-          <AudioWaveform barCount={26} color="#00F5FF" />
         </div>
 
-        {/* Dual-Speaker Animated AI Avatar Bar (Lemo-Opuscar style) */}
-        <div
-          style={{
-            position: "absolute",
-            bottom: 135,
-            left: 0,
-            right: 0,
-            display: "flex",
-            justifyContent: "center",
-            zIndex: 60,
-          }}
-        >
-          <DualSpeakerAvatar activeSpeakerIndex={activeSpeaker} />
-        </div>
-
-        {/* SCENE 1: Hook & Question (Frames 0 - 90) */}
+        {/* ========================================================
+            SCENE 1: HOOK & VECTOR SPACE REVEAL (Frames 0 - 90)
+            ======================================================== */}
         <Sequence durationInFrames={90} name="Scene1_Hook">
           <div
             style={{
@@ -113,7 +94,7 @@ export const ShortsMainVideo: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "40px",
+              gap: "48px",
             }}
           >
             <SpatialTypography
@@ -124,7 +105,7 @@ export const ShortsMainVideo: React.FC = () => {
             />
 
             <FloatingCard
-              badge="Core Scientific Insight"
+              badge="Breakthrough Insight"
               headline="Words are not text, they are vectors."
               body="Jab aap prompt type karte ho, model har word ko 12,288 dimensions ke mathematical space mein convert karta hai."
               metrics={[
@@ -140,44 +121,51 @@ export const ShortsMainVideo: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              bottom: 225,
+              bottom: 210,
               left: 0,
               right: 0,
               display: "flex",
               justifyContent: "center",
+              zIndex: 40,
             }}
           >
-            <KineticCaptions text="Aria: Kya aapne socha hai ki AI aapki baatein kaise samajhta hai?" />
+            <KineticCaptions text="Kya aapne socha hai ki AI aapki baatein kaise samajhta hai?" />
           </div>
         </Sequence>
 
-        {/* SCENE 2: Lemo-Wake Diagram & 3D Hero Scene (Frames 90 - 200) */}
-        <Sequence from={90} durationInFrames={110} name="Scene2_3D_Hero">
+        {/* ========================================================
+            SCENE 2: 3D CORE & LEMO-WAKE ARCHITECTURE (Frames 90 - 200)
+            Part A (90-145): Hero 3D Attention Core
+            Part B (145-200): Lemo-Wake Exploded Architecture Loop
+            ======================================================== */}
+        <Sequence from={90} durationInFrames={110} name="Scene2_Architecture">
           <div
             style={{
               position: "absolute",
-              top: 210,
+              top: 180,
               left: 0,
               right: 0,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "24px",
+              gap: "20px",
             }}
           >
             <SpatialTypography
               title="MULTI-HEAD ATTENTION"
-              subtitle="Lemo-Wake Architecture Loop"
+              subtitle={frame < 145 ? "Deep 3D Architectural Core" : "Lemo-Wake Schematic Loop"}
               accentWord="ATTENTION"
               delay={90}
             />
 
-            {/* Scene 2 Part A: Three.js 3D Core; Part B: Lemo-Wake Diagram */}
             {frame < 145 ? (
-              <ThreeHeroScene label="Self-Attention Matrix • Q, K, V" />
+              <ThreeHeroScene
+                label="Self-Attention Matrix • Q, K, V"
+                sublabel="8 Parallel Attention Heads • Real-time Token Weighting"
+              />
             ) : (
               <LemoWake
-                title="Figure 1 • Self-Attention Mechanism (Vaswani 2017)"
+                title="Figure 1 • Multi-Head Attention (Vaswani 2017)"
                 badge="LEMO-WAKE LOOP • 30 FPS"
                 accentColor="#00F5FF"
                 delay={145}
@@ -185,22 +173,25 @@ export const ShortsMainVideo: React.FC = () => {
             )}
           </div>
 
-          {/* Subtitle Bar for Scene 2 (Dev asking technical question) */}
+          {/* Subtitle Bar for Scene 2 */}
           <div
             style={{
               position: "absolute",
-              bottom: 225,
+              bottom: 210,
               left: 0,
               right: 0,
               display: "flex",
               justifyContent: "center",
+              zIndex: 40,
             }}
           >
-            <KineticCaptions text="Dev: Transformer model har word ko ek saath parallel scan kaise karta hai?" />
+            <KineticCaptions text="Transformer model har word ko ek saath parallel scan karta hai." />
           </div>
         </Sequence>
 
-        {/* SCENE 3: 2.5D Spatial Outro & Conclusion (Frames 200 - 300) */}
+        {/* ========================================================
+            SCENE 3: EMPIRICAL FINDINGS & CTA (Frames 200 - 300)
+            ======================================================== */}
         <Sequence from={200} durationInFrames={100} name="Scene3_Outro">
           <div
             style={{
@@ -211,20 +202,20 @@ export const ShortsMainVideo: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "40px",
+              gap: "48px",
             }}
           >
             <SpatialTypography
               title="THE FUTURE OF REASONING"
-              subtitle="Empirical Research Findings"
+              subtitle="Stanford AI Index Empirical Findings"
               accentWord="FUTURE"
               delay={200}
             />
 
             <FloatingCard
-              badge="Stanford AI Index 2026"
+              badge="Compute Scaling Law"
               headline="Matrix Multiplication at Massive Scale"
-              body="Intelligence is the mathematical byproduct of loss minimization on trillions of training tokens."
+              body="Intelligence is the mathematical byproduct of loss minimization on trillions of training tokens across high-bandwidth clusters."
               metrics={[
                 { label: "Training Flops", value: "10²⁶" },
                 { label: "Verification", value: "100%" },
@@ -238,14 +229,15 @@ export const ShortsMainVideo: React.FC = () => {
           <div
             style={{
               position: "absolute",
-              bottom: 225,
+              bottom: 210,
               left: 0,
               right: 0,
               display: "flex",
               justifyContent: "center",
+              zIndex: 40,
             }}
           >
-            <KineticCaptions text="Aria: Aise hi real research concepts ko samajhne ke liye subscribe karein!" />
+            <KineticCaptions text="Aise hi real research concepts ko samajhne ke liye subscribe karein!" />
           </div>
         </Sequence>
       </ParallaxLayers>

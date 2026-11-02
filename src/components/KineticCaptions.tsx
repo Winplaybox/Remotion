@@ -1,5 +1,5 @@
 import React from "react";
-import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 
 interface KineticCaptionsProps {
   text: string;
@@ -13,7 +13,10 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const words = text.split(" ");
+  // Strip any speaker name prefixes like "Aria:" or "Dev:" if present
+  const cleanText = text.replace(/^(Aria|Dev):\s*/i, "");
+  const words = cleanText.split(" ");
+
   const activeIdx =
     activeWordIndex !== undefined
       ? activeWordIndex
@@ -24,23 +27,23 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
     fps,
     config: { damping: 10, stiffness: 120 },
   });
-  const popScale = interpolate(bounce, [0, 1], [1, 1.08]);
+  const popScale = 1 + bounce * 0.08;
 
   return (
     <div
       style={{
-        width: "960px",
-        padding: "20px 24px",
-        background: "rgba(3, 7, 18, 0.75)",
-        backdropFilter: "blur(16px)",
-        borderRadius: "24px",
-        border: "1px solid rgba(255, 255, 255, 0.12)",
+        width: "920px",
+        padding: "16px 24px",
+        background: "rgba(3, 7, 18, 0.85)",
+        backdropFilter: "blur(20px)",
+        borderRadius: "20px",
+        border: "1px solid rgba(255, 255, 255, 0.14)",
         display: "flex",
         flexWrap: "wrap",
         justifyContent: "center",
         alignItems: "center",
-        gap: "14px",
-        boxShadow: "0 12px 40px rgba(0, 0, 0, 0.7)",
+        gap: "12px",
+        boxShadow: "0 16px 40px rgba(0, 0, 0, 0.8)",
       }}
     >
       {words.map((word, i) => {
@@ -49,18 +52,19 @@ export const KineticCaptions: React.FC<KineticCaptionsProps> = ({
           <span
             key={i}
             style={{
-              fontFamily: "'Segoe UI', Roboto, sans-serif",
-              fontSize: "44px",
+              fontFamily: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+              fontSize: "42px",
               fontWeight: isActive ? 900 : 700,
-              color: isActive ? "#FFD700" : "#E2E8F0",
+              color: isActive ? "#FFD700" : "#F8FAFC",
               textTransform: "uppercase",
               transform: isActive ? `scale(${popScale})` : "scale(1)",
               textShadow: isActive
-                ? "0 0 25px rgba(255, 215, 0, 0.9), 0 0 40px rgba(255, 215, 0, 0.5)"
-                : "none",
-              padding: "2px 6px",
+                ? "0 0 25px rgba(255, 215, 0, 0.95), 0 0 45px rgba(255, 215, 0, 0.6)"
+                : "0 2px 10px rgba(0, 0, 0, 0.8)",
+              padding: "4px 8px",
               borderRadius: "8px",
-              background: isActive ? "rgba(255, 215, 0, 0.15)" : "transparent",
+              background: isActive ? "rgba(255, 215, 0, 0.18)" : "transparent",
+              letterSpacing: "-0.5px",
             }}
           >
             {word}
