@@ -1,0 +1,148 @@
+{
+  "episodeId": "EP02",
+  "channel": "AI, Technology & Future Explained",
+  "title": "Can AI Really Beat Human Experts?",
+  "hookHeadline": "The benchmark question is no longer whether AI is impressive — it is whether the benchmark is still measuring the right thing.",
+  "style": "exploded-teardown",
+  "smpteBase": "00:00:00:00",
+  "dimensions": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "totalDurationInFrames": 360
+  },
+  "palette": {
+    "background": "#07090E",
+    "surface": "rgba(13, 17, 23, 0.94)",
+    "border": "#1F293D",
+    "primaryAccent": "#7C3AED",
+    "secondaryAccent": "#22D3EE",
+    "cadGridColor": "rgba(255, 255, 255, 0.04)",
+    "textPrimary": "#F0F6FC",
+    "textSecondary": "#8B949E"
+  },
+  "citation": {
+    "source": "Stanford AI Index 2026",
+    "chapter": "Evaluation & Benchmark Reliability",
+    "page": 97,
+    "verifiedMetric": "Benchmark saturation and expert-level ceiling effects",
+    "doiOrUrl": "https://aiindex.stanford.edu/report/"
+  },
+  "layers": [
+    {
+      "id": "layer-expert-benchmark",
+      "layerCode": "L01-EXPERT-BENCH",
+      "name": "Expert benchmark ceiling",
+      "category": "Evaluation",
+      "depthZ": 80,
+      "tiltX": -12,
+      "tiltY": 16,
+      "accentColor": "#7C3AED",
+      "wireframe": false,
+      "metrics": [
+        { "label": "Human expert ceiling", "value": "~90%" },
+        { "label": "Model frontier", "value": ">95%" }
+      ],
+      "callouts": [
+        {
+          "title": "Saturation risk",
+          "description": "The benchmark has moved beyond the human reference point.",
+          "specCode": "SPEC-BM-02",
+          "xPct": 25,
+          "yPct": 60
+        }
+      ]
+    },
+    {
+      "id": "layer-reliability-stack",
+      "layerCode": "L02-RELIABILITY",
+      "name": "Reliability and reasoning envelope",
+      "category": "Reliability",
+      "depthZ": -40,
+      "tiltX": -10,
+      "tiltY": 24,
+      "accentColor": "#22D3EE",
+      "wireframe": false,
+      "metrics": [
+        { "label": "Accuracy variance", "value": "High" },
+        { "label": "Reasoning fidelity", "value": "Variable" }
+      ],
+      "callouts": [
+        {
+          "title": "MODEL WEAKNESS",
+          "description": "Strong benchmark performance does not guarantee reliable, grounded judgment.",
+          "specCode": "SPEC-REL-08",
+          "xPct": 76,
+          "yPct": 26
+        }
+      ]
+    }
+  ],
+  "plates": [
+    {
+      "yearOrStep": "Expert baseline",
+      "densityValue": 58,
+      "metricFormatted": "~90% expert ceiling",
+      "annotation": "Reference baseline",
+      "plateColor": "#312E81"
+    },
+    {
+      "yearOrStep": "Frontier model",
+      "densityValue": 88,
+      "metricFormatted": ">95% benchmark score",
+      "annotation": "Model exceeds reference",
+      "plateColor": "#7C3AED"
+    }
+  ],
+  "dials": [
+    {
+      "code": "DIAL-BM-01",
+      "label": "Benchmark ceiling",
+      "value": 86,
+      "formattedValue": "86%",
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "status": "elevated"
+    },
+    {
+      "code": "DIAL-REL-01",
+      "label": "Reliability signal",
+      "value": 61,
+      "formattedValue": "61%",
+      "min": 0,
+      "max": 100,
+      "unit": "%",
+      "status": "nominal"
+    }
+  ],
+  "beats": [
+    {
+      "beatIndex": 1,
+      "startFrame": 0,
+      "durationInFrames": 90,
+      "cameraMove": "orbit_push",
+      "activeLayerCode": "L01-EXPERT-BENCH",
+      "narrationCue": "Ek expert benchmark ko beat karna sirf ek stat hai — asli sawal yeh hai ke benchmark ab bhi sahi measure karta hai.",
+      "smpteTimecode": "00:00:00:00"
+    },
+    {
+      "beatIndex": 2,
+      "startFrame": 90,
+      "durationInFrames": 90,
+      "cameraMove": "layer_split",
+      "activeLayerCode": "L01-EXPERT-BENCH",
+      "narrationCue": "Jab benchmark expert-level performance ko chhoo kar aage nikal jata hai, tab humein benchmark ka design bhi revisit karna padta hai.",
+      "smpteTimecode": "00:00:03:00"
+    },
+    {
+      "beatIndex": 3,
+      "startFrame": 180,
+      "durationInFrames": 90,
+      "cameraMove": "telemetry_pulse",
+      "activeLayerCode": "L02-RELIABILITY",
+      "narrationCue": "Aur yahan ek aur issue hai: model ka benchmark score high hona aur model ka real-world reliability high hona ek nahi hota.",
+      "smpteTimecode": "00:00:06:00"
+    }
+  ]
+}
