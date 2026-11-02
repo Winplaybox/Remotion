@@ -32,5 +32,10 @@ export interface VideoStyleConfig {
     defaultMotion: "push_in" | "parallax_orbit" | "pan_left" | "static";
     zoomIntensity: number;
   };
-  avatarDefaultMode: "pip" | "stage" | "badge";
+  visualMotifs: {
+    gridStyle: "dots" | "cyber-grid" | "blueprint-lines" | "chalk-noise" | "clean";
+    glowStrength: number;
+    borderWidth: number;
+    cornerRadius: number;
+  };
 }

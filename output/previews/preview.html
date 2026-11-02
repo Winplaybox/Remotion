@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PDF2Shorts Studio — Preview Player</title>
+  <title>PDF2Shorts Studio — Lemo-Opuscar & Lemo-Wake Preview Player</title>
   <style>
     body {
       background: #030712;
@@ -21,10 +21,13 @@
       background: linear-gradient(135deg, #00F5FF, #7928CA);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      text-align: center;
     }
     p {
       color: #94A3B8;
       margin-bottom: 30px;
+      text-align: center;
+      max-width: 800px;
     }
     .video-container {
       width: 360px;
@@ -46,32 +49,44 @@
       flex-wrap: wrap;
       justify-content: center;
       max-width: 1200px;
+      margin-bottom: 40px;
     }
     .still-card {
       background: #0F172A;
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 16px;
       overflow: hidden;
-      width: 280px;
+      width: 260px;
       text-align: center;
     }
     .still-card img {
       width: 100%;
-      height: 497px;
+      height: 462px;
       object-fit: cover;
       display: block;
     }
     .still-card .label {
       padding: 12px;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       color: #00F5FF;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 8px;
+      background: rgba(0, 245, 255, 0.15);
+      color: #00F5FF;
+      margin-top: 4px;
+      letter-spacing: 1px;
     }
   </style>
 </head>
 <body>
   <h1>PDF2Shorts Studio — Lemo-Opuscar & Lemo-Wake Visual Standard</h1>
-  <p>9:16 Vertical Shorts Format (1080×1920 @ 30 FPS) • Full-Frame Staging • 3D Attention Core • Lemo-Wake Architecture</p>
+  <p>Pure code-driven vertical video (1080×1920 @ 30 FPS). Zero tacky avatars. 100% full-frame staging with 3D Attention Core and Lemo-Wake animated schematic loops.</p>
 
   <div class="video-container">
     <video controls autoplay loop muted playsinline>
@@ -80,23 +95,23 @@
     </video>
   </div>
 
-  <h2>Key Style Frames</h2>
+  <h2>Lemo-Opuscar Multi-Style Gallery</h2>
   <div class="stills-grid">
     <div class="still-card">
-      <img src="frame-hook.png" alt="Hook Scene Frame" />
-      <div class="label">Scene 1: Hook & Vector Space Insight</div>
+      <img src="style-frame.png" alt="Dark Tech Keynote Style" />
+      <div class="label">Style: Dark Tech Keynote<br/><span class="badge">LEMO-WAKE LOOP</span></div>
+    </div>
+    <div class="still-card">
+      <img src="style-frame-scifi.png" alt="Sci-Fi Hologram HUD Style" />
+      <div class="label">Style: Sci-Fi Hologram HUD<br/><span class="badge">MULTI-STYLE DEMO</span></div>
     </div>
     <div class="still-card">
       <img src="frame-hero-3d.png" alt="3D Hero Attention Core Frame" />
-      <div class="label">Scene 2A: 3D Hero Attention Core</div>
+      <div class="label">Three.js 3D Attention Core<br/><span class="badge">SCENE 2A</span></div>
     </div>
     <div class="still-card">
-      <img src="frame-lemowake.png" alt="Lemo-Wake Diagram Frame" />
-      <div class="label">Scene 2B: Lemo-Wake Exploded Architecture</div>
-    </div>
-    <div class="still-card">
-      <img src="frame-outro.png" alt="Outro & Findings Frame" />
-      <div class="label">Scene 3: Findings & Scaling Laws</div>
+      <img src="frame-hook.png" alt="Hook Scene Frame" />
+      <div class="label">Vector Space Hook<br/><span class="badge">SCENE 1</span></div>
     </div>
   </div>
 </body>

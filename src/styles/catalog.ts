@@ -27,7 +27,12 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       defaultMotion: "push_in",
       zoomIntensity: 1.05,
     },
-    avatarDefaultMode: "pip",
+    visualMotifs: {
+      gridStyle: "dots",
+      glowStrength: 1.0,
+      borderWidth: 1.5,
+      cornerRadius: 24,
+    },
   },
 
   "scifi-hud": {
@@ -56,7 +61,12 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       defaultMotion: "parallax_orbit",
       zoomIntensity: 1.08,
     },
-    avatarDefaultMode: "stage",
+    visualMotifs: {
+      gridStyle: "cyber-grid",
+      glowStrength: 1.4,
+      borderWidth: 2,
+      cornerRadius: 12,
+    },
   },
 
   "exploded-teardown": {
@@ -85,7 +95,12 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       defaultMotion: "pan_left",
       zoomIntensity: 1.04,
     },
-    avatarDefaultMode: "pip",
+    visualMotifs: {
+      gridStyle: "blueprint-lines",
+      glowStrength: 0.8,
+      borderWidth: 2,
+      cornerRadius: 16,
+    },
   },
 
   "whiteboard-explainer": {
@@ -105,7 +120,7 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       glow: "rgba(250, 204, 21, 0.2)",
     },
     typography: {
-      fontFamily: "'Comic Sans MS', 'Segoe UI', cursive, sans-serif",
+      fontFamily: "'Segoe UI', 'Trebuchet MS', sans-serif",
       headlineWeight: 800,
       textTransform: "none",
       letterSpacing: "0px",
@@ -114,7 +129,12 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       defaultMotion: "static",
       zoomIntensity: 1.02,
     },
-    avatarDefaultMode: "stage",
+    visualMotifs: {
+      gridStyle: "chalk-noise",
+      glowStrength: 0.6,
+      borderWidth: 1.5,
+      cornerRadius: 20,
+    },
   },
 
   "data-storytelling": {
@@ -143,7 +163,12 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       defaultMotion: "push_in",
       zoomIntensity: 1.06,
     },
-    avatarDefaultMode: "pip",
+    visualMotifs: {
+      gridStyle: "dots",
+      glowStrength: 1.0,
+      borderWidth: 1.5,
+      cornerRadius: 20,
+    },
   },
 
   "swiss-motion": {
@@ -172,6 +197,11 @@ export const VIDEO_STYLES: Record<VideoStyleId, VideoStyleConfig> = {
       defaultMotion: "pan_left",
       zoomIntensity: 1.03,
     },
-    avatarDefaultMode: "pip",
+    visualMotifs: {
+      gridStyle: "clean",
+      glowStrength: 1.2,
+      borderWidth: 3,
+      cornerRadius: 8,
+    },
   },
 };
