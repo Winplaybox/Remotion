@@ -1,0 +1,55 @@
+name: Daily Content Audit
+
+on:
+  schedule:
+    - cron: "0 8 * * *"
+      # Scheduled daily at 08:00 IST for Research & SEO
+    - cron: "0 18 * * *"
+      # Scheduled daily at 18:00 IST for Analytics & Retention
+  workflow_dispatch:
+    inputs:
+      audit_type:
+        description: "Audit mode to execute"
+        type: choice
+        options:
+          - full
+          - research
+          - seo
+          - analytics
+        default: full
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-content-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Run Scheduled Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Scheduled Audit
+        run: npm run audit:scheduled -- ${{ github.event.inputs.audit_type || 'full' }}
+
+      - name: Upload Audit Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-audit-${{ github.run_id }}
+          path: reports/
+          retention-days: 14

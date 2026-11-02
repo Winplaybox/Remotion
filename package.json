@@ -1,0 +1,40 @@
+{
+  "name": "pdf2shorts-studio",
+  "version": "1.0.0",
+  "description": "My Remotion video",
+  "repository": {},
+  "license": "UNLICENSED",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24"
+  },
+  "private": true,
+  "dependencies": {
+    "@remotion/cli": "4.0.540",
+    "@types/three": "^0.187.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.540",
+    "three": "^0.187.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config-flat": "4.0.540",
+    "@types/react": "19.3.0",
+    "@types/web": "0.0.166",
+    "eslint": "10.12.0",
+    "prettier": "3.8.1",
+    "tsx": "^4.23.15",
+    "typescript": "5.9.3"
+  },
+  "scripts": {
+    "dev": "remotion studio",
+    "build": "remotion bundle",
+    "upgrade": "remotion upgrade",
+    "lint": "eslint src && tsc",
+    "audit:scheduled": "tsx automation/daily-orchestrator.ts",
+    "render:test": "remotion render ShortsMainComposition output/previews/phase1-cinematic-proof.mp4"
+  },
+  "allowScripts": {
+    "esbuild": false
+  }
+}
