@@ -3,7 +3,7 @@ import { AbsoluteFill, Sequence, Audio, staticFile } from "remotion";
 import { DESIGN } from "../designSystem";
 import { SceneIntro } from "./scenes/SceneIntro";
 import { SceneHook } from "./scenes/SceneHook";
-import { SceneBenchmarkStack } from "./scenes/SceneBenchmarkStack";
+import { SceneBenchmarkStack3D } from "./scenes/SceneBenchmarkStack3D";
 import { SceneDataReveal } from "./scenes/SceneDataReveal";
 import { SceneWhatIf } from "./scenes/SceneWhatIf";
 import { SceneInsight } from "./scenes/SceneInsight";
@@ -36,7 +36,7 @@ export const Ep01Composition: React.FC = () => {
       </Sequence>
 
       <Sequence from={offsets[2]} durationInFrames={EP01_BEATS[2].durationFrames}>
-        <SceneBenchmarkStack caption={EP01_CAPTIONS[2]} />
+        <SceneBenchmarkStack3D caption={EP01_CAPTIONS[2]} />
       </Sequence>
 
       <Sequence from={offsets[3]} durationInFrames={EP01_BEATS[3].durationFrames}>
