@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { DESIGN } from "../../designSystem";
 import { SafeZone, useSpring, SourceTag } from "../shared/CADGrid";
+import { KineticCaptions } from "../shared/KineticCaptions";
 
 interface Props {
   label: string;
@@ -9,13 +10,14 @@ interface Props {
   aiLabel: string;
   unit: string;
   source: string;
+  caption: string;
   humanValue?: number;
   prefix?: string;
   accentColor?: string;
 }
 
 export const SceneDataReveal: React.FC<Props> = ({
-  label, aiValue, aiLabel, unit, source, humanValue, prefix = "", accentColor = DESIGN.colors.accent,
+  label, aiValue, aiLabel, unit, source, caption, humanValue, prefix = "", accentColor = DESIGN.colors.accent,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -55,6 +57,10 @@ export const SceneDataReveal: React.FC<Props> = ({
           <SourceTag text={source} />
         </div>
       </SafeZone>
+
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-end", paddingBottom: 190 }}>
+        <KineticCaptions text={caption} startFrame={0} fontSize={28} />
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

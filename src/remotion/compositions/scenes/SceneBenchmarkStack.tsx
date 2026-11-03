@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, useCurrentFrame, useVideoConfig } from "remotion";
 import { DESIGN } from "../../designSystem";
 import { SafeZone, useSpring, SourceTag } from "../shared/CADGrid";
+import { KineticCaptions } from "../shared/KineticCaptions";
 
 interface Plate {
   label: string;
@@ -17,7 +18,11 @@ const PLATES: Plate[] = [
   { label: "HumanEval", value: "84.9%", color: DESIGN.colors.accentGreen, delay: 80, source: "AI Index 2026, p.61" },
 ];
 
-export const SceneBenchmarkStack: React.FC = () => {
+interface Props {
+  caption: string;
+}
+
+export const SceneBenchmarkStack: React.FC<Props> = ({ caption }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -25,8 +30,8 @@ export const SceneBenchmarkStack: React.FC = () => {
 
   return (
     <AbsoluteFill>
-      <SafeZone>
-        <div style={{ fontFamily: DESIGN.fonts.mono, fontSize: 22, letterSpacing: "0.2em", color: DESIGN.colors.accent, textTransform: "uppercase", opacity: header, marginBottom: 32 }}>
+      <SafeZone centerV={false}>
+        <div style={{ marginTop: 40, fontFamily: DESIGN.fonts.mono, fontSize: 22, letterSpacing: "0.2em", color: DESIGN.colors.accent, textTransform: "uppercase", opacity: header, marginBottom: 32 }}>
           3 BENCHMARKS · AI VS HUMAN
         </div>
 
@@ -34,14 +39,19 @@ export const SceneBenchmarkStack: React.FC = () => {
           {PLATES.map((p) => {
             const s = useSpring(frame, fps, p.delay, "smooth");
             const y = (1 - s) * 60;
+            const tilt = (1 - s) * -8;
             return (
-              <div key={p.label} style={{ opacity: s, transform: `translateY(${y}px)` }}>
+              <div key={p.label} style={{ opacity: s, transform: `translateY(${y}px) perspective(800px) rotateX(${tilt}deg)` }}>
                 <PlateCard {...p} />
               </div>
             );
           })}
         </div>
       </SafeZone>
+
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-end", paddingBottom: 190 }}>
+        <KineticCaptions text={caption} startFrame={0} fontSize={28} />
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };

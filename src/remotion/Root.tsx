@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { PhaseOneTestComposition } from "./compositions/PhaseOneTest";
 import { Ep01Composition } from "./compositions/Ep01";
+import { EP01_TOTAL_FRAMES } from "./compositions/ep01Timing";
 
 // Video spec: 1080×1920, 30fps, 9:16 vertical
 export const RootComponent: React.FC = () => {
@@ -19,7 +20,7 @@ export const RootComponent: React.FC = () => {
       <Composition
         id="Ep01"
         component={Ep01Composition}
-        durationInFrames={4500}
+        durationInFrames={EP01_TOTAL_FRAMES}
         fps={30}
         width={1080}
         height={1920}

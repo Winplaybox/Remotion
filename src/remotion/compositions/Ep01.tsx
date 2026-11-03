@@ -1,83 +1,79 @@
 import React from "react";
-import { AbsoluteFill, Sequence } from "remotion";
+import { AbsoluteFill, Sequence, Audio, staticFile } from "remotion";
 import { DESIGN } from "../designSystem";
 import { SceneIntro } from "./scenes/SceneIntro";
 import { SceneHook } from "./scenes/SceneHook";
 import { SceneBenchmarkStack } from "./scenes/SceneBenchmarkStack";
 import { SceneDataReveal } from "./scenes/SceneDataReveal";
+import { SceneWhatIf } from "./scenes/SceneWhatIf";
 import { SceneInsight } from "./scenes/SceneInsight";
-import { SceneOutro } from "./scenes/SceneOutro";
+import { SceneCTA } from "./scenes/SceneCTA";
 import { CADGrid } from "./shared/CADGrid";
+import { EP01_BEATS, EP01_CAPTIONS, computeOffsets } from "./ep01Timing";
 
-// Total: 4500 frames @ 30fps = 150s
-const SCENE_OFFSETS = {
-  intro: 0,
-  hook: 60,
-  stack: 150,
-  mmlu: 300,
-  models: 420,
-  investment: 540,
-  insight: 660,
-  outro: 750,
-};
+const offsets = computeOffsets();
 
 export const Ep01Composition: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: DESIGN.colors.bgDeep }}>
       <CADGrid />
 
-      <Sequence from={SCENE_OFFSETS.intro} durationInFrames={60}>
-        <SceneIntro />
+      {EP01_BEATS.map((b, i) => {
+        const from = offsets[i] as number;
+        return (
+          <Sequence key={b.beat} from={from} durationInFrames={b.durationFrames}>
+            <Audio src={staticFile(`audio/ep01/${b.audioFile}`)} />
+          </Sequence>
+        );
+      })}
+
+      <Sequence from={offsets[0]} durationInFrames={EP01_BEATS[0].durationFrames}>
+        <SceneHook caption={EP01_CAPTIONS[0]} />
       </Sequence>
 
-      <Sequence from={SCENE_OFFSETS.hook} durationInFrames={90}>
-        <SceneHook />
+      <Sequence from={offsets[1]} durationInFrames={EP01_BEATS[1].durationFrames}>
+        <SceneIntro caption={EP01_CAPTIONS[1]} />
       </Sequence>
 
-      <Sequence from={SCENE_OFFSETS.stack} durationInFrames={150}>
-        <SceneBenchmarkStack />
+      <Sequence from={offsets[2]} durationInFrames={EP01_BEATS[2].durationFrames}>
+        <SceneBenchmarkStack caption={EP01_CAPTIONS[2]} />
       </Sequence>
 
-      <Sequence from={SCENE_OFFSETS.mmlu} durationInFrames={120}>
-        <SceneDataReveal
-          label="MMLU Score — General Knowledge"
-          aiValue={90.0}
-          humanValue={89.8}
-          aiLabel="Gemini Ultra"
-          unit="%"
-          source="Stanford AI Index 2026, p.47"
-        />
-      </Sequence>
-
-      <Sequence from={SCENE_OFFSETS.models} durationInFrames={120}>
+      <Sequence from={offsets[3]} durationInFrames={EP01_BEATS[3].durationFrames}>
         <SceneDataReveal
           label="New Frontier Models Released (2023)"
           aiValue={149}
           aiLabel="Total Models"
           unit=""
           source="Stanford AI Index 2026, p.19"
+          caption={EP01_CAPTIONS[3]}
           accentColor={DESIGN.colors.accentWarm}
         />
       </Sequence>
 
-      <Sequence from={SCENE_OFFSETS.investment} durationInFrames={120}>
+      <Sequence from={offsets[4]} durationInFrames={EP01_BEATS[4].durationFrames}>
         <SceneDataReveal
           label="US AI Private Investment (2023)"
-          aiValue={67.2}
+          aiValue={67}
           aiLabel=""
           unit="B"
           prefix="$"
           source="Stanford AI Index 2026, p.121"
+          caption={EP01_CAPTIONS[4]}
           accentColor={DESIGN.colors.accentGreen}
         />
       </Sequence>
 
-      <Sequence from={SCENE_OFFSETS.insight} durationInFrames={90}>
-        <SceneInsight />
+      <Sequence from={offsets[5]} durationInFrames={EP01_BEATS[5].durationFrames}>
+        <SceneWhatIf caption={EP01_CAPTIONS[5]} />
       </Sequence>
 
-      <Sequence from={SCENE_OFFSETS.outro} durationInFrames={90}>
-        <SceneOutro />
+      <Sequence from={offsets[6]} durationInFrames={EP01_BEATS[6].durationFrames}>
+        <SceneInsight caption={EP01_CAPTIONS[6]} />
+      </Sequence>
+
+      <Sequence from={offsets[7]} durationInFrames={EP01_BEATS[7].durationFrames}>
+        <SceneCTA />
       </Sequence>
     </AbsoluteFill>
   );
