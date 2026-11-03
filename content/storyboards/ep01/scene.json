@@ -1,0 +1,120 @@
+{
+  "episodeId": "ep01",
+  "title": "AI Is Advancing Faster Than You Think",
+  "hinglishTitle": "AI Itni Tezi Se Kyun Badh Rahi Hai?",
+  "channel": 1,
+  "styleVariant": "exploded-teardown",
+  "fps": 30,
+  "widthPx": 1080,
+  "heightPx": 1920,
+  "hookLine": "Sirf 5 saal mein AI ne insaan ko beat kar diya — aur yeh sirf shuruat hai.",
+  "narrationScript": "Socho 2019 mein AI ek simple image bhi sahi se identify nahi kar sakta tha. Aur 2024 mein? AI ne MMLU pe 90% score kiya — almost insaan ke barabar. Yeh benchmark hai jisme medical, law, aur science ke questions hain. ImageNet pe AI ki accuracy 91.1% ho gayi. Sirf 2023 mein 149 naaye frontier models launch hue. US mein AI investment $67.2 billion pahunch gayi. HumanEval pe Claude 3 ne 84.9% score kiya — matlab AI ab code bhi likh sakti hai. Lekin yeh race abhi khatam nahi hui. Benchmarks saturate ho rahe hain — matlab hume aur mushkil tests chahiye. AI advancing hai, faster than anyone predicted.",
+  "estimatedDurationSeconds": 150,
+  "totalFrames": 4500,
+  "scenes": [
+    {
+      "id": "s1-intro",
+      "kind": "cinematic-intro",
+      "label": "Channel Intro",
+      "durationFrames": 60,
+      "background": "#07090E",
+      "layers": [
+        { "id": "l1-wordmark", "kind": "logo", "content": "AI & TECH EXPLAINED", "animation": "fade-in", "enterFrame": 0, "style": { "color": "#4A9EFF", "fontSize": 28, "fontWeight": 700, "textAlign": "center" } },
+        { "id": "l1-divider", "kind": "divider", "content": "", "animation": "draw-line", "enterFrame": 10 }
+      ]
+    },
+    {
+      "id": "s2-hook",
+      "kind": "hook",
+      "label": "Hook Statement",
+      "durationFrames": 90,
+      "background": "#07090E",
+      "layers": [
+        { "id": "l2-hook", "kind": "title", "content": "Sirf 5 Saal Mein AI Ne Insaan Ko Beat Kar Diya", "animation": "fade-up", "enterFrame": 0, "style": { "color": "#F0F6FF", "fontSize": 72, "fontWeight": 800, "textAlign": "center" }, "source": { "document": "Stanford AI Index 2026", "page": 47, "section": "Chapter 2 — Benchmarks", "accessedDate": "2026-11-02" } },
+        { "id": "l2-sub", "kind": "subtitle", "content": "aur yeh sirf shuruat hai", "animation": "fade-in", "enterFrame": 20, "style": { "color": "#4A9EFF", "fontSize": 36, "fontWeight": 600, "textAlign": "center" } }
+      ]
+    },
+    {
+      "id": "s3-stack",
+      "kind": "teardown",
+      "label": "Benchmark Layer Stack",
+      "durationFrames": 150,
+      "background": "#07090E",
+      "notes": "3 plates rise in sequence: MMLU, ImageNet, HumanEval",
+      "layers": [
+        { "id": "l3-label", "kind": "subtitle", "content": "3 BENCHMARKS · AI vs HUMAN", "animation": "fade-in", "enterFrame": 0, "style": { "color": "#4A9EFF", "fontSize": 24, "fontWeight": 700, "textAlign": "center" } },
+        { "id": "l3-plate1", "kind": "metric", "content": "MMLU · 90.0%", "animation": "fade-up", "enterFrame": 20, "source": { "document": "Stanford AI Index 2026", "page": 47, "accessedDate": "2026-11-02" }, "style": { "color": "#F0F6FF", "fontSize": 48, "fontWeight": 800 } },
+        { "id": "l3-plate2", "kind": "metric", "content": "ImageNet · 91.1%", "animation": "fade-up", "enterFrame": 50, "source": { "document": "Stanford AI Index 2026", "page": 52, "accessedDate": "2026-11-02" }, "style": { "color": "#F0F6FF", "fontSize": 48, "fontWeight": 800 } },
+        { "id": "l3-plate3", "kind": "metric", "content": "HumanEval · 84.9%", "animation": "fade-up", "enterFrame": 80, "source": { "document": "Stanford AI Index 2026", "page": 61, "accessedDate": "2026-11-02" }, "style": { "color": "#F0F6FF", "fontSize": 48, "fontWeight": 800 } }
+      ]
+    },
+    {
+      "id": "s4-mmlu",
+      "kind": "data-reveal",
+      "label": "MMLU Counter",
+      "durationFrames": 120,
+      "background": "#07090E",
+      "layers": [
+        { "id": "l4-label", "kind": "subtitle", "content": "MMLU Score — General Knowledge", "animation": "fade-in", "enterFrame": 0, "style": { "color": "#8B9BAF", "fontSize": 28, "textAlign": "center" } },
+        { "id": "l4-ai-counter", "kind": "metric", "content": "AI: 90.0%", "animation": "counter", "enterFrame": 15, "source": { "document": "Stanford AI Index 2026", "page": 47, "accessedDate": "2026-11-02" }, "style": { "color": "#4A9EFF", "fontSize": 96, "fontWeight": 800 } },
+        { "id": "l4-human-line", "kind": "body", "content": "Human baseline: 89.8%", "animation": "draw-line", "enterFrame": 40, "style": { "color": "#FF6B35", "fontSize": 32 } }
+      ]
+    },
+    {
+      "id": "s5-models",
+      "kind": "data-reveal",
+      "label": "Model Count Bar",
+      "durationFrames": 120,
+      "background": "#07090E",
+      "layers": [
+        { "id": "l5-label", "kind": "subtitle", "content": "New Frontier Models Released", "animation": "fade-in", "enterFrame": 0, "style": { "color": "#8B9BAF", "fontSize": 28, "textAlign": "center" } },
+        { "id": "l5-bar", "kind": "chart", "content": "2023:149", "animation": "expand-bar", "enterFrame": 15, "source": { "document": "Stanford AI Index 2026", "page": 19, "section": "Chapter 1", "accessedDate": "2026-11-02" }, "style": { "color": "#4A9EFF", "fontSize": 72, "fontWeight": 800 } }
+      ]
+    },
+    {
+      "id": "s6-investment",
+      "kind": "data-reveal",
+      "label": "Investment Dial",
+      "durationFrames": 120,
+      "background": "#07090E",
+      "layers": [
+        { "id": "l6-label", "kind": "subtitle", "content": "US AI Private Investment (2023)", "animation": "fade-in", "enterFrame": 0, "style": { "color": "#8B9BAF", "fontSize": 28, "textAlign": "center" } },
+        { "id": "l6-value", "kind": "metric", "content": "$67.2B", "animation": "counter", "enterFrame": 15, "source": { "document": "Stanford AI Index 2026", "page": 121, "section": "Chapter 4", "accessedDate": "2026-11-02" }, "style": { "color": "#00D084", "fontSize": 96, "fontWeight": 800 } }
+      ]
+    },
+    {
+      "id": "s7-insight",
+      "kind": "explainer",
+      "label": "Insight Card",
+      "durationFrames": 90,
+      "background": "#0D1117",
+      "layers": [
+        { "id": "l7-card", "kind": "body", "content": "Benchmarks saturate hote hain — isliye hume AI ke liye naaye, harder tests chahiye.", "animation": "scale-in", "enterFrame": 0, "style": { "color": "#F0F6FF", "fontSize": 40, "fontWeight": 700, "textAlign": "center" } }
+      ]
+    },
+    {
+      "id": "s8-outro",
+      "kind": "cinematic-outro",
+      "label": "Outro CTA",
+      "durationFrames": 90,
+      "background": "#07090E",
+      "layers": [
+        { "id": "l8-cta", "kind": "title", "content": "Follow karo — next video mein AI ke hidden costs.", "animation": "fade-up", "enterFrame": 0, "style": { "color": "#F0F6FF", "fontSize": 44, "fontWeight": 700, "textAlign": "center" } },
+        { "id": "l8-channel", "kind": "logo", "content": "AI & TECH EXPLAINED", "animation": "fade-in", "enterFrame": 30, "style": { "color": "#4A9EFF", "fontSize": 24, "textAlign": "center" } }
+      ]
+    }
+  ],
+  "primarySources": [
+    { "document": "Stanford AI Index Report 2026", "page": 47, "section": "Chapter 2 — AI Performance", "accessedDate": "2026-11-02" },
+    { "document": "Stanford AI Index Report 2026", "page": 19, "section": "Chapter 1 — Research Output", "accessedDate": "2026-11-02" },
+    { "document": "Stanford AI Index Report 2026", "page": 121, "section": "Chapter 4 — Investment", "accessedDate": "2026-11-02" }
+  ],
+  "seo": {
+    "youtubeTitle": "AI Itni Tezi Se Kyun Badh Rahi Hai? 5 Saalo Mein Insaan Ko Peechhe Chhod Diya",
+    "description": "Stanford AI Index 2026 ke data se samjho ki AI kaise ek ke baad ek benchmark cross kar rahi hai. MMLU, ImageNet, HumanEval — in sab pe AI almost human-level pahunch gayi hai. #AI #Technology #Shorts",
+    "tags": ["AI", "artificial intelligence", "tech explained", "hindi tech", "hinglish", "Stanford AI Index", "machine learning", "AI benchmarks", "GPT-4", "future of AI", "AI vs human", "technology 2024", "AI news hindi"],
+    "thumbnailConcept": "Split: human brain (left) vs neural network (right), big text '90%' in center, dark #07090E bg, accent blue glow"
+  },
+  "workflowStatus": "storyboard-review",
+  "createdAt": "2026-11-02"
+}

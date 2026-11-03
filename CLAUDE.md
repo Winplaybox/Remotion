@@ -1,58 +1,79 @@
-# PDF2Shorts Studio — Operating Guide
+# CLAUDE.md
 
-## Project Objective
-Build an AI-assisted research-to-video production system that converts research PDFs and authoritative technical documentation into original educational YouTube Shorts and Instagram Reels.
-- **Channel Niche:** AI, Technology & Future Explained.
-- **Content Language:** Natural Hinglish (Roman script Hindi + English technical terms).
-- **Visual Identity:** Premium cinematic 2.5D and 3D spatial animations.
-- **Target Duration:** 120–175 seconds. Hard maximum: 180 seconds.
-- **Target Production:** 2 approved videos per day.
-- **Rendering:** GitHub Actions.
-- **Publishing:** Human approval required. Never publish automatically.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
----
+## Project Purpose
 
-## 1. Technology Stack
-- **Runtime & Language:** Node.js (v20+) & Strict TypeScript
-- **Video Rendering:** React & Remotion (v4)
-- **3D Graphics:** Three.js / React Three Fiber for selected 3D scenes
-- **2.5D Motion:** SVG, CSS 3D transforms, parallax layers
-- **PDF Extraction:** Python (PyMuPDF / pdf.js)
-- **Validation:** Zod schemas
-- **Audio/Video Utilities:** FFmpeg
-- **Automation:** GitHub Actions (CI, scheduled audits, approved rendering)
+PDF2Shorts Studio converts research PDFs and authoritative technical documentation into original Hinglish educational YouTube Shorts and Instagram Reels (1080×1920, max 180s). Channel niche: AI, Technology & Future Explained. Target: 2 approved videos/day via GitHub Actions rendering with mandatory human approval before publishing.
 
----
+## Tech Stack
 
-## 2. Architecture & Engine Separation
-1. **Research Engine (`packages/research`):** PDF ingestion, text/table extraction, citations, and source registry.
-2. **Editorial Engine (`packages/editorial`):** Topic scoring, claim verification, and original Hinglish script writing.
-3. **Storyboard Engine (`packages/storyboard`):** Structured scene JSON, camera direction, and timing rules.
-4. **Media Engine (`packages/media`):** Narration adapters, audio normalization, and synchronized captions.
-5. **Remotion Engine (`packages/remotion`):** Reusable 2D/2.5D/3D components, transitions, and video compositions.
-6. **Quality & Growth Engine (`packages/quality`, `packages/analytics`):** Automated QC audits, SEO checks, and analytics.
+- **Runtime**: Node.js LTS + TypeScript (strict mode)
+- **Video**: Remotion + React
+- **3D**: Three.js / React Three Fiber (reserved for hero scenes only)
+- **2.5D**: CSS transforms + SVG (default for most scenes)
+- **PDF**: PyMuPDF (Python) with pdf.js fallback
+- **Validation**: Zod for all schemas
+- **Audio**: FFmpeg for processing; TTS via adapter interface
+- **Automation**: GitHub Actions (scheduled + manual dispatch)
 
----
+## Common Commands
 
-## 3. Core Rules
-- **Traceable Sources:** Every factual claim must have a traceable source ID, document title, page number, and section.
-- **No Hallucinations:** Never invent research findings, statistics, or citations.
-- **Originality:** Write original explanatory scripts; never merely read or summarize verbatim text from a PDF.
-- **Natural Hinglish:** Preserve standard English technical terms (e.g., *embeddings, attention mechanism, backpropagation, gradient descent*).
-- **Cost Discipline:** Code executes deterministic tasks; Claude makes creative and editorial decisions.
+```bash
+npm ci
+npm run typecheck
+npm run lint
+npm run test
+npm run remotion:preview
+npm run render -- --composition=<id>
+npm run audit:scheduled
+```
 
----
+## Architecture Principles
 
-## 4. Video Specifications
-- **Aspect Ratio:** 9:16 (Vertical)
-- **Resolution:** 1080 × 1920
-- **Frame Rate:** 30 FPS
-- **Format:** MP4 (H.264 / AAC)
-- **Max Duration:** 180 seconds
+**Claude does**: research interpretation, script writing, storyboard generation, SEO suggestions.
+**Code does**: PDF extraction, OCR, duplicate detection, timing math, subtitle validation, rendering, audio mixing, analytics.
 
----
+## Core Data Contract
 
-## 5. Workflow States
-`research` → `script-review` → `storyboard-review` → `render-ready` → `rendered` → `quality-review` → `approved` → `published` (or `rejected`)
+```
+research → script-review → storyboard-review → render-ready
+→ rendered → quality-review → approved → published / rejected
+```
 
-*Approval is strictly version-locked. Any script or visual change invalidates prior approval.*
+Any material change to script or visuals invalidates prior approval.
+
+## Content Rules
+
+1. Every factual claim must have a traceable source.
+2. Never invent statistics, citations, or research findings.
+3. Write original scripts — never reproduce a PDF verbatim.
+4. Natural Hinglish narration; preserve English technical terms.
+5. Target 120–175s; measure from actual audio duration.
+6. Detect and reject duplicate topics before generating scripts.
+
+## Remotion Design System
+
+`CinematicIntro` · `CinematicOutro` · `SpatialTypography` · `KineticCaptions` · `FloatingCards` · `DataVisualization` · `ProcessFlow` · `NeuralNetworkScene` · `CodeVisualization` · `CameraRig` · `ParallaxLayers` · `SceneTransition` · `AudioTimeline`
+
+2D/2.5D layers by default. Three.js reserved for hero moments only.
+
+## GitHub Actions
+
+- Daily audits at 08:00 and 18:00 IST.
+- Rendering is `workflow_dispatch` only — requires approved `videoId`.
+- Pin all third-party Actions to full commit SHAs.
+
+## Implementation Phases (do not skip ahead)
+
+| Phase | Gate |
+|-------|------|
+| 0 | Environment audit |
+| 1 | Working Remotion test render |
+| 2 | PDF extraction → structured research JSON |
+| 3 | Editorial engine → 3 reviewed scripts |
+| 4 | Storyboard engine → valid scene JSON |
+| 5 | Media engine → narrated video with captions |
+| 6 | Visual design system → 3 videos from shared components |
+| 7 | Cloud render + QC → downloadable validated MP4 |
+| 8 | Analytics + daily automation workflow |

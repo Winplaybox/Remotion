@@ -3,56 +3,49 @@ name: Render Approved Video
 on:
   workflow_dispatch:
     inputs:
-      video_id:
-        description: "Approved Video ID to render (must match content/approved/<id>.json)"
+      videoId:
+        description: "Approved VideoContent ID (format: vc_XXXXXXXX)"
         required: true
         type: string
-      composition_id:
-        description: "Remotion Composition Name"
-        required: false
-        default: "ShortsMainComposition"
-        type: string
-
-permissions:
-  contents: read
 
 jobs:
-  render:
-    name: Remotion Headless Render & Quality Gate
+  validate-and-render:
+    name: Validate ID then Render
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
-          node-version: 22
-          cache: npm
+          node-version: "20"
+          cache: "npm"
 
-      - name: Install System Dependencies for Headless Chromium / WebGL
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg libnss3 libatk-bridge2.0-0 libdrm2 libxkbcommon0 libgbm1 libasound2
-
-      - name: Install NPM Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Validate Video Approval & Asset Integrity
+      - name: Validate videoId format
         run: |
-          npx tsx -e "
-            console.log('Verifying approval and manifest for video: ${{ github.event.inputs.video_id }}');
-          "
+          if ! echo "${{ inputs.videoId }}" | grep -qE '^vc_[a-z0-9]{8}$'; then
+            echo "ERROR: videoId must match vc_[a-z0-9]{8}"
+            exit 1
+          fi
 
-      - name: Render Remotion Composition
+      - name: Install Chrome
         run: |
-          npx remotion render ${{ github.event.inputs.composition_id }} output/rendered/${{ github.event.inputs.video_id }}.mp4 --gl=angle
+          sudo apt-get update -qq
+          sudo apt-get install -y chromium-browser
 
-      - name: Upload Video Artifact for Human Approval
-        uses: actions/upload-artifact@v4
+      - name: Render approved video
+        run: |
+          npx ts-node automation/render-approved.ts \
+            --videoId="${{ inputs.videoId }}" \
+            --browser=$(which chromium-browser)
+        env:
+          VIDEO_ID: ${{ inputs.videoId }}
+
+      - name: Upload rendered MP4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:
-          name: rendered-video-${{ github.event.inputs.video_id }}
-          path: output/rendered/${{ github.event.inputs.video_id }}.mp4
-          retention-days: 7
+          name: rendered-${{ inputs.videoId }}
+          path: output/rendered/${{ inputs.videoId }}.mp4
+          retention-days: 30

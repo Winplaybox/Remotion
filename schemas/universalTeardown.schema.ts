@@ -1,112 +1,157 @@
 import { z } from "zod";
 
-export const MotionGraphicsStyleSchema = z.enum([
+// ─── Primitive tokens ────────────────────────────────────────────────────────
+
+export const HexColorSchema = z
+  .string()
+  .regex(/^#[0-9A-Fa-f]{6}$/, "Must be a 6-digit hex color");
+
+export const FrameRangeSchema = z.object({
+  start: z.number().int().nonnegative(),
+  end: z.number().int().positive(),
+});
+
+export const Vector3Schema = z.object({
+  x: z.number(),
+  y: z.number(),
+  z: z.number(),
+});
+
+// ─── Source citation ─────────────────────────────────────────────────────────
+
+export const SourceCitationSchema = z.object({
+  document: z.string().min(1),
+  page: z.number().int().positive().optional(),
+  section: z.string().optional(),
+  url: z.string().url().optional(),
+  accessedDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+});
+
+// ─── Layer types ─────────────────────────────────────────────────────────────
+
+export const LayerKindSchema = z.enum([
+  "title",
+  "subtitle",
+  "body",
+  "metric",
+  "chart",
+  "divider",
+  "logo",
+  "icon",
+  "3d-object",
+  "background",
+  "caption",
+  "hud-overlay",
+]);
+
+export const AnimationPresetSchema = z.enum([
+  "fade-up",
+  "fade-in",
+  "scale-in",
+  "slide-left",
+  "slide-right",
+  "typewriter",
+  "counter",
+  "draw-line",
+  "expand-bar",
+  "orbit-in",
+]);
+
+export const LayerSchema = z.object({
+  id: z.string().min(1),
+  kind: LayerKindSchema,
+  content: z.string(),
+  animation: AnimationPresetSchema,
+  enterFrame: z.number().int().nonnegative(),
+  exitFrame: z.number().int().positive().optional(),
+  source: SourceCitationSchema.optional(),
+  style: z
+    .object({
+      color: HexColorSchema.optional(),
+      fontSize: z.number().positive().optional(),
+      fontWeight: z.union([z.literal(400), z.literal(600), z.literal(700), z.literal(800)]).optional(),
+      textAlign: z.enum(["left", "center", "right"]).optional(),
+    })
+    .optional(),
+});
+
+// ─── Scene types ─────────────────────────────────────────────────────────────
+
+export const SceneKindSchema = z.enum([
+  "cinematic-intro",
+  "hook",
+  "explainer",
+  "data-reveal",
+  "teardown",
+  "comparison",
+  "archive-scan",
+  "hud-telemetry",
+  "cinematic-outro",
+]);
+
+export const SceneSchema = z.object({
+  id: z.string().min(1),
+  kind: SceneKindSchema,
+  label: z.string().min(1),
+  durationFrames: z.number().int().positive(),
+  layers: z.array(LayerSchema).min(1),
+  background: HexColorSchema.default("#07090E"),
+  notes: z.string().optional(),
+});
+
+// ─── Universal Teardown (full episode schema) ─────────────────────────────────
+
+export const StyleVariantSchema = z.enum([
   "exploded-teardown",
   "data-physicalization",
   "archive-light-table",
   "visual-investigation",
 ]);
 
-export type MotionGraphicsStyle = z.infer<typeof MotionGraphicsStyleSchema>;
+export const UniversalTeardownSchema = z.object({
+  episodeId: z.string().regex(/^ep\d{2}$/),
+  title: z.string().min(1).max(120),
+  hinglishTitle: z.string().min(1).max(120),
+  channel: z.number().int().min(1).max(5),
+  styleVariant: StyleVariantSchema,
 
-export const LayerMetricSchema = z.object({
-  label: z.string(),
-  value: z.string(),
-  change: z.string().optional(),
-  unit: z.string().optional(),
-});
+  fps: z.literal(30),
+  widthPx: z.literal(1080),
+  heightPx: z.literal(1920),
 
-export const LayerCalloutSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  specCode: z.string(),
-  xPct: z.number().min(0).max(100),
-  yPct: z.number().min(0).max(100),
-});
+  hookLine: z.string().max(140),
+  narrationScript: z.string().min(100),
+  estimatedDurationSeconds: z.number().min(60).max(180),
 
-export const TeardownLayerSchema = z.object({
-  id: z.string(),
-  layerCode: z.string(), // e.g. "L01-UI", "L02-TENSOR", "L03-SILICON"
-  name: z.string(),
-  category: z.string(),
-  depthZ: z.number(), // Z-depth in 3D preserve-3d space
-  tiltX: z.number().default(-18),
-  tiltY: z.number().default(24),
-  metrics: z.array(LayerMetricSchema).default([]),
-  callouts: z.array(LayerCalloutSchema).default([]),
-  accentColor: z.string(),
-  wireframe: z.boolean().default(false),
-});
+  scenes: z.array(SceneSchema).min(3).max(12),
+  totalFrames: z.number().int().positive(),
 
-export const PhysicalPlateSchema = z.object({
-  yearOrStep: z.string(),
-  densityValue: z.number(), // 0 - 100 for visual plate height
-  metricFormatted: z.string(),
-  annotation: z.string(),
-  plateColor: z.string(),
-});
+  primarySources: z.array(SourceCitationSchema).min(1),
 
-export const TelemetryDialSchema = z.object({
-  code: z.string(),
-  label: z.string(),
-  value: z.number(),
-  formattedValue: z.string(),
-  min: z.number().default(0),
-  max: z.number().default(100),
-  unit: z.string(),
-  status: z.enum(["nominal", "elevated", "critical"]).default("nominal"),
-});
+  seo: z.object({
+    youtubeTitle: z.string().max(100),
+    description: z.string().max(5000),
+    tags: z.array(z.string()).min(5).max(30),
+    thumbnailConcept: z.string().max(300),
+  }),
 
-export const SmpteBeatSchema = z.object({
-  beatIndex: z.number().int().min(1),
-  startFrame: z.number().int().min(0),
-  durationInFrames: z.number().int().positive(),
-  cameraMove: z.enum(["static", "orbit_push", "layer_split", "loupe_scan", "telemetry_pulse"]),
-  activeLayerCode: z.string().optional(),
-  narrationCue: z.string(),
-  smpteTimecode: z.string(), // e.g. "00:00:02:14"
-});
-
-export const UniversalTeardownSceneSchema = z.object({
-  episodeId: z.string(), // e.g. "EP01"
-  channel: z.enum([
-    "AI, Technology & Future Explained",
-    "Human Psychology & Science Explained",
-    "History, Civilizations & Hidden Stories",
-    "Business, Companies & Economics Explained",
-    "Space, Science & Discoveries",
+  workflowStatus: z.enum([
+    "research",
+    "script-review",
+    "storyboard-review",
+    "render-ready",
+    "rendered",
+    "quality-review",
+    "approved",
+    "published",
+    "rejected",
   ]),
-  title: z.string(),
-  hookHeadline: z.string(),
-  style: MotionGraphicsStyleSchema,
-  smpteBase: z.string().default("00:00:00:00"),
-  dimensions: z.object({
-    width: z.literal(1080).default(1080),
-    height: z.literal(1920).default(1920),
-    fps: z.literal(30).default(30),
-    totalDurationInFrames: z.number().int().default(1800), // Default 60s
-  }),
-  palette: z.object({
-    background: z.string().default("#07090E"),
-    surface: z.string().default("rgba(13, 17, 23, 0.92)"),
-    border: z.string().default("#1F293D"),
-    primaryAccent: z.string(), // e.g. #00F5FF or #F59E0B
-    secondaryAccent: z.string(),
-    cadGridColor: z.string().default("rgba(255, 255, 255, 0.04)"),
-    textPrimary: z.string().default("#F0F6FC"),
-    textSecondary: z.string().default("#8B949E"),
-  }),
-  citation: z.object({
-    source: z.string(), // e.g. "Stanford AI Index 2026"
-    chapter: z.string(), // e.g. "Chapter 1: Research & Development"
-    page: z.number().int().positive(),
-    verifiedMetric: z.string(),
-    doiOrUrl: z.string().optional(),
-  }),
-  layers: z.array(TeardownLayerSchema).default([]),
-  plates: z.array(PhysicalPlateSchema).default([]),
-  dials: z.array(TelemetryDialSchema).default([]),
-  beats: z.array(SmpteBeatSchema),
+  createdAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  approvedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
-export type UniversalTeardownScene = z.infer<typeof UniversalTeardownSceneSchema>;
+export type UniversalTeardown = z.infer<typeof UniversalTeardownSchema>;
+export type Scene = z.infer<typeof SceneSchema>;
+export type Layer = z.infer<typeof LayerSchema>;
+export type SourceCitation = z.infer<typeof SourceCitationSchema>;
+export type StyleVariant = z.infer<typeof StyleVariantSchema>;

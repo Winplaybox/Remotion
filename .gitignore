@@ -1,11 +1,15 @@
-node_modules
-dist
-.DS_Store
-.env
-
-# Ignore the output video from Git but not videos you import into src/.
-out
+node_modules/
+dist/
 output/rendered/
-reports/
+output/previews/
 *.mp4
-!output/previews/ep01-ai-advancing-faster.mp4
+*.mov
+*.log
+.env
+.env.*
+research/incoming/
+research/extracted/
+assets/audio/generated/
+assets/generated/
+.DS_Store
+Thumbs.db

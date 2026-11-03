@@ -1,55 +1,27 @@
-name: Daily Content Audit
+name: Daily Audit
 
 on:
   schedule:
-    - cron: "0 8 * * *"
-      # Scheduled daily at 08:00 IST for Research & SEO
-    - cron: "0 18 * * *"
-      # Scheduled daily at 18:00 IST for Analytics & Retention
+    - cron: "30 2 * * *"   # 08:00 IST
+    - cron: "30 12 * * *"  # 18:00 IST
   workflow_dispatch:
-    inputs:
-      audit_type:
-        description: "Audit mode to execute"
-        type: choice
-        options:
-          - full
-          - research
-          - seo
-          - analytics
-        default: full
-
-permissions:
-  contents: read
-
-concurrency:
-  group: daily-content-audit
-  cancel-in-progress: false
 
 jobs:
   audit:
-    name: Run Scheduled Audit
+    name: Daily Content Audit
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af
         with:
-          node-version: 22
-          cache: npm
+          node-version: "20"
+          cache: "npm"
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm ci
 
-      - name: Run Scheduled Audit
-        run: npm run audit:scheduled -- ${{ github.event.inputs.audit_type || 'full' }}
-
-      - name: Upload Audit Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: daily-audit-${{ github.run_id }}
-          path: reports/
-          retention-days: 14
+      - name: Run audit
+        run: npm run audit:scheduled
+        env:
+          AUDIT_ENV: github-actions
