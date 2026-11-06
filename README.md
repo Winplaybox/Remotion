@@ -19,6 +19,7 @@ All compositions target 1080×1920 at 30 FPS (9:16).
 npm run render:orbit
 npm run render:traffic
 npm run render:sanatan
+npm run quality:render -- output/orbit-puzzle.mp4
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries, quality gates and the 28-day milestone.
