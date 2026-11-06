@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Sequence, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { SectionLabel, ProgressRail } from "@visuals/index";
+import { AudioTrack } from "@audio/AudioTrack";
 import type { SanatanEpisode } from "./model";
 const Motif: React.FC<{ type: string; frame: number }> = ({ type, frame }) => {
   const rotation = frame * 0.035;
@@ -27,6 +28,7 @@ export const SanatanStoryComposition: React.FC<SanatanEpisode> = (episode) => {
   let cursor = 0;
   const scenes = episode.scenes.map((scene) => { const from = cursor; cursor += scene.durationFrames; return { scene, from }; });
   return <AbsoluteFill style={{ background: "#120F22" }}>
+    <AudioTrack cues={episode.audioCues} />
     {scenes.map(({ scene, from }) => <Sequence key={scene.id} from={from} durationInFrames={scene.durationFrames}><StoryScene {...scene} duration={scene.durationFrames} /></Sequence>)}
     <div style={{ position: "absolute", bottom: 160, left: 72, right: 72 }}><ProgressRail progress={frame / Math.max(1, cursor)} color="#F4C56A" /></div>
     <div style={{ position: "absolute", bottom: 95, left: 0, right: 0, textAlign: "center", color: "#E6D4B6", fontSize: 18, letterSpacing: 4 }}>SANATAN STORIES • WISDOM • TRADITION</div>
