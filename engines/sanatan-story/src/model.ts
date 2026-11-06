@@ -1,5 +1,5 @@
 export interface StoryScene { id: string; chapter: string; heading: string; narration: string; durationFrames: number; palette: readonly [string, string]; motif: "sun" | "lotus" | "mandala" | "flame" | "temple"; visualAsset?: string; }
-export interface SanatanEpisode { id: string; title: string; sourceNote: string; scenes: readonly StoryScene[]; }
+export interface SanatanEpisode { [key: string]: unknown; id: string; title: string; sourceNote: string; scenes: readonly StoryScene[]; }
 export const SANATAN_EPISODE_DEMO: SanatanEpisode = {
   id: "dharma-001", title: "The Path of Dharma",
   sourceNote: "Original illustrative sample. Replace with a source-checked episode script and approved visual references.",
