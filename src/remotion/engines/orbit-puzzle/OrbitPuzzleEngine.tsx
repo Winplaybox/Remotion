@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig } from "remotion";
 const C = { bg:"#07111F", line:"#24435C", cyan:"#55D6FF", violet:"#A78BFA", gold:"#FFD166", white:"#F4F8FC", muted:"#8DA4BA", green:"#72E6B2" };
 const Orbit: React.FC<{radius:number;speed:number;phase:number;color:string;size:number;frame:number}> = ({radius,speed,phase,color,size,frame}) => {
  const angle=frame*speed+phase, x=540+Math.cos(angle)*radius, y=870+Math.sin(angle)*radius*.72;
