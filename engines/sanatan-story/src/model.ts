@@ -1,5 +1,17 @@
-export interface StoryScene { id: string; chapter: string; heading: string; narration: string; durationFrames: number; palette: readonly [string, string]; motif: "sun" | "lotus" | "mandala" | "flame" | "temple"; visualAsset?: string; }
-export interface SanatanEpisode { [key: string]: unknown; id: string; title: string; sourceNote: string; scenes: readonly StoryScene[]; }
+import { z } from "zod";
+export const StorySceneSchema = z.object({
+  id: z.string().min(1), chapter: z.string().min(1), heading: z.string().min(1),
+  narration: z.string().min(1), durationFrames: z.number().int().positive(),
+  palette: z.tuple([z.string(), z.string()]),
+  motif: z.enum(["sun", "lotus", "mandala", "flame", "temple"]),
+  visualAsset: z.string().optional()
+});
+export const SanatanEpisodeSchema = z.object({
+  id: z.string().min(1), title: z.string().min(1), sourceNote: z.string().min(1),
+  scenes: z.array(StorySceneSchema).min(1)
+});
+export type StoryScene = z.infer<typeof StorySceneSchema>;
+export type SanatanEpisode = z.infer<typeof SanatanEpisodeSchema>;
 export const SANATAN_EPISODE_DEMO: SanatanEpisode = {
   id: "dharma-001", title: "The Path of Dharma",
   sourceNote: "Original illustrative sample. Replace with a source-checked episode script and approved visual references.",
