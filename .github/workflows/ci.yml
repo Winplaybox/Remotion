@@ -52,11 +52,11 @@ jobs:
 
       - name: Render Phase 1 test composition
         run: |
-          npx remotion render \\
-            src/remotion/index.ts \\
-            PhaseOneTest \\
-            output/ci-phase1-test.mp4 \\
-            --browser-executable=$(which chromium-browser) \\
+          npx remotion render \
+            src/remotion/index.ts \
+            PhaseOneTest \
+            output/ci-phase1-test.mp4 \
+            --browser-executable=$(which chromium-browser) \
             --gl=swiftshader
 
       - name: Render engine smoke frames
