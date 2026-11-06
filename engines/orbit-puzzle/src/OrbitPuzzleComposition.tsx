@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { SceneBackdrop, SectionLabel, ProgressRail } from "@visuals/index";
 import type { OrbitPuzzle } from "./model";
 const Orbit: React.FC<{ radius: number; speed: number; phase: number; color: string; frame: number }> = ({ radius, speed, phase, color, frame }) => {
