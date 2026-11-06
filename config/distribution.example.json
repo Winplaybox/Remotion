@@ -1,0 +1,36 @@
+{
+  "mode": "automatic",
+  "approvalPolicy": "first_upload_per_platform_account",
+  "productionPublishingEnabled": false,
+  "platforms": {
+    "youtube": {
+      "enabled": false,
+      "environment": "disabled",
+      "requiresFirstUploadApproval": true
+    },
+    "instagram": {
+      "enabled": false,
+      "environment": "disabled",
+      "requiresFirstUploadApproval": true
+    },
+    "facebook": {
+      "enabled": false,
+      "environment": "disabled",
+      "requiresFirstUploadApproval": true
+    },
+    "pinterest": {
+      "enabled": false,
+      "environment": "disabled",
+      "requiresFirstUploadApproval": true
+    }
+  },
+  "qualityGate": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30,
+    "videoCodec": "h264",
+    "pixelFormat": "yuv420p",
+    "audioCodec": "aac",
+    "requireAudio": false
+  }
+}
