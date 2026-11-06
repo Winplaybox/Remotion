@@ -15,7 +15,8 @@
     "render:traffic": "remotion render apps/studio/src/remotion/index.ts TrafficPuzzle output/traffic-puzzle.mp4",
     "render:sanatan": "remotion render apps/studio/src/remotion/index.ts SanatanStory output/sanatan-story.mp4",
     "render:all": "npm run render:orbit && npm run render:traffic && npm run render:sanatan",
-    "build": "tsc --project tsconfig.build.json"
+    "build": "tsc --project tsconfig.build.json",
+    "quality:render": "ts-node scripts/verify-render.ts"
   },
   "dependencies": {
     "@remotion/cli": "4.0.257",
