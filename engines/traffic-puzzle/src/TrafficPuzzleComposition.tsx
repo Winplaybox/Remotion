@@ -5,13 +5,19 @@ import type { TrafficPuzzle } from "./model";
 export const TrafficPuzzleComposition: React.FC<TrafficPuzzle> = (puzzle) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const revealAt = 780;
+  const stepStart = 520;
+  const stepFrames = 55;
+  const revealAt = stepStart + puzzle.solution.length * stepFrames + 15;
   const reveal = spring({ frame: frame - revealAt, fps, config: { damping: 18 } });
   const solved = frame >= revealAt;
   const cell = 116;
   const boardLeft = (1080 - puzzle.size * cell) / 2;
   const boardTop = 560;
-  const move = interpolate(frame, [680, 780], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const offsetFor = (vehicleId: string): number => puzzle.solution.reduce((total, move, index) => {
+    if (move.vehicleId !== vehicleId) return total;
+    const progress = interpolate(frame, [stepStart + index * stepFrames, stepStart + (index + 1) * stepFrames], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+    return total + move.cells * progress;
+  }, 0);
   const timer = Math.max(0, 10 - Math.floor(Math.max(0, frame - 360) / fps));
   return <AbsoluteFill style={{ background: "radial-gradient(circle at 50% 40%, #1B2C3B, #09121D 72%)", color: "#F4F7FA", fontFamily: "Arial,sans-serif" }}>
     <div style={{ position: "absolute", top: 110, left: 72, right: 72, display: "flex", justifyContent: "space-between" }}><SectionLabel color="#FFD447">GRIDLOCK</SectionLabel><span style={{ color: "#91A5B5" }}>LEVEL 01</span></div>
@@ -20,8 +26,9 @@ export const TrafficPuzzleComposition: React.FC<TrafficPuzzle> = (puzzle) => {
       <rect x={boardLeft - 12} y={boardTop - 12} width={puzzle.size * cell + 24} height={puzzle.size * cell + 24} rx="28" fill="#263746" stroke="#486173" strokeWidth="5" />
       {Array.from({ length: puzzle.size + 1 }, (_, index) => <g key={index}><path d={`M${boardLeft + index * cell} ${boardTop} V${boardTop + puzzle.size * cell}`} stroke="#B9C8D3" strokeOpacity=".2" strokeDasharray="8 12" /><path d={`M${boardLeft} ${boardTop + index * cell} H${boardLeft + puzzle.size * cell}`} stroke="#B9C8D3" strokeOpacity=".2" strokeDasharray="8 12" /></g>)}
       {puzzle.vehicles.map((vehicle) => {
-        const x = boardLeft + vehicle.col * cell + (vehicle.isTarget ? move * cell * 3.5 : 0);
-        const y = boardTop + vehicle.row * cell;
+        const offset = offsetFor(vehicle.id);
+        const x = boardLeft + (vehicle.col + (vehicle.axis === "horizontal" ? offset : 0)) * cell;
+        const y = boardTop + (vehicle.row + (vehicle.axis === "vertical" ? offset : 0)) * cell;
         const width = (vehicle.axis === "horizontal" ? vehicle.length : 1) * cell - 12;
         const height = (vehicle.axis === "vertical" ? vehicle.length : 1) * cell - 12;
         return <g key={vehicle.id} transform={`translate(${x + 6} ${y + 6})`}><rect width={width} height={height} rx="18" fill={vehicle.color} stroke="#fff" strokeOpacity=".4" strokeWidth="3" /><rect x="12" y="12" width={Math.max(20, width - 24)} height={Math.max(20, height - 24)} rx="12" fill="#07101A" opacity=".12" /><text x={width / 2} y={height / 2 + 8} fill="#0B1A25" textAnchor="middle" fontSize="24" fontWeight="900">{vehicle.isTarget ? "YOU" : vehicle.id}</text></g>;
