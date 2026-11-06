@@ -63,6 +63,18 @@ jobs:
               ;;
           esac
 
+      - name: Normalize MP4 pixel format
+        shell: bash
+        run: |
+          case "${{ inputs.engine }}" in
+            orbit) file="output/orbit-puzzle.mp4" ;;
+            traffic) file="output/traffic-puzzle.mp4" ;;
+            sanatan) file="output/sanatan-story.mp4" ;;
+          esac
+          temp="${file%.mp4}.normalized.mp4"
+          ffmpeg -y -i "$file" -map 0:v:0 -map '0:a?' -c:v libx264 -pix_fmt yuv420p -crf 18 -preset medium -c:a aac -b:a 192k -movflags +faststart "$temp"
+          mv "$temp" "$file"
+
       - name: Validate MP4 contract
         shell: bash
         run: |
