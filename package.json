@@ -16,7 +16,10 @@
     "render:sanatan": "remotion render apps/studio/src/remotion/index.ts SanatanStory output/sanatan-story.mp4",
     "render:all": "npm run render:orbit && npm run render:traffic && npm run render:sanatan",
     "build": "tsc --project tsconfig.build.json",
-    "quality:render": "ts-node scripts/verify-render.ts"
+    "quality:render": "ts-node scripts/verify-render.ts",
+    "render:engine": "ts-node scripts/render-engine.ts",
+    "validate:engine": "ts-node scripts/validate-engine.ts",
+    "manifest:render": "ts-node scripts/write-render-manifest.ts"
   },
   "dependencies": {
     "@remotion/cli": "4.0.257",
