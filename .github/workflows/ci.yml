@@ -52,16 +52,22 @@ jobs:
 
       - name: Render Phase 1 test composition
         run: |
-          npx remotion render \
-            src/remotion/index.ts \
-            PhaseOneTest \
-            output/ci-phase1-test.mp4 \
-            --browser-executable=$(which chromium-browser) \
+          npx remotion render \\
+            src/remotion/index.ts \\
+            PhaseOneTest \\
+            output/ci-phase1-test.mp4 \\
+            --browser-executable=$(which chromium-browser) \\
             --gl=swiftshader
 
-      - name: Upload render artifact
+      - name: Render engine smoke frames
+        run: |
+          npx remotion render src/remotion/index.ts OrbitPuzzle output/ci-orbit-puzzle.mp4 --frames=0-2 --browser-executable=$(which chromium-browser) --gl=swiftshader
+          npx remotion render src/remotion/index.ts TrafficPuzzle output/ci-traffic-puzzle.mp4 --frames=0-2 --browser-executable=$(which chromium-browser) --gl=swiftshader
+          npx remotion render src/remotion/index.ts SanatanStory output/ci-sanatan-story.mp4 --frames=0-2 --browser-executable=$(which chromium-browser) --gl=swiftshader
+
+      - name: Upload render artifacts
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4.0.0
         with:
-          name: phase1-render
-          path: output/ci-phase1-test.mp4
+          name: portrait-engine-smoke-renders
+          path: output/ci-*.mp4
           retention-days: 7
