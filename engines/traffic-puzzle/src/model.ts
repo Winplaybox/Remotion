@@ -1,7 +1,7 @@
 export type Axis = "horizontal" | "vertical";
 export interface TrafficVehicle { id: string; row: number; col: number; length: 2 | 3; axis: Axis; color: string; isTarget?: boolean; }
 export interface TrafficMove { vehicleId: string; cells: number; }
-export interface TrafficPuzzle { title: string; size: number; exitRow: number; vehicles: readonly TrafficVehicle[]; solution: readonly TrafficMove[]; }
+export interface TrafficPuzzle { [key: string]: unknown; title: string; size: number; exitRow: number; vehicles: readonly TrafficVehicle[]; solution: readonly TrafficMove[]; }
 export const TRAFFIC_PUZZLE_DEMO: TrafficPuzzle = {
   title: "FREE THE YELLOW CAR", size: 6, exitRow: 2,
   vehicles: [
