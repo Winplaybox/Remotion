@@ -1,83 +1,66 @@
 name: Render Engine Artifact
-
 on:
   workflow_dispatch:
     inputs:
       engine:
-        description: Engine to render
+        description: Engine to render (or all three)
         required: true
         type: choice
+        default: all
         options:
-          - orbit
-          - traffic
-          - sanatan
-
+          - all
+          - orbit-puzzle
+          - traffic-puzzle
+          - sanatan-story
 permissions:
   contents: read
-
 concurrency:
   group: render-engine-${{ github.ref }}-${{ inputs.engine }}
   cancel-in-progress: false
-
 jobs:
   render:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ${{ fromJSON(inputs.engine == 'all' && '["orbit-puzzle","traffic-puzzle","sanatan-story"]' || format('["{0}"]', inputs.engine)) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20"
           cache: npm
-
       - name: Install FFmpeg and fonts
         run: |
           sudo apt-get update
           sudo apt-get install --yes ffmpeg fonts-noto-core fonts-indic
           ffmpeg -version
           ffprobe -version
-
       - name: Install dependencies
         run: npm ci
-
       - name: Validate source
         run: |
           npm run typecheck
           npm run lint
           npm test
-
-      - name: Render selected engine
-        shell: bash
+      - name: Validate engine content
+        run: npm run validate:engine -- "${{ matrix.engine }}"
+      - name: Render complete composition
+        run: npm run render:engine -- "${{ matrix.engine }}"
+      - name: Validate MP4 contract
         run: |
-          set -euo pipefail
-          mkdir -p output
-          case "${{ inputs.engine }}" in
-            orbit)
-              composition="OrbitPuzzle"
-              file="output/orbit-puzzle.mp4"
-              ;;
-            traffic)
-              composition="TrafficPuzzle"
-              file="output/traffic-puzzle.mp4"
-              ;;
-            sanatan)
-              composition="SanatanStory"
-              file="output/sanatan-story.mp4"
-              ;;
-            *)
-              echo "::error::Unsupported engine"
-              exit 2
-              ;;
+          case "${{ matrix.engine }}" in
+            orbit-puzzle) file="output/orbit-puzzle.mp4" ;;
+            traffic-puzzle) file="output/traffic-puzzle.mp4" ;;
+            sanatan-story) file="output/sanatan-story.mp4" ;;
           esac
-          echo "Rendering ${composition} to ${file}"
-          npx remotion render apps/studio/src/remotion/index.ts "$composition" "$file" \
-            --codec=h264 \
-            --pixel-format=yuv420p
-
-      - name: Capture media diagnostics
+          npm run quality:render -- "$file"
+      - name: Write render manifest
+        run: npm run manifest:render -- "${{ matrix.engine }}"
+      - name: Capture diagnostics
         if: always()
         shell: bash
         run: |
@@ -86,34 +69,17 @@ jobs:
           for file in output/*.mp4; do
             [ -f "$file" ] || continue
             name="$(basename "$file" .mp4)"
-            echo "===== ffprobe: $file ====="
-            ffprobe -v error -show_streams -show_format -of json "$file" \
-              | tee "output/diagnostics/${name}-ffprobe.json"
-            echo "===== summary: $file ====="
-            ffprobe -v error -select_streams v:0 \
-              -show_entries stream=codec_name,width,height,pix_fmt,r_frame_rate \
-              -of default=noprint_wrappers=1 "$file" \
-              | tee "output/diagnostics/${name}-video-summary.txt"
+            ffprobe -v error -show_streams -show_format -of json "$file" > "output/diagnostics/${name}-ffprobe.json"
+            ffmpeg -v error -i "$file" -vf "select='eq(n,0)+eq(n,150)+eq(n,450)+eq(n,750)'" -vsync 0 "output/diagnostics/${name}-frame-%02d.jpg"
           done
-
-      - name: Validate MP4 contract
-        shell: bash
-        run: |
-          set -euo pipefail
-          case "${{ inputs.engine }}" in
-            orbit) file="output/orbit-puzzle.mp4" ;;
-            traffic) file="output/traffic-puzzle.mp4" ;;
-            sanatan) file="output/sanatan-story.mp4" ;;
-          esac
-          npm run quality:render -- "$file"
-
-      - name: Upload render and diagnostics
+      - name: Upload render, manifest and diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.engine }}-render-${{ github.run_number }}
+          name: ${{ matrix.engine }}-render-${{ github.run_number }}
           path: |
             output/*.mp4
+            output/manifests/*
             output/diagnostics/*
           if-no-files-found: warn
           retention-days: 14
