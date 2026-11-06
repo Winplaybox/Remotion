@@ -1,40 +1,17 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "jsx": "react-jsx",
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-    "noImplicitOverride": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": ".",
-    "baseUrl": ".",
+    "target": "ES2022", "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "CommonJS", "moduleResolution": "node", "jsx": "react-jsx",
+    "strict": true, "noUncheckedIndexedAccess": true, "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true, "allowSyntheticDefaultImports": true, "esModuleInterop": true,
+    "skipLibCheck": true, "baseUrl": ".",
     "paths": {
-      "@core/*": ["packages/core/src/*"],
-      "@research/*": ["packages/research/src/*"],
-      "@editorial/*": ["packages/editorial/src/*"],
-      "@storyboard/*": ["packages/storyboard/src/*"],
-      "@media/*": ["packages/media/src/*"],
-      "@quality/*": ["packages/quality/src/*"],
-      "@schemas/*": ["schemas/*"]
+      "@core/*": ["packages/core/src/*"], "@motion/*": ["packages/motion/src/*"],
+      "@audio/*": ["packages/audio/src/*"], "@visuals/*": ["packages/visuals/src/*"],
+      "@camera/*": ["packages/camera/src/*"], "@runtime/*": ["packages/scene-runtime/src/*"]
     },
-    "types": ["node", "jest"]
+    "types": ["node", "jest"], "noEmit": true
   },
-  "include": [
-    "src/**/*",
-    "packages/**/*",
-    "schemas/**/*",
-    "automation/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "output"
-  ]
+  "include": ["apps/**/*", "engines/**/*", "packages/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "output", "dist"]
 }

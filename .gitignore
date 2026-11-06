@@ -1,15 +1,10 @@
 node_modules/
 dist/
-output/rendered/
-output/previews/
+output/
 *.mp4
 *.mov
 *.log
 .env
 .env.*
-research/incoming/
-research/extracted/
-assets/audio/generated/
-assets/generated/
 .DS_Store
 Thumbs.db
