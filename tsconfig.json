@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "CommonJS",
     "moduleResolution": "node",
     "jsx": "react-jsx",
@@ -12,29 +16,43 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "@core/*": ["packages/core/src/*"],
-      "@research/*": ["packages/research/src/*"],
-      "@editorial/*": ["packages/editorial/src/*"],
-      "@storyboard/*": ["packages/storyboard/src/*"],
-      "@media/*": ["packages/media/src/*"],
-      "@quality/*": ["packages/quality/src/*"],
-      "@schemas/*": ["schemas/*"]
+      "@core/*": [
+        "packages/core/src/*"
+      ],
+      "@motion/*": [
+        "packages/motion/src/*"
+      ],
+      "@audio/*": [
+        "packages/audio/src/*"
+      ],
+      "@visuals/*": [
+        "packages/visuals/src/*"
+      ],
+      "@camera/*": [
+        "packages/camera/src/*"
+      ],
+      "@runtime/*": [
+        "packages/scene-runtime/src/*"
+      ]
     },
-    "types": ["node", "jest"]
+    "types": [
+      "node",
+      "jest"
+    ],
+    "noEmit": true
   },
   "include": [
-    "src/**/*",
+    "apps/**/*",
+    "engines/**/*",
     "packages/**/*",
-    "schemas/**/*",
-    "automation/**/*"
+    "tests/**/*",
+    "scripts/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "output"
+    "output",
+    "dist"
   ]
 }
