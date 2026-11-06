@@ -1,0 +1,75 @@
+name: Render Engine Artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: Engine to render
+        required: true
+        type: choice
+        options:
+          - orbit
+          - traffic
+          - sanatan
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-engine-${{ github.ref }}-${{ inputs.engine }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Render selected engine
+        shell: bash
+        run: |
+          mkdir -p output
+          case "${{ inputs.engine }}" in
+            orbit)
+              npx remotion render apps/studio/src/remotion/index.ts OrbitPuzzle output/orbit-puzzle.mp4
+              ;;
+            traffic)
+              npx remotion render apps/studio/src/remotion/index.ts TrafficPuzzle output/traffic-puzzle.mp4
+              ;;
+            sanatan)
+              npx remotion render apps/studio/src/remotion/index.ts SanatanStory output/sanatan-story.mp4
+              ;;
+            *)
+              echo "Unsupported engine" >&2
+              exit 2
+              ;;
+          esac
+
+      - name: Validate MP4 contract
+        shell: bash
+        run: |
+          case "${{ inputs.engine }}" in
+            orbit) file="output/orbit-puzzle.mp4" ;;
+            traffic) file="output/traffic-puzzle.mp4" ;;
+            sanatan) file="output/sanatan-story.mp4" ;;
+          esac
+          npm run quality:render -- "$file"
+
+      - name: Upload downloadable MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.engine }}-video-${{ github.run_number }}
+          path: output/*.mp4
+          if-no-files-found: error
+          retention-days: 14
