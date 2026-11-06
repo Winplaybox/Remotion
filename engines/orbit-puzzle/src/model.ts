@@ -5,7 +5,7 @@ export const OrbitPuzzleSchema = z.object({
   orbitSpeeds: z.array(z.number()).min(2).max(5),
   answerIndex: z.number().int().nonnegative(), options: z.array(z.string().min(1)).length(3),
   revealFrame: z.number().int().positive()
-});
+}).refine((puzzle) => puzzle.answerIndex < puzzle.options.length, { path: ["answerIndex"], message: "Answer index must reference an available option" });
 export type OrbitPuzzle = z.infer<typeof OrbitPuzzleSchema>;
 export const ORBIT_PUZZLE_DEMO: OrbitPuzzle = {
   title: "ORBIT LAB", prompt: "Which orbit comes next?", orbitRadii: [150, 250, 350],
