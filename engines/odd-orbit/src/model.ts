@@ -45,7 +45,7 @@ export const OddOrbitSchema = z.object({
 export type OddOrbit = z.infer<typeof OddOrbitSchema>;
 
 /** Channel identity: Chakra Puzzle. Change names/colours here only. */
-export const CHAKRA_BRAND = { brand: "CHAKRA PUZZLE", handle: "@chakrapuzzle" } as const;
+export const CHAKRA_BRAND = { brand: "CHAKRA PUZZLE", handle: "@ChakraPuzzle" } as const;
 
 export const RULE_COPY: Record<OddOrbit["oddRule"], { title: string; subtitle: string }> = {
   reverse: { title: "ULTA GHOOMNE WALA DHUNDO", subtitle: "Sirf EK ulta ghoom raha hai 👀" },

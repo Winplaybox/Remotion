@@ -39,7 +39,7 @@ export const TrackVehicleSchema = z.object({
 export type TrackVehicle = z.infer<typeof TrackVehicleSchema>;
 
 /** Channel identity: Kaali Peeli Chase. Change names/colours here only. */
-export const KPC_BRAND = { brand: "KAALI PEELI CHASE", handle: "@kaalipeelichase" } as const;
+export const KPC_BRAND = { brand: "KAALI PEELI CHASE", handle: "@KaaliPeeliChase" } as const;
 
 const ROTATION: { vehicle: VehicleKind; label: string; colors: TrackVehicle["colors"] }[] = [
   { vehicle: "kaalipeeli", label: "TAXI", colors: { target: "#FFC800", decoy: "#FFC800", trim: "#1A1A1A", accent: "#FFC800" } },
