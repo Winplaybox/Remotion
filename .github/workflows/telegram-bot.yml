@@ -1,0 +1,53 @@
+name: Telegram Bot Jobs
+
+# Triggered by the Telegram webhook server (apps/telegram-bot/server.mjs on Render) via repository_dispatch.
+#   tg-video: topic/script -> Gemini beats -> Edge TTS -> Remotion NarratorVideo -> sent back to the chat
+#   tg-idea : idea appended to content/ideas/inbox.jsonl on branch bot-data, admin notified
+# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY.  Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
+on:
+  repository_dispatch:
+    types: [tg-video, tg-idea]
+
+permissions:
+  contents: write
+
+jobs:
+  video:
+    if: github.event.action == 'tg-video'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-color-emoji && python -m pip install --quiet edge-tts
+      - run: npm ci
+      - name: Make and send the video
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          TG_ADMIN_ID: ${{ vars.TG_ADMIN_ID }}
+          PYTHON: python
+        run: npx ts-node scripts/telegram/make-video.ts
+
+  idea:
+    if: github.event.action == 'tg-idea'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency: { group: bot-data, cancel-in-progress: false }
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: scripts/telegram }
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - name: Save idea
+        env:
+          PAYLOAD: ${{ toJSON(github.event.client_payload) }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_ADMIN_ID: ${{ vars.TG_ADMIN_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/telegram/save-idea.mjs
