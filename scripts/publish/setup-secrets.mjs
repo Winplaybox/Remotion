@@ -7,6 +7,7 @@
  *     --client  C:/path/client_secret.json         # OAuth client for the puzzle channels (YouTube Data API v3 enabled)
  *     --ebs-dir C:/Users/sagar/Desktop/Project/daily-devotional-shorts   # reuses the existing EpicBharatSaga client_secret.json + token.json
  *     [--ebs-client C:/path/client_secret.json]    # OR: fresh OAuth for EpicBharatSaga (sign in as epicbharat.official)
+ *     [--ebs-token C:/path/token.json]             # OR: reuse colab-YT's EpicBharatSaga token.json (google-auth authorized_user)
  *     [--only-ebs]                                 # skip the puzzle channels
  *     [--ebs-silent]                               # let EpicBharatSaga post with captions until IndicF5 narration exists
  *
@@ -76,6 +77,19 @@ async function main() {
       if (!tokens) throw new Error(`Could not connect ${expected}`);
       setSecret(secret, JSON.stringify(tokens));
     }
+  }
+
+  const ebsTokenPath = arg("ebs-token");
+  if (ebsTokenPath) {
+    const raw = fs.readFileSync(ebsTokenPath, "utf8");
+    const t = JSON.parse(raw);
+    if (!t.client_id || !t.client_secret || !t.refresh_token) throw new Error("token.json must contain client_id, client_secret and refresh_token");
+    const auth = new google.auth.OAuth2(t.client_id, t.client_secret, "http://localhost");
+    auth.setCredentials({ refresh_token: t.refresh_token });
+    const name = await channelName(auth);
+    console.log(`\nToken ${ebsTokenPath} opens: "${name}"`);
+    if (!/epic bharat/i.test(name)) throw new Error(`That token is for "${name}", not Epic Bharat`);
+    setSecret("YT_TOKEN_EPICBHARATSAGA", raw);
   }
 
   const ebsClientPath = arg("ebs-client");

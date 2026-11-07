@@ -6,12 +6,15 @@ interface UploadArgs { video: string; meta: PostMeta; publishAt: string; tokenJs
 
 /** Upload as private + scheduled publishAt, then read back to verify the schedule. Returns the video ID. */
 export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientSecretJson }: UploadArgs): Promise<string> {
-  if (!tokenJson || !clientSecretJson) throw new Error("YouTube: missing YT_CLIENT_SECRET_JSON or the channel token secret");
-  const conf = JSON.parse(clientSecretJson);
-  const c = conf.installed ?? conf.web ?? conf;
-  const auth = new google.auth.OAuth2(c.client_id, c.client_secret, (c.redirect_uris ?? ["http://localhost"])[0]);
+  if (!tokenJson) throw new Error("YouTube: missing the channel token secret");
   const t = JSON.parse(tokenJson);
-  auth.setCredentials({ refresh_token: t.refresh_token, access_token: t.access_token, expiry_date: t.expiry_date, token_type: "Bearer" });
+  // Python google-auth "authorized_user" tokens (colab-YT) carry their own client_id/client_secret.
+  const conf = clientSecretJson ? JSON.parse(clientSecretJson) : {};
+  const c = t.client_id && t.client_secret ? { client_id: t.client_id, client_secret: t.client_secret } : conf.installed ?? conf.web ?? conf;
+  if (!c.client_id || !c.client_secret) throw new Error("YouTube: no OAuth client (set YT_CLIENT_SECRET_JSON or use a token that includes client_id/client_secret)");
+  const auth = new google.auth.OAuth2(c.client_id, c.client_secret, "http://localhost");
+  const access = t.access_token ?? (typeof t.token === "string" ? t.token : undefined);
+  auth.setCredentials({ refresh_token: t.refresh_token, access_token: access, token_type: "Bearer" });
   const yt = google.youtube({ version: "v3", auth });
 
   let at = new Date(publishAt);
