@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
+import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { ELEMENT_RENDERERS } from "./elements";
 import { rampedTime, type OddOrbit } from "./model";
 
@@ -83,6 +84,19 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
   return (
     <AbsoluteFill style={{ background: `linear-gradient(180deg, ${pal.bgTop}, ${pal.bgBottom})`, overflow: "hidden" }}>
       <VoiceCues cues={p.voice} />
+      {p.sound ? (
+        <SoundBed
+          music="sfx/music_puzzle.mp3"
+          musicVolume={0.16}
+          duck={duckFromCues(p.voice)}
+          sfx={[
+            { src: "sfx/pop.mp3", at: 0.25, volume: 0.35 },
+            ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: p.playSeconds - k, volume: 0.5 })),
+            { src: "sfx/ding.mp3", at: p.playSeconds, volume: 0.55 },
+            ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: p.playSeconds + p.revealSeconds - 0.1, volume: 0.4 }] : [])
+          ]}
+        />
+      ) : null}
       <AbsoluteFill style={{ background: `radial-gradient(ellipse 60% 38% at ${50 + glowDrift / 20}% ${55 + glowDrift / 40}%, ${pal.glow}aa, transparent 70%)` }} />
       <Stars seed={p.seed} frame={frame} />
 

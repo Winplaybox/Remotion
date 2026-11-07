@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, interpolateColors, random, spring, useCurrentFrame, useVideoConfig, Easing } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
+import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { FPS, PHASE, SPEED_TIERS, type TrackVehicle } from "./model";
 import { buildSchedule, carPose } from "./schedule";
 import { Vehicle, VehicleDefs, VEHICLE_SIZE } from "./vehicles";
@@ -125,6 +126,20 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
   return (
     <AbsoluteFill style={{ background: "#0B0C0F", overflow: "hidden" }}>
       <VoiceCues cues={p.voice} />
+      {p.sound ? (() => {
+        const sh = shuffleStart / fps, se = shuffleEnd / fps, qe = questionEnd / fps;
+        const starts = [...new Set(sched.events.map((e) => e.start))];
+        const sfx: Sfx[] = [
+          { src: "sfx/horn.mp3", at: 0.15, volume: 0.3 },
+          { src: "sfx/engine_loop.mp3", at: 0.5, until: se, loop: true, volume: 0.14 },
+          ...starts.map((f): Sfx => ({ src: "sfx/swoosh.mp3", at: sh + f / fps, volume: 0.22 })),
+          ...(p.speedTiers ? SPEED_TIERS.slice(1).map((t): Sfx => ({ src: "sfx/riser.mp3", at: sh + p.shuffleSeconds * t.at - 1.1, volume: 0.25 })) : []),
+          ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: se - k, volume: 0.45 })),
+          { src: "sfx/ding.mp3", at: qe, volume: 0.55 },
+          ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: qe + p.answerSeconds - 0.1, volume: 0.4 }] : [])
+        ];
+        return <SoundBed music="sfx/music_chase.mp3" musicVolume={0.13} duck={duckFromCues(p.voice)} sfx={sfx} />;
+      })() : null}
       <AbsoluteFill style={{ filter: endP > 0 ? `blur(${endP * 14}px) brightness(${1 - endP * 0.45})` : undefined }}>
         <Road laneXs={g.laneXs} frame={frame} seed={p.seed} />
         <svg width={W} height={H} style={{ position: "absolute", inset: 0 }}>

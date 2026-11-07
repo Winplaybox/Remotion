@@ -22,6 +22,8 @@ export const OddOrbitSchema = z.object({
   revealFooter: z.string(),
   answerPrefix: z.string(),
   element: z.enum(ORBIT_ELEMENTS),
+  /** Background music + SFX (original kit in public/sfx). */
+  sound: z.boolean().default(true),
   /** For element "glyph": [normal, odd] characters, e.g. ["9", "6"]. */
   glyphs: z.tuple([z.string(), z.string()]).default(["9", "6"]),
   oddRule: z.enum(ODD_RULES),
@@ -106,6 +108,7 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
   return {
     ...CHAKRA_BRAND,
     voice: [],
+    sound: true,
     puzzleNo: d,
     difficulty: level.difficulty,
     title: copy.title,

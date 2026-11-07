@@ -51,10 +51,14 @@ export const SceneSchema = z.object({
   caption: z.string().default(""),
   /** Narration audio in /public, e.g. "audio/ebs/vishnu-01/scene-1.wav". Scene length stretches to fit it. */
   audio: z.string().optional(),
-  camera: z.enum(["still", "push", "panLeft", "panRight"]).default("push")
+  camera: z.enum(["still", "push", "panLeft", "panRight"]).default("push"),
+  /** Extra one-shot SFX for this scene, e.g. ["bell", "footsteps", "horn"] (files in public/sfx). Ambience follows `particles`. */
+  sfx: z.array(z.string()).default([])
 });
 
 export const StoryDioramaSchema = z.object({
+  /** Background music (original, public/sfx). Empty = none. */
+  music: z.string().default("sfx/music_saga.mp3"),
   /** Channel name shown top-left. */
   brand: z.string().default("EPIC BHARAT SAGA"),
   handle: z.string().default(""),

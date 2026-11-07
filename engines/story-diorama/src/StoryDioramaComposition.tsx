@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, Img, interpolate, random, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { SoundBed, type Sfx } from "@visuals/Sound";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { FPS, type StoryDiorama, type StoryLayer, type StoryScene } from "./model";
 import { PROPS, PropDefs } from "./props";
@@ -256,8 +257,20 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean;
 export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
   useBundledFonts();
   let cursor = 0;
+  const AMBIENCE: Partial<Record<string, string>> = { rain: "sfx/rain_loop.mp3", embers: "sfx/fire_loop.mp3", bubbles: "sfx/water_loop.mp3" };
+  const sfx: Sfx[] = [];
+  let at = 0;
+  p.scenes.forEach((scene, i) => {
+    if (i > 0) sfx.push({ src: "sfx/whoosh.mp3", at: at - 0.1, volume: 0.25 });
+    const amb = AMBIENCE[scene.particles];
+    if (amb) sfx.push({ src: amb, at, until: at + scene.seconds + 0.3, loop: true, volume: 0.16 });
+    if (scene.particles === "stars" && i === 0) sfx.push({ src: "sfx/bell.mp3", at: at + 0.1, volume: 0.3 });
+    scene.sfx.forEach((name, k) => sfx.push({ src: `sfx/${name}.mp3`, at: at + 0.4 + k * 0.6, volume: 0.35 }));
+    at += scene.seconds;
+  });
   return (
     <AbsoluteFill style={{ background: "#111" }}>
+      <SoundBed music={p.music || undefined} musicVolume={0.08} sfx={sfx} />
       {p.scenes.map((scene, i) => {
         const from = Math.round(cursor * FPS);
         cursor += scene.seconds;

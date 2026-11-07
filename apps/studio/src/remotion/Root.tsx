@@ -16,6 +16,8 @@ import { StoryDioramaSchema, storyDioramaDuration, type StoryDiorama } from "../
 import { epicBharatSagaForDay } from "../../../../content/epicbharatsaga/vishnu-season";
 import { withNarrationDurations } from "../../../../engines/story-diorama/src/metadata";
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
+import { TemplateSchema, templateDuration, templateForDay, type Template } from "../../../../engines/_template/src/model";
+import { TemplateComposition } from "../../../../engines/_template/src/TemplateComposition";
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
 const trafficErrors = [...validateBoard(TRAFFIC_PUZZLE_DEMO), ...validateSolution(TRAFFIC_PUZZLE_DEMO)];
@@ -25,8 +27,14 @@ const sanatanEpisode = SanatanEpisodeSchema.parse(SANATAN_EPISODE_DEMO);
 const STORY_DEMO = epicBharatSagaForDay(1);
 const video = { fps: MASTER_VIDEO.fps, width: MASTER_VIDEO.width, height: MASTER_VIDEO.height };
 
+const TEMPLATE_DEMO = templateForDay(1);
+
 export const Root: React.FC = () => (
   <>
+    <Folder name="Templates">
+      <Composition id="EngineTemplate" component={TemplateComposition} schema={TemplateSchema} {...video} durationInFrames={templateDuration(TEMPLATE_DEMO)} defaultProps={TEMPLATE_DEMO}
+        calculateMetadata={({ props }: { props: Template }) => ({ durationInFrames: templateDuration(props) })} />
+    </Folder>
     <Folder name="ChakraPuzzle">
       <Composition id="ChakraPuzzle" component={OddOrbitComposition} schema={OddOrbitSchema} {...video} durationInFrames={oddOrbitDuration(ODD_ORBIT_DEMO)} defaultProps={ODD_ORBIT_DEMO}
         calculateMetadata={({ props }: { props: OddOrbit }) => ({ durationInFrames: oddOrbitDuration(props) })} />
