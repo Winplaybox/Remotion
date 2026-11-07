@@ -6,7 +6,7 @@ Three channels, one repo. Every slot has a fixed post number, so each upload is 
 |---|---|---|---|---|
 | Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | English (global) | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
 | Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | English (global) | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
-| EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice | 18:30 | India evening |
+| EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice | — | **Not auto-published here.** The channel already posts daily from `Winplaybox/colab-YT`. The engine stays available for manual renders. |
 
 All slots, start dates, titles, descriptions, tags and captions are in `channels/channels.ts`.
 

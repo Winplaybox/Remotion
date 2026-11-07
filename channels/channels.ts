@@ -12,6 +12,8 @@ export interface ChannelConfig {
   /** Publish times in IST, "HH:MM". Post number = (day - 1) * slots.length + slotIndex + 1. */
   slots: readonly string[];
   narrated: boolean;
+  /** false = never auto-published from this repo (e.g. handled by another pipeline). */
+  autoPublish: boolean;
   /** GitHub secret holding this channel's YouTube OAuth token JSON. */
   youtubeTokenSecret: string;
   /** GitHub secret prefix for Meta: <PREFIX>_PAGE_ID, <PREFIX>_IG_USER_ID, <PREFIX>_PAGE_TOKEN. */
@@ -34,6 +36,7 @@ export const CHANNELS = {
     startDate: "2026-11-10",
     slots: ["06:30", "08:30", "19:30"],
     narrated: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_CHAKRA_PUZZLE",
     metaSecretPrefix: "META_CHAKRA",
     resolve: (n) => chakraPuzzleForDay(n),
@@ -55,6 +58,7 @@ export const CHANNELS = {
     startDate: "2026-11-10",
     slots: ["07:00", "09:00", "20:00"],
     narrated: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_KAALI_PEELI_CHASE",
     metaSecretPrefix: "META_KPC",
     resolve: (n) => kaaliPeeliForDay(n),
@@ -76,6 +80,8 @@ export const CHANNELS = {
     startDate: "2026-11-10",
     slots: ["18:30"],
     narrated: true,
+    // EpicBharatSaga is published daily by Winplaybox/colab-YT (epic_bharat_saga_scheduler.yml). Do not double-post.
+    autoPublish: false,
     youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
     metaSecretPrefix: "META_EBS",
     resolve: (n) => epicBharatSagaForDay(n),

@@ -18,7 +18,7 @@ for (const dayOffset of [0, 1]) {
   const date = todayIST(new Date(from + dayOffset * 86_400_000));
   for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
     if (only && only !== channel) continue;
-    if (date < CHANNELS[channel].startDate) continue;
+    if (!CHANNELS[channel].autoPublish || date < CHANNELS[channel].startDate) continue;
     CHANNELS[channel].slots.forEach((hhmm, slot) => {
       const t = Date.parse(slotTimeISO(date, hhmm));
       // slot falls in [from+30min, from+30min+hours): rendered 30-90 min ahead

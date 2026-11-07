@@ -4,8 +4,8 @@ import { google } from "googleapis";
 const client = (json) => { const c = JSON.parse(json); return c.installed ?? c.web ?? c; };
 const checks = [
   ["YT_TOKEN_CHAKRA_PUZZLE", "YT_CLIENT_SECRET_JSON", "Chakra Puzzle"],
-  ["YT_TOKEN_KAALI_PEELI_CHASE", "YT_CLIENT_SECRET_JSON", "Kaali Peeli Chase"],
-  ["YT_TOKEN_EPICBHARATSAGA", "YT_TOKEN_EPICBHARATSAGA_CLIENT", "Epic Bharat"]
+  ["YT_TOKEN_KAALI_PEELI_CHASE", "YT_CLIENT_SECRET_JSON", "Kaali Peeli Chase"]
+  // EpicBharatSaga publishes from Winplaybox/colab-YT, so its token is not needed here.
 ];
 let bad = 0;
 for (const [tokenVar, clientVar, expected] of checks) {
