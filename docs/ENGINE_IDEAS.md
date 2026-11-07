@@ -80,6 +80,31 @@ S = 1–2 days, M = 3–5 days, L = 1–2 weeks for an AI agent following `NEW_E
 ### 7. Kyun Karte Hain? (`ritual-explainer`)
 - Narrator in a corner, cards slide in (title, two icons, quote card, "then vs now" line). Citations in the description.
 
+## Batch 2 — quick puzzle engines (all supported)
+
+Every one fits the existing contract: deterministic `ForDay(n)` from a seed, an **answer computed by code** (so it is
+never wrong), and the shared **AskOutro** ending (question + option chips → comment + FOLLOW, answer in the next video).
+"Generated" = no writing needed, infinite days; "Bank" = a reviewed list of items.
+
+| # | Engine (slug) | Gameplay on screen | Content | Answer / options chips | Effort | Notes |
+|---|---|---|---|---|---|---|
+| 9 | **Bubble Pop** (`bubble-pop`) | 40–80 bubbles float and pop in waves; one is special (different colour shade, wobble, size or reverse drift); bubbles pop faster and faster | Generated | `ROW · #` or `#1–#N` | S | Closest to the template — copy it first. Difference shrinks with difficulty |
+| 10 | **Brain Test** (`brain-test`) | Visual logic: which glass fills first (pipe network), which way the bus goes, which gear turns clockwise, which rope lifts the bucket | Generated for pipes/gears/ropes (simulate to get the answer); bank for trick ones | `[A] [B] [C] [D]` | M | Pipe/gear puzzles are solved by a small simulator → always correct |
+| 11 | **Spot the Difference** (`spot-diff`) | Two copies of a drawn scene (room, street, kitchen) stacked; 3–5 changes (colour, missing item, flip, extra item); timer | Generated: scene = list of SVG objects, changes picked by seed | "Kitne differences?" `[3] [4] [5]` or circle numbers `#1–#9` grid | M | Reuse props from story-diorama + set kit; check changes are visible (min size/contrast) |
+| 12 | **Find the Hidden Object** (`hidden-object`) | Busy scene or emoji wall (🐱 hidden among 🐯 / 6 among 9s / 🔑 in a messy room) with a slow zoom | Generated (emoji/glyph walls); scenes later with the set kit | `ROW · #` grid chips | S (emoji) / M (scenes) | Emoji version is like Chakra's glyph mode — fast to ship |
+| 13 | **Memory Challenge** (`memory`) | Grid of 6–12 items shown for 3–5 s, cards flip over, then: "Card #4 pe kya tha?" or "Kaunsa item gayab hai?" | Generated | 4 picture options `[🍎] [🚗] [⭐] [🐘]` | S | Difficulty = more cards, shorter look time |
+| 14 | **Number Puzzle** (`number-puzzle`) | Missing number in a sequence, number triangle, grid or clock ("2, 6, 12, 20, ?") | Generated from rule families (arithmetic, squares, Fibonacci, row sums) with a verifier | `[28] [30] [32] [36]` | S | Distractors from near-miss rules; voice reads the numbers in Hindi |
+| 15 | **Colour Challenge** (`colour-challenge`) | Stroop ("LAAL" written in blue — bolo rang!), odd shade in a colour grid, or colour-pattern next step | Generated | colour chips `[🔴] [🔵] [🟢] [🟡]` | S | Speed ramps like Chakra; colour-blind-safe pairs |
+| 16 | **Emoji Quiz** (`emoji-quiz`) | 3–5 emojis pop in one by one → guess the movie / song / muhavra / city / festival | Bank (300+ reviewed entries; titles are facts, no posters/lyrics) | 4 text options or free comment | S | Hugely commentable in India; rotate categories daily |
+| 17 | **Maze Challenge** (`maze`) | Generated maze, 3 runners at A/B/C; camera pans; "Kaun bahar niklega?" | Generated (DFS maze, BFS checks exactly one path reaches exit) | `[A] [B] [C]` | S–M | Answer reveal next video animates the winning path |
+| 18 | **Reaction Challenge** (`reaction`) | Fast flashes: "Kitni baar 🔴 dikha?", or symbol shown for 0.2 s among decoys, speed tiers like Kaali Peeli | Generated | number chips `[5] [6] [7] [8]` | S | Counts are exact from the schedule; keep flashes ≥ 3 frames (safe for photosensitive viewers) |
+
+**Build order for batch 2:** Number Puzzle → Bubble Pop → Memory → Colour → Emoji Quiz (bank) → Maze → Hidden Object →
+Reaction → Spot the Difference → Brain Test. The first five are ~1–2 days each with `npm run engine:new`.
+
+**Channel fit:** Chakra Puzzle can rotate Bubble Pop / Hidden Object (emoji) / Colour as extra formats; a new **Dimaag Lock**
+channel can carry Number, Memory, Maze, Reaction, Emoji Quiz, Code Cracker.
+
 ## Channel ideas
 | Channel | Engines |
 |---|---|
