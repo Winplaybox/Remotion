@@ -18,6 +18,7 @@ import { withNarrationDurations } from "../../../../engines/story-diorama/src/me
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
 import { TemplateSchema, templateDuration, templateForDay, type Template } from "../../../../engines/_template/src/model";
 import { TemplateComposition } from "../../../../engines/_template/src/TemplateComposition";
+// @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
 const trafficErrors = [...validateBoard(TRAFFIC_PUZZLE_DEMO), ...validateSolution(TRAFFIC_PUZZLE_DEMO)];
@@ -31,6 +32,7 @@ const TEMPLATE_DEMO = templateForDay(1);
 
 export const Root: React.FC = () => (
   <>
+    {/* @engine-builder:compositions */}
     <Folder name="Templates">
       <Composition id="EngineTemplate" component={TemplateComposition} schema={TemplateSchema} {...video} durationInFrames={templateDuration(TEMPLATE_DEMO)} defaultProps={TEMPLATE_DEMO}
         calculateMetadata={({ props }: { props: Template }) => ({ durationInFrames: templateDuration(props) })} />

@@ -21,7 +21,10 @@
     "validate:engine": "ts-node scripts/validate-engine.ts",
     "manifest:render": "ts-node scripts/write-render-manifest.ts",
     "post": "ts-node scripts/post.ts",
-    "auth:youtube": "node scripts/publish/auth-youtube.mjs"
+    "auth:youtube": "node scripts/publish/auth-youtube.mjs",
+    "engine:new": "node scripts/new-engine.mjs",
+    "engine:qa": "ts-node scripts/engine-qa.ts",
+    "engine:lock": "ts-node scripts/lock-published.ts"
   },
   "dependencies": {
     "@react-three/drei": "9.120.3",

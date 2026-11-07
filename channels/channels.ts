@@ -2,6 +2,7 @@ import { chakraPuzzleForDay, chakraVoiceLines, oddCellOf } from "../engines/odd-
 import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle/src/model";
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
+// @engine-builder:imports
 
 export interface PostMeta { title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string }
 
@@ -122,7 +123,8 @@ export const CHANNELS = {
         categoryId: "27"
       };
     }
-  }
+  },
+  // @engine-builder:channels
 } satisfies Record<string, ChannelConfig>;
 
 export type ChannelId = keyof typeof CHANNELS;
