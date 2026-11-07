@@ -5,6 +5,7 @@
 //      TG_ALLOWLIST (comma-separated user ids; admins can also /allow) · TG_STYLE_ENABLED=true to enable /style ·
 //      GH_DISPATCH_TOKEN (fine-grained PAT, Contents: read & write) · GITHUB_REPO (default Winplaybox/Remotion) ·
 //      SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (ideas/jobs/users; without them an in-memory store is used) ·
+//      MAX_JOBS_PER_DAY (all users, default 40; admin exempt) · TG_BOT_USERNAME (optional, else getMe) ·
 //      RENDER_EXTERNAL_URL (set by Render) or PUBLIC_URL — the webhook is registered on boot.
 import crypto from "node:crypto";
 import http from "node:http";
@@ -29,6 +30,7 @@ const ctx = {
   admin: env.TG_ADMIN_ID || "",
   styleEnabled: env.TG_STYLE_ENABLED === "true",
   publicUrl: env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || "",
+  maxJobsPerDay: Number(env.MAX_JOBS_PER_DAY || 40),
   pending: new Map()
 };
 

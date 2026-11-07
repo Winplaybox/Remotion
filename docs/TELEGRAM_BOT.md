@@ -121,6 +121,49 @@ It is a filter look, not AI re-drawing — faces/hands keep their real shapes. A
 
 Free Render plan sleeps after 15 min idle: the first message after a pause takes ~30–60 s to answer.
 
+## Environment variables
+
+| Name | Where | Required | Purpose |
+|---|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Render env + GitHub secret | yes | bot API (server + workers) |
+| `GH_DISPATCH_TOKEN` | Render env | yes | fine-grained PAT, Contents read/write — starts workers |
+| `GITHUB_REPO` | Render env | yes | `Winplaybox/Remotion` |
+| `TG_ADMIN_ID` | Render env + GitHub variable | yes | admin Telegram id |
+| `TG_ALLOWLIST` | Render env | no | comma-separated ids allowed to make videos (admin can `/allow`) |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Render env + GitHub secrets | for production | jobs, ideas, publishing, storage. Without them: memory mode |
+| `GEMINI_API_KEY` (+ optional `GEMINI_MODEL`) | GitHub secret / variable | yes | scripts, research, Shorts highlights |
+| `PUBLIC_URL` | Render env | no | dashboard links; defaults to the Render URL |
+| `TG_WEBHOOK_SECRET` | Render env | no | defaults to a value derived from the token |
+| — | code | — | per-user limit: 5 videos / 24 h (`DAILY_VIDEO_LIMIT` in `commands.mjs`), admin unlimited |
+| `TG_BOT_USERNAME` | Render env | no | bot username for the dashboard login widget (else read from `getMe`) |
+| `MAX_JOBS_PER_DAY` | Render env | no | global cap for all users per 24 h, default **40** (protects Actions minutes + AI quota); `0` = off |
+| `TG_STYLE_ENABLED` | Render env | no | `true` turns `/style` back on (off by default) |
+| `REMOTION_GL` | workflow env | no | Chromium GL backend for renders, default `swangle` (CPU, works on CI runners) |
+| `RETENTION_DAYS` | GitHub variable | no | stored bot videos are deleted after this many days, default 30 (never while a publication is pending/scheduled) |
+| YouTube / Meta secrets | GitHub secrets | for publishing | same secrets the channel pipeline uses (`channels/publish-targets.json`) |
+
+## Reliability (Phase 8)
+
+- **Watchdog** — `.github/workflows/bot-maintenance.yml` runs hourly: a job with no progress for 2 h becomes `FAILED`
+  (`timeout: no progress`), the status message turns into "atki thi" + 🔁 Retry. Previews waiting for the user's
+  ▶️ Render are left alone.
+- **Retention** — once a day (03 UTC) stored videos/thumbnails/shorts older than `RETENTION_DAYS` are deleted from the
+  private bucket and the job is marked `file_deleted`. Run it by hand: Actions → Bot Maintenance → *retention* ✔.
+- **Global cap** — `MAX_JOBS_PER_DAY` across all users; when hit, users get "aaj limit" and the admin a 🚦 notice.
+- **Loudness** — every bot video/short is normalised to −14 LUFS / −1 dBTP (two-pass `loudnorm`, video copied, not re-encoded).
+- **TTS retries** — Edge TTS is retried 3× with backoff and a 60 s timeout per line.
+- **Duplicate Telegram updates** are ignored (`processed_updates`), job creation is idempotent, finished jobs can't change state.
+
+## Production checklist
+
+1. Merge the phase PRs in order (each is based on the previous one).
+2. Secrets/variables from the table above are set in Render and GitHub (step 3–6 of the setup).
+3. `@BotFather` → `/setdomain` → the Render host, so the dashboard's Telegram login works.
+4. Remove `TELEGRAM_BOT_TOKEN` from any other service (one token = one webhook).
+5. Smoke test: `/myid`, `/topic dadi Diwali pe diye kyun` (→ preview → ▶️ Render → video), `/status`, send an idea
+   (→ admin buttons), `/dashboard`, then 📤 Publish → approve as admin → check the YouTube upload is *private + scheduled*.
+6. Watch the first hourly Bot Maintenance run is green.
+
 ## Run locally
 
 ```bash

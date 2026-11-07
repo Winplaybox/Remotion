@@ -1,0 +1,40 @@
+name: Bot Maintenance
+
+# Hourly: stuck video-bot jobs -> FAILED with a Retry button. Daily (03:23 UTC): delete stored videos older than
+# RETENTION_DAYS (default 30) that have no open publication. Does nothing when the database is not configured.
+on:
+  schedule:
+    - cron: "23 * * * *"
+  workflow_dispatch:
+    inputs:
+      retention: { description: "Also run storage retention", type: boolean, default: false }
+
+concurrency: { group: bot-maintenance, cancel-in-progress: false }
+
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      RETENTION_DAYS: ${{ vars.RETENTION_DAYS || '30' }}
+    steps:
+      - id: cfg
+        run: echo "ok=${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ok == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.ok == 'true'
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+        if: steps.cfg.outputs.ok == 'true'
+      - name: Watchdog (+ retention once a day at 03 UTC or on request)
+        if: steps.cfg.outputs.ok == 'true'
+        env:
+          WANT_RETENTION: ${{ inputs.retention && 'true' || 'false' }}
+        run: |
+          args=""
+          if [ "$WANT_RETENTION" = "true" ] || [ "$(date -u +%H)" = "03" ]; then args="--retention"; fi
+          npx ts-node scripts/telegram/maintenance.ts $args

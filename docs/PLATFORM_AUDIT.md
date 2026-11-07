@@ -143,3 +143,19 @@ a Supabase project (free tier) and its URL + service-role key added to Render en
 
 Also recommended outside Phase 1: move narration from the Edge Read-Aloud endpoint to Azure Speech F0 (same voices,
 commercial terms) or Indic Parler-TTS on the home GPU; add a final `loudnorm I=-14:TP=-1` pass.
+
+## 17. Status after Phases 1–8 (2026-11-08)
+
+| Phase | PR | What | Status |
+|---|---|---|---|
+| 0 Audit | #33 | this report, `/style` switched off | ✅ merged |
+| 1 Telegram foundation | #34 | Supabase `videobot` schema, idea IDs + admin review, `/menu` `/status` `/history` `/cancel` `/settings`, idempotent updates, job tracking | ✅ tests · 🟡 live run pending secrets |
+| 2+3 Topic/Script video | #35 | research with sources, 9:16 + 16:9, Devanagari font, thumbnail, title/description/hashtags, preview → ▶️ Render, `.txt` scripts | ✅ tests · 🟡 live |
+| 4 Video → video (ComfyUI / VACE) | — | paused by decision (home GPU only, not free on CI) | ⏸️ |
+| 5 Long video → Shorts | #36 | faster-whisper transcript, Gemini highlights snapped to sentences, captioned 9:16 clips | ✅ tests · 🟡 live |
+| 6 Admin dashboard | #37 | `/admin` with Telegram login (HMAC), signed session, whitelisted actions, same-origin check | ✅ tests |
+| 7 Publishing | #38 | private storage, publish request → admin approval → YouTube (private + scheduled) / IG / FB, retries never duplicate | ✅ mocked tests · 🟡 live |
+| 8 Hardening | this PR | watchdog, 30-day retention, global daily cap, −14 LUFS loudness, TTS retries, `swangle` GL, env table + checklist | ✅ tests |
+
+Still open (needs the admin): secrets in Render/GitHub, `@BotFather /setdomain`, a licensed TTS for monetized output
+(Edge TTS has no published commercial grant; Piper Hindi voices are non-commercial), Polly blocked by the AWS SCP.

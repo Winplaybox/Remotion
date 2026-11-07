@@ -255,3 +255,16 @@ test("publishing: owner submits, admin picks channel -> platforms -> time, owner
   assert.equal((await c.store.getPublication("PUB-00001")).status, "CANCELLED");
   assert.match(x.edit.text, /CANCELLED/);
 });
+
+test("global daily cap blocks users (admin exempt) and alerts the admin", async () => {
+  const c = ctx({ maxJobsPerDay: 2 });
+  assert.equal((await handle(msg("/topic A"), c)).dispatch.event, "tg-video");
+  assert.equal((await handle(msg("/topic B"), c)).dispatch.event, "tg-video");
+  const blocked = await handle(msg("/topic C", 300), c);
+  assert.notEqual(blocked.dispatch?.event, "tg-video");
+  await handle(msg("/allow 300", ADMIN), c);
+  const b2 = await handle(msg("/topic C", 300), c);
+  assert.match(b2.replies[0].text, /bahut saare/);
+  assert.match(b2.admin[0].text, /Global limit/);
+  assert.equal((await handle(msg("/topic D", ADMIN), c)).dispatch.event, "tg-video");
+});

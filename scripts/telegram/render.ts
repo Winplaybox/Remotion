@@ -16,7 +16,9 @@ function serveUrl(): Promise<string> {
   });
   return served;
 }
-const chrome = () => (process.env.REMOTION_CHROME ? { browserExecutable: process.env.REMOTION_CHROME } : {});
+// GitHub runners have no GPU: "swangle" keeps WebGL (Three.js) working; "angle" for a GPU machine. Override with REMOTION_GL.
+const gl = () => ({ chromiumOptions: { gl: (process.env.REMOTION_GL || "swangle") as "swangle" | "angle" | "egl" | "swiftshader" } });
+const chrome = () => ({ ...(process.env.REMOTION_CHROME ? { browserExecutable: process.env.REMOTION_CHROME } : {}), ...gl() });
 
 /** scale < 1 renders smaller (e.g. 2/3 -> 720x1280): much faster for filter-heavy compositions. */
 export async function renderComposition(id: string, inputProps: Record<string, unknown>, out: string, crf = 24, scale = 1, onProgress?: (p: number) => void): Promise<string> {

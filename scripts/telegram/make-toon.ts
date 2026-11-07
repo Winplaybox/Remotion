@@ -14,6 +14,7 @@ import { renderComposition } from "./render";
 import { sendMessage, sendVideo } from "./telegram";
 import { JobCancelled, jobTracker } from "./jobs";
 import { storeFile } from "./storage";
+import { normalizeLoudness } from "./loudness";
 
 interface Job { fileId: string; style: string; chatId: string | number; messageId?: number; title?: string; jobCode?: string; statusMessageId?: number; user?: { name?: string } }
 
@@ -70,6 +71,7 @@ function normalize(input: string, output: string) {
     });
     console.log(`[toon] ${out} (${style}, ${seconds.toFixed(1)}s, ${w}x${h})`);
     if (local) return;
+    normalizeLoudness(out);
     await track.step("UPLOADING", 92);
     await sendVideo(job.chatId, out, `🎨 ${TOON_STYLES[style].label} version${job.jobCode ? `\n${job.jobCode}` : ""}`, job.messageId, [720, 1280]);
     const stored = await storeFile(out, `jobs/${job.jobCode ?? jobId}/video.mp4`);

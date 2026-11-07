@@ -18,6 +18,7 @@ import { downloadFile, sendKeyboard, sendMessage, sendPhoto, sendVideo } from ".
 import { renderComposition, renderStillComposition } from "./render";
 import { JobCancelled, completeIdea, jobTracker, saveJobOutput } from "./jobs";
 import { storeFile } from "./storage";
+import { normalizeLoudness } from "./loudness";
 
 interface Job {
   kind: "topic" | "script"; narrator: string; text?: string; fileId?: string; chatId: string | number; messageId?: number;
@@ -113,7 +114,12 @@ function voiceBeats(d: Draft): NarratorVideo["beats"] {
     if (dry) return { caption: b.caption, icon: b.icon, voice: "", seconds: estimate };
     const file = path.join(dir, `b${i + 1}.mp3`);
     try {
-      execFileSync(py, ["-m", "edge_tts", "--voice", v.voice, `--rate=${v.rate}`, "--text", b.voice, "--write-media", file], { stdio: "ignore" });
+      for (let attempt = 1; ; attempt++) {
+        try { execFileSync(py, ["-m", "edge_tts", "--voice", v.voice, `--rate=${v.rate}`, "--text", b.voice, "--write-media", file], { stdio: "ignore", timeout: 60_000 }); break; } catch (e) {
+          if (attempt >= 3) throw e;
+          Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500 * attempt); // brief backoff, TTS service hiccups
+        }
+      }
       const s = probe(file);
       return { caption: b.caption, icon: b.icon, voice: `tg/${jobId}/b${i + 1}.mp3`, seconds: Math.min(15, Math.max(1.6, s + 0.45)) };
     } catch (e) {
@@ -147,6 +153,7 @@ function voiceBeats(d: Draft): NarratorVideo["beats"] {
       const pct = 45 + Math.floor(p * 40);
       if (!dry && pct - lastPct >= 10) { lastPct = pct; track.step("RENDERING", pct).catch(() => undefined); }
     });
+    if (!dry) { await track.step("AUDIO_PROCESSING", 86, "loudness"); normalizeLoudness(file); }
     if (!dry) await track.step("VISUAL_GENERATION", 88, "thumbnail");
     const thumb = await renderStillComposition("NarratorThumbnail", { narrator, title: d.title, icon: d.beats[0]?.icon ?? "✨", aspect }, path.join(root, "output", "tg", `${jobId}-thumb.jpg`)).catch((e: Error) => { console.warn(`[thumb] ${e.message}`); return ""; });
     console.log(`[render] ${file} (${props.beats.length} beats, ${aspect}, ${language})${thumb ? ` + ${thumb}` : ""}`);
