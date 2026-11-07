@@ -20,6 +20,8 @@ import { TemplateSchema, templateDuration, templateForDay, type Template } from 
 import { TemplateComposition } from "../../../../engines/_template/src/TemplateComposition";
 import { NARRATOR_DEMO, NARRATOR_IDS, NarratorVideoSchema, narratorVideoDuration, type NarratorVideo } from "../../../../engines/narrator-video/src/model";
 import { NarratorVideoComposition } from "../../../../engines/narrator-video/src/NarratorVideoComposition";
+import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type ToonVideo } from "../../../../engines/toon-video/src/model";
+import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -40,6 +42,13 @@ export const Root: React.FC = () => (
         calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props) })} />
       {NARRATOR_IDS.map((id) => (
         <Composition key={id} id={`NarratorVideo-${id}`} component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={{ ...NARRATOR_DEMO, narrator: id }} />
+      ))}
+    </Folder>
+    <Folder name="ToonVideo">
+      <Composition id="ToonVideo" component={ToonVideoComposition} schema={ToonVideoSchema} {...video} durationInFrames={toonVideoDuration(TOON_DEMO)} defaultProps={TOON_DEMO}
+        calculateMetadata={({ props }: { props: ToonVideo }) => ({ durationInFrames: toonVideoDuration(props) })} />
+      {TOON_STYLE_IDS.map((id) => (
+        <Composition key={id} id={`ToonVideo-${id}`} component={ToonVideoComposition} schema={ToonVideoSchema} {...video} durationInFrames={toonVideoDuration(TOON_DEMO)} defaultProps={{ ...TOON_DEMO, style: id }} />
       ))}
     </Folder>
     <Folder name="Templates">

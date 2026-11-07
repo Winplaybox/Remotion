@@ -1,19 +1,22 @@
 // Telegram webhook server (Render.com web service, zero dependencies, Node >= 20).
 // Replies instantly; heavy work (video render, saving ideas) runs in GitHub Actions via repository_dispatch.
 //
-// Env: TELEGRAM_BOT_TOKEN, TG_WEBHOOK_SECRET, GH_DISPATCH_TOKEN (fine-grained PAT: Contents read + Actions/"repository dispatch" write
+// Env: TELEGRAM_BOT_TOKEN, TG_WEBHOOK_SECRET (optional, derived from the token), GH_DISPATCH_TOKEN (fine-grained PAT: Contents read + Actions/"repository dispatch" write
 //      on the repo), GITHUB_REPO (default Winplaybox/Remotion), TG_ADMIN_ID, TG_ALLOWLIST (comma-separated Telegram user ids),
 //      RENDER_EXTERNAL_URL (set by Render) or PUBLIC_URL — the webhook is registered on boot.
+import crypto from "node:crypto";
 import http from "node:http";
 import { handle } from "./commands.mjs";
 
 const env = process.env;
 const TOKEN = env.TELEGRAM_BOT_TOKEN;
 // Telegram allows only A-Z a-z 0-9 _ - in secret_token (Render's generated values are base64).
-const SECRET = (env.TG_WEBHOOK_SECRET || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 200);
+// Without TG_WEBHOOK_SECRET it is derived from the bot token, so only the token has to be configured.
+const SECRET = (env.TG_WEBHOOK_SECRET || (TOKEN ? crypto.createHash("sha256").update(`webhook:${TOKEN}`).digest("hex").slice(0, 48) : "")).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 200);
 const REPO = env.GITHUB_REPO || "Winplaybox/Remotion";
 const PUBLIC_URL = env.PUBLIC_URL || env.RENDER_EXTERNAL_URL;
-if (!TOKEN || !SECRET) { console.error("TELEGRAM_BOT_TOKEN and TG_WEBHOOK_SECRET are required"); process.exit(1); }
+if (!TOKEN) { console.error("TELEGRAM_BOT_TOKEN is required"); process.exit(1); }
+if (!env.GH_DISPATCH_TOKEN) console.warn("GH_DISPATCH_TOKEN missing: ideas/videos cannot be queued until it is set");
 
 const ctx = {
   allow: new Set((env.TG_ALLOWLIST || "").split(",").map((s) => s.trim()).filter(Boolean)),
@@ -75,6 +78,7 @@ http.createServer((req, res) => {
     await tg("setMyCommands", { commands: [
       { command: "topic", description: "Topic se video: /topic dadi Holi kyun" },
       { command: "script", description: "Apni script se video" },
+      { command: "style", description: "Video ke caption mein: /style cartoon" },
       { command: "idea", description: "Video idea bhejo" },
       { command: "narrators", description: "Narrators ki list" },
       { command: "myid", description: "Aapka Telegram ID" },

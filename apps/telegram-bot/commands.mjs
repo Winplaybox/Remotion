@@ -10,6 +10,9 @@ export const NARRATORS = {
   teacher: "Madam Ji — padhai, GK, how-to"
 };
 export const DEFAULT_NARRATOR = "dost";
+/** Keep in sync with engines/toon-video/src/model.ts TOON_STYLES (test checks the ids). */
+export const STYLES = ["cartoon", "anime", "comic", "sketch", "watercolor"];
+export const MAX_VIDEO_MB = 20; // Telegram Bot API download limit
 export const DAILY_VIDEO_LIMIT = 5;
 
 const narratorList = () => Object.entries(NARRATORS).map(([id, about]) => `• ${id} — ${about}`).join("\n");
@@ -23,6 +26,11 @@ export const HELP = `🙏 Namaste! Main video bot hoon.
    e.g. /topic dadi Holi kyun manate hain
 /script <narrator>
 <apni script, nayi line se>
+
+🎨 Real video → cartoon (invited users):
+Video bhejo, caption mein: /style cartoon
+(ya video pe reply karke /style anime)
+Styles: ${STYLES.join(", ")}
 
 🎙️ Narrators:
 ${narratorList()}
@@ -63,6 +71,28 @@ export function handle(update, ctx) {
     replies: [IDEA_OK],
     dispatch: { event: "tg-idea", payload: { ...base, text: body.slice(0, 3500), video: msg.video?.file_id || msg.document?.file_id || "", link: (body.match(/https?:\/\/\S+/) || [""])[0] } }
   });
+
+  const videoOf = (m) => m?.video || (m?.document && /^video\//.test(m.document.mime_type || "") ? m.document : null);
+  const styleCmd = parseCommand(msg.caption || "")?.cmd === "style" ? parseCommand(msg.caption) : c?.cmd === "style" ? c : null;
+  if (styleCmd) {
+    const vid = videoOf(msg) || videoOf(msg.reply_to_message);
+    const [first = "", ...titleWords] = styleCmd.args.split(/\s+/).filter(Boolean);
+    const style = STYLES.includes(first.toLowerCase()) ? first.toLowerCase() : STYLES[0];
+    const title = (STYLES.includes(first.toLowerCase()) ? titleWords : [first, ...titleWords]).join(" ").slice(0, 60);
+    if (!vid) return { replies: [`🎨 Video bhejo aur caption mein likho: /style cartoon\nStyles: ${STYLES.join(", ")}`] };
+    if (!allowed) return { ...idea(`[style ${style}] sample video`), replies: ["🔒 Video convert karna abhi sirf invited users ke liye hai. Aapka video idea ke roop mein save kar liya ✅"] };
+    if ((vid.file_size || 0) > MAX_VIDEO_MB * 1024 * 1024) return { replies: [`📦 Video ${MAX_VIDEO_MB} MB se chhoti bhejo (Telegram bot limit). 90 second tak convert hota hai.`] };
+    if (!isAdmin) {
+      const u = ctx.usage.get(uid);
+      const n = u && u.day === ctx.today ? u.n : 0;
+      if (n >= DAILY_VIDEO_LIMIT) return { replies: [`⏳ Aaj ki limit (${DAILY_VIDEO_LIMIT} videos) poori ho gayi. Kal phir bhejo!`] };
+      ctx.usage.set(uid, { day: ctx.today, n: n + 1 });
+    }
+    return {
+      replies: [`🎨 ${style.toUpperCase()} version ban raha hai… lagbhag 5–15 minute. Yahin bhej denge!`],
+      dispatch: { event: "tg-style", payload: { ...base, style, fileId: vid.file_id, title } }
+    };
+  }
 
   if (!c) {
     // Any plain message, link, photo or sample video = an idea.
