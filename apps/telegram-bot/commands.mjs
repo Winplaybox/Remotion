@@ -30,6 +30,28 @@ export const IDEA_STATUSES = ["PENDING_REVIEW", "APPROVED", "REJECTED", "IN_PROD
 const FINAL = new Set(["COMPLETED", "FAILED", "CANCELLED"]);
 const PENDING_TTL_MS = 10 * 60_000;
 
+import fs from "node:fs";
+/** Channels a bot video can be published to (same secrets as channels/channels.ts; test checks). */
+export const PUBLISH_TARGETS = JSON.parse(fs.readFileSync(new URL("../../channels/publish-targets.json", import.meta.url), "utf8"));
+export const PLATFORM_SETS = { y: ["youtube"], yif: ["youtube", "instagram", "facebook"], if: ["instagram", "facebook"] };
+const PLATFORM_LABEL = { y: "YouTube", yif: "YouTube + IG + FB", if: "IG + FB" };
+const WHEN_LABEL = { now: "Abhi", t1930: "Aaj 7:30 PM", k0900: "Kal 9 AM", k1930: "Kal 7:30 PM" };
+
+/** IST schedule from a button code ("now", "t1930" today, "k0900" tomorrow) -> ISO string. */
+export function whenToIso(code, now = Date.now()) {
+  if (code === "now") return new Date(now).toISOString();
+  const m = /^([tk])(\d{2})(\d{2})$/.exec(code || "");
+  if (!m) return null;
+  const ist = new Date(now + 5.5 * 3600_000); // IST wall clock in UTC fields
+  const day = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()) + (m[1] === "k" ? 86_400_000 : 0);
+  let at = day + (Number(m[2]) * 60 + Number(m[3])) * 60_000 - 5.5 * 3600_000;
+  if (at < now) at += 86_400_000; // "today 7:30 PM" already passed -> tomorrow
+  return new Date(at).toISOString();
+}
+const fmtIst = (iso) => new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const pubLine = (p) => `${p.code} · ${p.job?.code ?? ""} · ${p.status}${p.target ? ` · ${p.target}` : ""}${p.platforms?.length ? ` · ${p.platforms.join("+")}` : ""}${p.publish_at && p.status === "SCHEDULED" ? ` · ${fmtIst(p.publish_at)}` : ""}\n${p.title || p.job?.output?.title || ""}`;
+const pubTargetKeyboard = (code) => [...PUBLISH_TARGETS.map((t) => [{ text: `📺 ${t.name}`, data: `pub:t:${code}:${t.id}` }]), [{ text: "❌ Reject", data: `pub:r:${code}` }]];
+
 const narratorList = () => Object.entries(NARRATORS).map(([id, about]) => `• ${id} — ${about}`).join("\n");
 
 const helpText = (style) => `🙏 Namaste! Main video bot hoon. /menu se sab kuch buttons se bhi kar sakte ho.
@@ -307,7 +329,8 @@ const ADMIN_HELP = `👑 Admin
 /dashboard (web) · /stats · /ideas [STATUS] · /approve ID [note] · /reject ID [note]
 /priority ID 1-5 · /channel ID name · /note ID text · /merge ID INTO_ID
 /produce ID [narrator] — approved idea → topic video
-/allow TG_ID · /disallow TG_ID · /jobs [STATUS] · /retry JOB`;
+/allow TG_ID · /disallow TG_ID · /jobs [STATUS] · /retry JOB
+/pubs [STATUS] · /publish JOB · /unpublish PUB · /pubretry PUB`;
 
 async function adminCommand(S, c) {
   const { ctx, user } = S;
@@ -351,6 +374,20 @@ async function adminCommand(S, c) {
       return { replies: [{ text: list.length ? list.map(jobLine).join("\n\n") : "Koi job nahi." }] };
     }
     case "retry": return retry(S, code);
+    case "pubs": {
+      const list = await ctx.store.listPublications(code || null, 10);
+      return { replies: [{ text: list.length ? list.map(pubLine).join("\n\n") : "Koi publication nahi." }] };
+    }
+    case "publish": return submitPub(S, code);
+    case "unpublish": {
+      const p = await ctx.store.reviewPublication(code, user.id, { decision: "cancel" });
+      return { replies: [{ text: p.error ? `❌ ${p.error}` : `🛑 ${p.code} cancel (YouTube pe pehle se upload hua ho to Studio mein hatao).` }] };
+    }
+    case "pubretry": {
+      const p = await ctx.store.reviewPublication(code, user.id, { decision: "retry" });
+      if (p.error) return { replies: [{ text: `❌ ${p.error}` }] };
+      return { replies: [{ text: `🔁 ${p.code} dobara schedule.` }], dispatch: { event: "tg-publish", payload: { code: p.code } } };
+    }
     default: return null;
   }
 }
@@ -379,6 +416,49 @@ async function retry(S, code) {
   if (j.status !== "FAILED") return { replies: [{ text: `${j.code} fail nahi hui (${j.status}).` }] };
   const event = j.kind === "style" ? "tg-style" : j.kind === "shorts" ? "tg-shorts" : "tg-video";
   return startJob({ ...S, updateId: `retry:${j.code}:${(j.retry_count ?? 0) + 1}` }, j.kind, { ...j.input, retryOf: j.code }, event);
+}
+
+/** Owner (or admin) sends a finished video for publishing; admin picks channel -> platforms -> time. */
+async function submitPub(S, jobCode) {
+  const { ctx, user, isAdmin } = S;
+  const p = await ctx.store.submitPublication(jobCode, user.id, isAdmin);
+  if (p.error) return { replies: [{ text: { "job not found": "Job nahi mili.", "not your job": "Ye aapka video nahi hai.", "video not stored": "Is video ki file save nahi hai (sirf naye videos publish ho sakte hain)." }[p.error] ?? `❌ ${p.error}` }] };
+  const text = `📤 ${p.code} — ${p.job.code}\n${p.title || "(no title)"}\nChannel chuno:`;
+  if (p.existing) return { replies: [{ text: `📤 ${p.code} pehle se ${p.status}.` }] };
+  if (isAdmin) return { replies: [{ text, keyboard: pubTargetKeyboard(p.code) }] };
+  return { replies: [{ text: `📤 ${p.code} admin ko bheja. Approve hote hi bataenge.` }], admin: [{ text: `${text}\n(from ${user.name})`, keyboard: pubTargetKeyboard(p.code) }] };
+}
+
+async function pubButton(S, action, code, a, b, c) {
+  const { ctx, user, isAdmin } = S;
+  if (action === "submit") return { answer: "📤", ...(await submitPub(S, code)) };
+  if (!isAdmin) return { answer: "Sirf admin", replies: [] };
+  const p = await ctx.store.getPublication(code);
+  if (!p) return { answer: "?", replies: [] };
+  const head = `📤 ${p.code} — ${p.job?.code ?? ""}\n${p.title}`;
+  if (action === "t" && PUBLISH_TARGETS.some((t) => t.id === a)) {
+    return { answer: "", replies: [], edit: { text: `${head}\n📺 ${a}\nPlatform chuno:`, keyboard: [Object.keys(PLATFORM_SETS).map((k) => ({ text: PLATFORM_LABEL[k], data: `pub:p:${code}:${a}:${k}` })), [{ text: "⬅️ Back", data: `pub:back:${code}` }]] } };
+  }
+  if (action === "p" && PLATFORM_SETS[b]) {
+    return { answer: "", replies: [], edit: { text: `${head}\n📺 ${a} · ${PLATFORM_LABEL[b]}\nKab?`, keyboard: [Object.keys(WHEN_LABEL).map((w) => ({ text: WHEN_LABEL[w], data: `pub:a:${code}:${a}:${b}:${w}` })), [{ text: "⬅️ Back", data: `pub:t:${code}:${a}` }]] } };
+  }
+  if (action === "back") return { answer: "", replies: [], edit: { text: `${head}\nChannel chuno:`, keyboard: pubTargetKeyboard(code) } };
+  if (action === "a" && PUBLISH_TARGETS.some((t) => t.id === a) && PLATFORM_SETS[b] && whenToIso(c)) {
+    const r = await ctx.store.reviewPublication(code, user.id, { decision: "approve", target: a, platforms: PLATFORM_SETS[b], publish_at: whenToIso(c) });
+    if (r.error) return { answer: r.error, replies: [] };
+    return {
+      answer: "✅ Scheduled", replies: [],
+      edit: { text: `✅ ${pubLine(r)}`, keyboard: [[{ text: "🛑 Cancel", data: `pub:x:${code}` }]] },
+      dispatch: { event: "tg-publish", payload: { code } },
+      notify: r.requested_by && String(r.requested_by) !== String(user.id) ? [{ chatId: r.requested_by, text: `✅ Aapka video ${r.job?.code} approve ho gaya — ${a} pe ${fmtIst(r.publish_at)} ko aayega.` }] : []
+    };
+  }
+  if (action === "r" || action === "x") {
+    const r = await ctx.store.reviewPublication(code, user.id, { decision: action === "r" ? "reject" : "cancel" });
+    if (r.error) return { answer: r.error, replies: [] };
+    return { answer: r.status, replies: [], edit: { text: `${r.status === "REJECTED" ? "❌" : "🛑"} ${pubLine(r)}` }, notify: action === "r" && String(r.requested_by) !== String(user.id) ? [{ chatId: r.requested_by, text: `Aapka video ${r.job?.code} abhi publish nahi hoga. Shukriya! 🙏` }] : [] };
+  }
+  return { answer: "?", replies: [] };
 }
 
 /** ▶️ Render on a preview: continue the same job with the approved draft. */
@@ -433,6 +513,7 @@ async function handleButton(q, ctx) {
     if (action === "cancel") return { answer: "🛑", ...(await cancel(S, arg)) };
     if (action === "retry") return { answer: "🔁", ...(await retry(S, arg)) };
   }
+  if (kind === "pub") return pubButton(S, action, arg, ...restParts.slice(1));
   if (kind === "idea") {
     if (!isAdmin) return { answer: "Sirf admin", replies: [] };
     let i;

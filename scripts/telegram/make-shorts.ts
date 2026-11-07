@@ -14,6 +14,7 @@ import { ClipsSchema, cleanClips, clipWords, fallbackClips, highlightsPrompt, ty
 import { renderComposition } from "./render";
 import { downloadFile, sendMessage, sendVideo } from "./telegram";
 import { JobCancelled, jobTracker } from "./jobs";
+import { storeFile } from "./storage";
 
 interface Job { fileId?: string; url?: string; chatId: string | number; messageId?: number; jobCode?: string; statusMessageId?: number; count?: number; seconds?: number; language?: string; user?: { name?: string } }
 
@@ -105,7 +106,7 @@ async function pickClips(segs: Segment[], duration: number): Promise<Clip[]> {
     if (!clips.length) throw new Error("Achhe hisse nahi mile");
     console.log(`[shorts] ${clips.length} clips: ${clips.map((c) => `${c.start}-${c.end}`).join(", ")}`);
 
-    const delivered: { title: string; start: number; end: number }[] = [];
+    const delivered: { title: string; start: number; end: number; file: string; hashtags: string[] }[] = [];
     for (const [i, c] of clips.entries()) {
       if (!local) await track.step("RENDERING", 40 + Math.floor((i / clips.length) * 50), `short ${i + 1}/${clips.length}`);
       const props = ShortClipSchema.parse({ src: `tg/${jobId}/src.mp4`, start: c.start, end: c.end, width: w, height: h, framing: "fit", words: clipWords(tr.segments, c), hook: c.hook.toUpperCase(), handle: "" });
@@ -113,7 +114,7 @@ async function pickClips(segs: Segment[], duration: number): Promise<Clip[]> {
       console.log(`[shorts] ${file}`);
       if (local) continue;
       await sendVideo(job.chatId, file, `✂️ Short ${i + 1}/${clips.length}: ${c.title}\n${c.hashtags.join(" ")}\n⏱ ${Math.round(c.start)}s–${Math.round(c.end)}s`, i === 0 ? job.messageId : undefined);
-      delivered.push({ title: c.title, start: c.start, end: c.end });
+      delivered.push({ title: c.title, start: c.start, end: c.end, hashtags: c.hashtags, file: await storeFile(file, `jobs/${job.jobCode ?? jobId}/short-${i + 1}.mp4`) });
     }
     if (local) return;
     await track.done({ title: `${delivered.length} Shorts`, shorts: delivered, language: tr.language });

@@ -57,10 +57,23 @@ sentences, max 90 s, no overlaps → Remotion `ShortClip` (landscape = full fram
 uploads are limited to 20 MB, so send longer videos as a link (direct .mp4 or a page yt-dlp can read). Only use videos you
 own or have rights to; links to other people's content are the user's responsibility.
 
+## Publishing bot videos (admin approval only)
+
+Finished videos (topic, script, style) are kept in the **private** Storage bucket `videobot` (`jobs/<JOB>/video.mp4`, thumbnail).
+After delivery the user gets **📤 Publish ke liye bhejo** → `PUB-00001` (status `PENDING_APPROVAL`) → the admin picks
+**channel** (`channels/publish-targets.json`: Chakra Puzzle, Kaali Peeli Chase, Epic Bharat Saga) → **platforms** (YouTube,
+YouTube + IG + FB, IG + FB) → **time** (now, today 7:30 PM, tomorrow 9 AM / 7:30 PM IST) → `SCHEDULED`.
+`.github/workflows/publish-bot.yml` runs right away (repository_dispatch) and every 3 h: it claims due rows (SKIP LOCKED),
+uploads YouTube as private + scheduled `publishAt` (idempotent by title, schedule read back), posts IG/FB Reels at run time,
+records per-platform results (`PUBLISHED` / `PARTIAL` / `FAILED`) and messages the admin and the requester.
+Retries skip platforms that already succeeded. Nothing is published without approval; the daily channel pipeline is unchanged.
+Admin: `/pubs [STATUS]`, `/publish JOB`, `/unpublish PUB`, `/pubretry PUB`, and the Publishing table on `/admin`.
+Shorts (several files per job) are stored but not offered for publishing yet.
+
 ## Data (Supabase)
 
 Schema `videobot` in the **winplayboxsite** project (`https://xatbfyiytcnogfbtfsym.supabase.co`), migration
-`supabase/migrations/20261108000100_videobot_foundation.sql`: `users`, `ideas` (+ `idea_events` history), `jobs`
+`supabase/migrations/20261108000100_videobot_foundation.sql` + `…000200_videobot_publishing.sql`: `users`, `publications`, bucket `videobot` (private), `ideas` (+ `idea_events` history), `jobs`
 (+ `job_events`), `processed_updates`, `user_preferences`. Tables are not exposed to the public API; the bot and the
 workers call `public.videobot_*` functions with the **service-role key** only (anon/authenticated cannot execute them).
 Without `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` the bot falls back to memory + the old `bot-data` branch for ideas.

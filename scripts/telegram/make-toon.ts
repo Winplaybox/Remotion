@@ -13,6 +13,7 @@ import { MAX_SECONDS, TOON_STYLES, ToonVideoSchema, type ToonStyle } from "../..
 import { renderComposition } from "./render";
 import { sendMessage, sendVideo } from "./telegram";
 import { JobCancelled, jobTracker } from "./jobs";
+import { storeFile } from "./storage";
 
 interface Job { fileId: string; style: string; chatId: string | number; messageId?: number; title?: string; jobCode?: string; statusMessageId?: number; user?: { name?: string } }
 
@@ -71,7 +72,8 @@ function normalize(input: string, output: string) {
     if (local) return;
     await track.step("UPLOADING", 92);
     await sendVideo(job.chatId, out, `🎨 ${TOON_STYLES[style].label} version${job.jobCode ? `\n${job.jobCode}` : ""}`, job.messageId, [720, 1280]);
-    await track.done({ title: `${TOON_STYLES[style].label} version`, seconds: Math.round(seconds), style });
+    const stored = await storeFile(out, `jobs/${job.jobCode ?? jobId}/video.mp4`);
+    await track.done({ file: stored, title: `${TOON_STYLES[style].label} version`, seconds: Math.round(seconds), style });
     const admin = process.env.TG_ADMIN_ID;
     if (admin && String(admin) !== String(job.chatId)) await sendMessage(admin, `🎨 /style ${style} video bana for ${job.user?.name ?? job.chatId}`).catch(() => undefined);
   } catch (e) {

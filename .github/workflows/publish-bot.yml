@@ -1,0 +1,50 @@
+name: Publish Bot Videos
+
+# Publishes bot videos that the admin approved in Telegram / the web dashboard (videobot.publications).
+# Triggered right after approval (repository_dispatch tg-publish) and every 3 hours as a safety net.
+# Never publishes anything that was not approved. The channel pipeline (publish-channels.yml) is separate and unchanged.
+on:
+  repository_dispatch:
+    types: [tg-publish]
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+concurrency: { group: publish-bot, cancel-in-progress: false }
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TG_ADMIN_ID: ${{ vars.TG_ADMIN_ID }}
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      YT_TOKEN_EPICBHARATSAGA_CLIENT: ${{ secrets.YT_TOKEN_EPICBHARATSAGA_CLIENT }}
+      YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
+      YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+      YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}
+      META_CHAKRA_PAGE_ID: ${{ secrets.META_CHAKRA_PAGE_ID }}
+      META_CHAKRA_IG_USER_ID: ${{ secrets.META_CHAKRA_IG_USER_ID }}
+      META_CHAKRA_PAGE_TOKEN: ${{ secrets.META_CHAKRA_PAGE_TOKEN }}
+      META_KPC_PAGE_ID: ${{ secrets.META_KPC_PAGE_ID }}
+      META_KPC_IG_USER_ID: ${{ secrets.META_KPC_IG_USER_ID }}
+      META_KPC_PAGE_TOKEN: ${{ secrets.META_KPC_PAGE_TOKEN }}
+      META_EBS_PAGE_ID: ${{ secrets.META_EBS_PAGE_ID }}
+      META_EBS_IG_USER_ID: ${{ secrets.META_EBS_IG_USER_ID }}
+      META_EBS_PAGE_TOKEN: ${{ secrets.META_EBS_PAGE_TOKEN }}
+    steps:
+      - name: Skip when the database is not configured
+        id: cfg
+        run: echo "ok=${{ secrets.SUPABASE_URL != '' && secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ok == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.ok == 'true'
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+        if: steps.cfg.outputs.ok == 'true'
+      - run: npx ts-node scripts/telegram/publish-bot.ts
+        if: steps.cfg.outputs.ok == 'true'

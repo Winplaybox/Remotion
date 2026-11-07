@@ -112,8 +112,8 @@ async function adminRoute(req, res, url) {
   if (req.method === "GET" && url.pathname === "/admin/logout") return html(res, 302, "", { location: "/admin", "set-cookie": "vb_admin=; Path=/admin; Max-Age=0" });
   if (req.method === "GET" && url.pathname === "/admin") {
     if (!isAdmin) return html(res, 200, loginPage(botUsername));
-    const [stats, ideas, jobs] = await Promise.all([store.stats(), store.listIdeas(null, null, 50), store.listJobs(null, null, 30)]);
-    return html(res, 200, dashboardPage({ stats, ideas, jobs, admin: me }));
+    const [stats, ideas, jobs, pubs] = await Promise.all([store.stats(), store.listIdeas(null, null, 50), store.listJobs(null, null, 30), store.listPublications(null, 30)]);
+    return html(res, 200, dashboardPage({ stats, ideas, jobs, pubs, admin: me }));
   }
   if (req.method === "POST" && url.pathname === "/admin/api/action") {
     if (!isAdmin) return html(res, 401, "login required");
