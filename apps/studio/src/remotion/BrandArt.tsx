@@ -3,9 +3,10 @@ import { AbsoluteFill, random } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { ELEMENT_RENDERERS } from "../../../../engines/odd-orbit/src/elements";
 import { Vehicle, VehicleDefs } from "../../../../engines/track-vehicle/src/vehicles";
+import { PROPS, PropDefs } from "../../../../engines/story-diorama/src/props";
 
 /** Channel avatars (800x800) and YouTube banners (2560x1440). Render as stills. */
-export type BrandArtProps = { channel: "chakra" | "kpc"; kind: "avatar" | "banner" };
+export type BrandArtProps = { channel: "chakra" | "kpc" | "ebs"; kind: "avatar" | "banner" };
 
 const CP = { bg: "#0A0820", bg2: "#1A0F2E", glow: "#5B2C83", line: "#FFD27A", body: "#FFF4D6", accent: "#FF9F1C" };
 
@@ -87,8 +88,60 @@ const KpcBanner: React.FC = () => (
   </AbsoluteFill>
 );
 
+
+const EB = { paper: "#F5EEDF", ink: "#1C1A17", accent: "#F0533F", accent2: "#F6B93B", accent3: "#5BD17A", maroon: "#3A1020", deep: "#1E0A14" };
+
+const Emblem: React.FC<{ size: number }> = ({ size }) => (
+  <svg viewBox="-110 -110 220 220" width={size} height={size}>
+    <circle r={104} fill="none" stroke={EB.accent2} strokeWidth={4} />
+    <circle r={92} fill="none" stroke={EB.accent2} strokeWidth={1.5} strokeDasharray="3 6" />
+    {Array.from({ length: 16 }, (_, i) => <ellipse key={i} rx={11} ry={44} cy={-40} fill={i % 2 ? EB.accent2 : "#F28C28"} opacity={0.9} transform={`rotate(${i * 22.5})`} />)}
+    {Array.from({ length: 8 }, (_, i) => <ellipse key={i} rx={10} ry={26} cy={-22} fill={EB.paper} transform={`rotate(${i * 45 + 22.5})`} />)}
+    <circle r={16} fill={EB.accent} />
+    <circle r={6} fill={EB.paper} />
+  </svg>
+);
+
+const EbsAvatar: React.FC = () => (
+  <AbsoluteFill style={{ background: `radial-gradient(circle, ${EB.maroon}, ${EB.deep} 75%)`, alignItems: "center", justifyContent: "center" }}>
+    <Emblem size={640} />
+  </AbsoluteFill>
+);
+
+const EbsBanner: React.FC = () => {
+  const pal = { paper: EB.paper, ink: EB.ink, accent: EB.accent, accent2: EB.accent2, accent3: EB.accent3 };
+  const prop = (name: keyof typeof PROPS, x: number, y: number, s: number, data: Record<string, unknown> = {}) => {
+    const P = PROPS[name];
+    return <g transform={`translate(${x} ${y}) scale(${s})`}><P lf={200} fps={30} data={data} pal={pal} /></g>;
+  };
+  return (
+    <AbsoluteFill style={{ background: `linear-gradient(180deg, #141A44, #3A2A4A 55%, ${EB.maroon})` }}>
+      <svg width={2560} height={1440} style={{ position: "absolute", inset: 0 }}>
+        <PropDefs />
+        {Array.from({ length: 70 }, (_, i) => <circle key={i} cx={random(`s${i}`) * 2560} cy={random(`t${i}`) * 700} r={1.5 + random(`u${i}`) * 2.5} fill="#FFF6DA" opacity={0.6} />)}
+        {prop("hills", 1280, 1180, 2.2, { color: "#2A1E3F" })}
+        {prop("temple", 350, 1250, 0.9)}
+        {prop("temple", 2220, 1250, 0.9)}
+        {prop("fish", 620, 1050, 0.6, { horn: true })}
+        {prop("lotus", 1960, 1120, 0.8)}
+        {prop("diyaRow", 1280, 1330, 1.2, { count: 9, spacing: 220 })}
+      </svg>
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 46, background: "rgba(30,10,20,.88)", padding: "34px 70px", borderRadius: 36, border: `4px solid ${EB.accent2}` }}>
+          <Emblem size={210} />
+          <div>
+            <div style={{ fontFamily: FONT.display, fontSize: 150, lineHeight: 1, color: EB.paper }}>EPIC <span style={{ color: EB.accent2 }}>BHARAT</span> SAGA</div>
+            <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 46, color: EB.accent2, marginTop: 14 }}>Sanatan Dharma ki kahaniyaan · Roz ek episode 🙏</div>
+          </div>
+        </div>
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
 export const BrandArt: React.FC<BrandArtProps> = ({ channel, kind }) => {
   useBundledFonts();
   if (channel === "chakra") return kind === "avatar" ? <ChakraAvatar /> : <ChakraBanner />;
+  if (channel === "ebs") return kind === "avatar" ? <EbsAvatar /> : <EbsBanner />;
   return kind === "avatar" ? <KpcAvatar /> : <KpcBanner />;
 };

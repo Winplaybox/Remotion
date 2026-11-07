@@ -55,6 +55,8 @@ export const Root: React.FC = () => (
       <Still id="ChakraPuzzle-Banner" component={BrandArt} width={2560} height={1440} defaultProps={{ channel: "chakra" as const, kind: "banner" as const }} />
       <Still id="KaaliPeeliChase-Avatar" component={BrandArt} width={800} height={800} defaultProps={{ channel: "kpc" as const, kind: "avatar" as const }} />
       <Still id="KaaliPeeliChase-Banner" component={BrandArt} width={2560} height={1440} defaultProps={{ channel: "kpc" as const, kind: "banner" as const }} />
+      <Still id="EpicBharatSaga-Avatar" component={BrandArt} width={800} height={800} defaultProps={{ channel: "ebs" as const, kind: "avatar" as const }} />
+      <Still id="EpicBharatSaga-Banner" component={BrandArt} width={2560} height={1440} defaultProps={{ channel: "ebs" as const, kind: "banner" as const }} />
     </Folder>
     <Folder name="Legacy">
       <Composition id="OrbitPuzzle" component={OrbitPuzzleComposition} durationInFrames={900} {...video} defaultProps={orbitPuzzle} />
