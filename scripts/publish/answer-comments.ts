@@ -9,14 +9,14 @@ import { CHANNELS, type ChannelId } from "../../channels/channels";
 import { youtubeClient } from "./youtube";
 
 const args = process.argv.slice(2);
-const hours = Number(args[args.indexOf("--hours") + 1] || 6) || 6;
+const hours = Number(args[args.indexOf("--hours") + 1] || 6) || 6; // window for same-video answers; next-video answers wait for post n+1
 const dry = args.includes("--dry");
 
 /** "Puzzle #12" / "Level 12" / "EP 12" -> 12 */
 const postNo = (title: string) => Number(/(?:#|Level |EP )(\d+)/.exec(title)?.[1] ?? NaN);
 
 async function run(id: ChannelId) {
-  const cfg = CHANNELS[id] as { youtubeTokenSecret: string; answer?: (n: number) => string; name: string };
+  const cfg = CHANNELS[id] as { youtubeTokenSecret: string; answer?: (n: number) => string; answerInNextFrom?: number; name: string };
   if (!cfg.answer) return;
   const token = process.env[cfg.youtubeTokenSecret];
   if (!token) { console.log(`[${cfg.name}] no token, skip`); return; }
@@ -30,11 +30,16 @@ async function run(id: ChannelId) {
   if (!ids.length) return;
   const vids = await yt.videos.list({ part: ["snippet", "status"], id: ids });
   const since = Date.now() - hours * 3600_000;
+  const publicNos = new Set((vids.data.items ?? []).filter((v) => v.status?.privacyStatus === "public").map((v) => postNo(v.snippet?.title ?? "")));
   for (const v of vids.data.items ?? []) {
-    const publishedAt = Date.parse(v.status?.publishAt ?? v.snippet?.publishedAt ?? "");
-    if (v.status?.privacyStatus !== "public" || !(publishedAt >= since)) continue;
+    if (v.status?.privacyStatus !== "public") continue;
     const n = postNo(v.snippet?.title ?? "");
     if (!Number.isFinite(n)) continue;
+    // "Answer in the next video" posts: comment only once post n+1 is public (that video opens with this answer).
+    const delayed = n >= (cfg.answerInNextFrom ?? Infinity);
+    if (delayed && !publicNos.has(n + 1)) continue;
+    const publishedAt = Date.parse(v.status?.publishAt ?? v.snippet?.publishedAt ?? "");
+    if (!delayed && !(publishedAt >= since)) continue;
     const threads = await yt.commentThreads.list({ part: ["snippet"], videoId: v.id!, maxResults: 50 });
     const already = (threads.data.items ?? []).some((t) => t.snippet?.topLevelComment?.snippet?.authorChannelId?.value === me.id);
     if (already) continue;

@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { buildSchedule } from "./schedule";
+import { FPS, PHASE, SPEED_TIERS } from "./constants";
+export { FPS, PHASE, SPEED_TIERS } from "./constants";
 
 /** Every vehicle the engine can draw (top-down, facing up). Add one in vehicles.tsx and list it here. */
 export const VEHICLE_KINDS = ["kaalipeeli", "bestbus", "taxi", "police", "ambulance", "bus", "truck", "sports", "auto", "suv", "firetruck", "schoolbus", "tempo", "scooter", "tractor", "tanker"] as const;
@@ -29,6 +32,10 @@ export const TrackVehicleSchema = z.object({
   shuffleSeconds: z.number().min(4).max(60),
   /** 1 = calm, 3 = brutal. Controls speed ramp and simultaneous swaps. */
   difficulty: z.number().min(1).max(3),
+  /** "Answer in the next video": no reveal, ask viewers to comment; opening card shows the previous level's answer. */
+  askMode: z.boolean().default(false),
+  introSeconds: z.number().min(0).default(0),
+  prevAnswer: z.string().default(""),
   /** Background music, engine, swoosh per swap, horn, ticks (original kit in public/sfx). */
   sound: z.boolean().default(true),
   /** Stepped speed: DHEEMA -> TEZ -> AUR TEZ -> SABSE TEZ, with an on-screen badge. false = old smooth ramp. */
@@ -72,7 +79,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
   const week = (d - 1) % 7; // ramps every week, resets with a new vehicle mix
   const [cols, rows] = GRIDS[Math.min(3, Math.floor(week / 2))] ?? GRIDS[0];
   const long = ["bestbus", "truck", "ambulance", "firetruck", "schoolbus", "tanker"].includes(v.vehicle);
-  return {
+  const base: TrackVehicle = {
     ...KPC_BRAND,
     voice: [],
     sound: true,
@@ -97,29 +104,39 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     questionSeconds: 2.5,
     answerSeconds: 2,
     endCard: { show: true, title: "KAALI PEELI CHASE", line: "Kal ka naya vehicle chase challenge miss mat karna!", button: "FOLLOW KARO, KAL NAYA CHALLENGE KHELO", seconds: 5 },
-    colors: v.colors
+    colors: v.colors,
+    askMode: false,
+    introSeconds: 0,
+    prevAnswer: ""
+  };
+  if (d < ASK_FROM) return base;
+  // From level 4 on: answer in the NEXT video, previous level's answer on the opening card.
+  const prev = kaaliPeeliForDay(d - 1);
+  return {
+    ...base,
+    askMode: true,
+    introSeconds: 2.6,
+    prevAnswer: `#${buildSchedule(prev).answerSlot + 1}`,
+    questionSeconds: 5.2,
+    answerSeconds: 0,
+    cta: "AAPKA JAWAB? COMMENT MEIN BATAIYE 👇",
+    endCard: { ...base.endCard, title: "SAHI JAWAB AGLI VIDEO MEIN 👀", line: "Main ek solo dev hoon — ek cozy Kaali Peeli Chase game bana raha hoon 🎮", button: "FOLLOW KARO", seconds: 4 }
   };
 }
+
+/** Levels before this were published with the answer revealed in the same video. */
+export const ASK_FROM = 4;
 
 export const TRACK_VEHICLE_DEMO: TrackVehicle = kaaliPeeliForDay(1);
 export const TRACK_VEHICLE_VARIANTS: Record<string, Partial<TrackVehicle>> = Object.fromEntries(
   ROTATION.map((r, i) => [r.vehicle, kaaliPeeliForDay(i + 1)])
 );
 
-export const FPS = 30;
-export const PHASE = { intro: 20, show: 55, hide: 22 } as const;
 
 export function trackVehicleDuration(p: TrackVehicle): number {
-  return Math.round(PHASE.intro + PHASE.show + PHASE.hide + (p.shuffleSeconds + p.questionSeconds + p.answerSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
+  return Math.round(p.introSeconds * FPS + PHASE.intro + PHASE.show + PHASE.hide + (p.shuffleSeconds + p.questionSeconds + p.answerSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
 }
 
-/** Stepped speed tiers (fraction of the shuffle where each starts). */
-export const SPEED_TIERS = [
-  { at: 0, label: "DHEEMA", voice: "", color: "#5BD17A" },
-  { at: 0.28, label: "TEZ", voice: "तेज़!", color: "#FFD23F" },
-  { at: 0.52, label: "AUR TEZ", voice: "और तेज़!", color: "#FF8A00" },
-  { at: 0.76, label: "SABSE TEZ!", voice: "सबसे तेज़!", color: "#FF2D55" }
-] as const;
 
 const VEHICLE_VOICE: Record<string, string> = {
   "KAALI PEELI": "काली पीली टैक्सी", AUTO: "ऑटो रिक्शा", "BEST BUS": "बेस्ट बस", POLICE: "पुलिस की गाड़ी",
@@ -129,16 +146,20 @@ const VEHICLE_VOICE: Record<string, string> = {
 /** Hinglish voice lines (Devanagari so the Hindi TTS voice reads them naturally). answer = 1-based slot number. */
 export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: string; text: string; at: number }[] {
   const name = VEHICLE_VOICE[p.label] ?? p.label.toLowerCase();
-  const shuffleStart = (PHASE.intro + PHASE.show + PHASE.hide) / FPS;
+  const o = p.introSeconds;
+  const shuffleStart = o + (PHASE.intro + PHASE.show + PHASE.hide) / FPS;
   const questionAt = shuffleStart + p.shuffleSeconds;
   const answerAt = questionAt + p.questionSeconds;
   const lines = [
-    { file: "hook.wav", at: 0.3, text: `${name} पर नज़र रखो। आँख मत हटाना!` },
+    ...(p.askMode && o > 0 && p.prevAnswer ? [{ file: "prev.wav", at: 0.2, text: `पिछले लेवल का जवाब: नंबर ${p.prevAnswer.replace("#", "")}।` }] : []),
+    { file: "hook.wav", at: o + 0.3, text: `${name} पर नज़र रखो। आँख मत हटाना!` },
     { file: "go.wav", at: shuffleStart, text: "शफल शुरू!" },
     ...(p.speedTiers ? SPEED_TIERS.slice(1).map((t, i) => ({ file: `tier${i + 1}.wav`, at: shuffleStart + p.shuffleSeconds * t.at, text: t.voice })) : []),
-    { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
+    p.askMode
+      ? { file: "question.wav", at: questionAt + 0.1, text: `${name} कहाँ है? आपका जवाब कमेंट में बताइए! देखते हैं कितने लोग सही जवाब दे पाते हैं।` }
+      : { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
   ];
   if (p.answerSeconds > 0) lines.push({ file: "reveal.wav", at: answerAt + 0.1, text: `जवाब है, नंबर ${answer}!` });
-  if (p.endCard.show) lines.push({ file: "outro.wav", at: answerAt + p.answerSeconds + 0.2, text: "कल का नया व्हीकल चेज़ चैलेंज देखने के लिए फॉलो करो!" });
+  if (p.endCard.show) lines.push({ file: "outro.wav", at: answerAt + p.answerSeconds + 0.2, text: p.askMode ? "सही जवाब अगली वीडियो में बताएँगे। फॉलो करो!" : "कल का नया व्हीकल चेज़ चैलेंज देखने के लिए फॉलो करो!" });
   return lines;
 }

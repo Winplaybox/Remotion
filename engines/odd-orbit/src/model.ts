@@ -22,6 +22,15 @@ export const OddOrbitSchema = z.object({
   revealFooter: z.string(),
   answerPrefix: z.string(),
   element: z.enum(ORBIT_ELEMENTS),
+  /** "Answer in the next video" format: no reveal, ask viewers to comment, show the previous post's answer first. */
+  askMode: z.boolean().default(false),
+  /** Seconds of the opening "PICHHLE PUZZLE KA JAWAB" card (0 = none). */
+  introSeconds: z.number().min(0).default(0),
+  /** Previous post's answer text, e.g. "ROW 5 · #4". */
+  prevAnswer: z.string().default(""),
+  askTitle: z.string().default("AAPKA JAWAB?"),
+  askLine: z.string().default("COMMENT MEIN BATAIYE 👇"),
+  askSub: z.string().default("Dekhte hain kitne log sahi jawab de paate hain!"),
   /** Background music + SFX (original kit in public/sfx). */
   sound: z.boolean().default(true),
   /** For element "glyph": [normal, odd] characters, e.g. ["9", "6"]. */
@@ -105,7 +114,7 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
   const glyphs = GLYPH_PAIRS[(d * 7 + 2) % GLYPH_PAIRS.length] ?? GLYPH_PAIRS[0]!;
   const speedRule = oddRule === "faster" || oddRule === "slower";
   const copy = element === "glyph" ? { title: `${glyphs[0]} KE BEECH ${glyphs[1]} DHUNDO`, subtitle: `Sab ${glyphs[0]} hain... ek ${glyphs[1]} chhupa hai 👀` } : RULE_COPY[oddRule];
-  return {
+  const base: OddOrbit = {
     ...CHAKRA_BRAND,
     voice: [],
     sound: true,
@@ -132,7 +141,30 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     endSpeed: 1.35,
     endCard: { show: true, title: "CHAKRA PUZZLE", line: "Kal ka naya puzzle miss mat karna!", button: "FOLLOW KARO, KAL NAYA PUZZLE KHELO", seconds: 5 },
     showTimer: true,
-    palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!
+    palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!,
+    askMode: false,
+    introSeconds: 0,
+    prevAnswer: "",
+    askTitle: "AAPKA JAWAB?",
+    askLine: "COMMENT MEIN BATAIYE 👇",
+    askSub: "Dekhte hain kitne log sahi jawab de paate hain!"
+  };
+  return d >= ASK_FROM ? { ...base, ...askFields(d) } : base;
+}
+
+/** From this post on, the answer is revealed in the NEXT video (more comments + follows). Earlier posts are already published. */
+export const ASK_FROM = 4;
+function askFields(d: number): Partial<OddOrbit> {
+  const prev = chakraPuzzleForDay(d - 1);
+  const { row, col } = oddCellOf(prev);
+  return {
+    askMode: true,
+    introSeconds: 2.6,
+    playSeconds: 11,
+    prevAnswer: `ROW ${row} · #${col}`,
+    revealSeconds: 5.2,
+    footer: "COMMENT MEIN BATAIYE: ROW + NUMBER 👇",
+    endCard: { show: true, title: "SAHI JAWAB AGLI VIDEO MEIN 👀", line: "Main ek solo dev hoon — ek cozy Chakra Puzzle game bana raha hoon 🎮", button: "FOLLOW KARO", seconds: 4 }
   };
 }
 
@@ -145,7 +177,7 @@ export const ODD_ORBIT_VARIANTS: Record<string, Partial<OddOrbit>> = Object.from
 
 export const FPS = 30;
 export function oddOrbitDuration(p: OddOrbit): number {
-  return Math.round((p.playSeconds + p.revealSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
+  return Math.round((p.introSeconds + p.playSeconds + p.revealSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
 }
 
 /** "Effective seconds" of spin at time t with a linear speed ramp (slow start, fast finish). */
@@ -172,10 +204,22 @@ const RULE_VOICE: Record<OddOrbit["oddRule"], string> = {
 
 export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at: number }[] {
   const { row, col } = oddCellOf(p);
+  const o = p.introSeconds;
+  const hook = `${p.element === "glyph" ? `सारे ${GLYPH_VOICE[p.glyphs[0]] ?? p.glyphs[0]} हैं, बस एक ${GLYPH_VOICE[p.glyphs[1]] ?? p.glyphs[1]} छुपा है। ढूँढो!` : RULE_VOICE[p.oddRule]} टाइम शुरू!`;
+  if (p.askMode) {
+    const prev = p.prevAnswer.replace("ROW", "रो").replace("·", ",").replace("#", "नंबर ");
+    return [
+      ...(o > 0 && p.prevAnswer ? [{ file: "prev.wav", at: 0.2, text: `पिछले पज़ल का जवाब: ${prev}।` }] : []),
+      { file: "hook.wav", at: o + 0.3, text: hook },
+      { file: "hurry.wav", at: o + Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड!" },
+      { file: "ask.wav", at: o + p.playSeconds + 0.15, text: "आपका जवाब क्या है? कमेंट में बताइए! देखते हैं कितने लोग सही जवाब दे पाते हैं।" },
+      ...(p.endCard.show ? [{ file: "outro.wav", at: o + p.playSeconds + p.revealSeconds + 0.2, text: "सही जवाब अगली वीडियो में बताएँगे। फॉलो करो!" }] : [])
+    ];
+  }
   return [
-    { file: "hook.wav", at: 0.4, text: `${p.element === "glyph" ? `सारे ${GLYPH_VOICE[p.glyphs[0]] ?? p.glyphs[0]} हैं, बस एक ${GLYPH_VOICE[p.glyphs[1]] ?? p.glyphs[1]} छुपा है। ढूँढो!` : RULE_VOICE[p.oddRule]} टाइम शुरू!` },
+    { file: "hook.wav", at: 0.4, text: hook },
     { file: "hurry.wav", at: Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड! कमेंट में लिखो।" },
     { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` },
-    ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "कल का नया चक्र पज़ल देखने के लिए फॉलो करो!" }] : [])
+    ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ, और चक्र पज़ल नाम का एक कोज़ी गेम बना रहा हूँ। फॉलो करो, सबसे पहले खेलो!" }] : [])
   ];
 }

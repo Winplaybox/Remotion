@@ -3,6 +3,7 @@ import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "r
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
+import { AskOverlay, PrevAnswerCard } from "@visuals/PrevAnswer";
 import { ELEMENT_RENDERERS } from "./elements";
 import { rampedTime, type OddOrbit } from "./model";
 
@@ -51,13 +52,15 @@ const Stars: React.FC<{ seed: string; frame: number }> = ({ seed, frame }) => (
 
 export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
   useBundledFonts();
-  const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const introFrames = Math.round(p.introSeconds * fps);
+  // Everything below runs on puzzle time; the intro card covers the first introSeconds.
+  const frame = useCurrentFrame() - introFrames;
   const { cells, pitch, odd } = useLayout(p);
   const Element = ELEMENT_RENDERERS[p.element];
   const t = frame / fps;
   const playFrames = p.playSeconds * fps;
-  const reveal = p.revealSeconds > 0 ? spring({ frame: frame - playFrames, fps, config: { damping: 16, stiffness: 110 } }) : 0;
+  const reveal = p.revealSeconds > 0 && !p.askMode ? spring({ frame: frame - playFrames, fps, config: { damping: 16, stiffness: 110 } }) : 0;
   const r = pitch * 0.42;
   const head = spring({ frame, fps, config: { damping: 18 } });
   const timeLeft = Math.max(0, p.playSeconds - t);
@@ -90,10 +93,11 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
           musicVolume={0.16}
           duck={duckFromCues(p.voice)}
           sfx={[
-            { src: "sfx/pop.mp3", at: 0.25, volume: 0.35 },
-            ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: p.playSeconds - k, volume: 0.5 })),
-            { src: "sfx/ding.mp3", at: p.playSeconds, volume: 0.55 },
-            ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: p.playSeconds + p.revealSeconds - 0.1, volume: 0.4 }] : [])
+            ...(p.introSeconds > 0 ? [{ src: "sfx/ding.mp3", at: 0.15, volume: 0.4 }, { src: "sfx/whoosh.mp3", at: p.introSeconds - 0.2, volume: 0.35 }] : []),
+            { src: "sfx/pop.mp3", at: p.introSeconds + 0.25, volume: 0.35 },
+            ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: p.introSeconds + p.playSeconds - k, volume: 0.5 })),
+            { src: p.askMode ? "sfx/pop.mp3" : "sfx/ding.mp3", at: p.introSeconds + p.playSeconds, volume: 0.55 },
+            ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: p.introSeconds + p.playSeconds + p.revealSeconds - 0.1, volume: 0.4 }] : [])
           ]}
         />
       ) : null}
@@ -181,6 +185,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
         {reveal > 0.5 ? p.revealFooter : p.footer}
       </div>
       <div style={{ position: "absolute", top: 1760, width: "100%", textAlign: "center", fontFamily: FONT.mono, fontWeight: 700, fontSize: 26, color: pal.line, opacity: 0.75, letterSpacing: 2 }}>{p.handle}</div>
+      {p.askMode ? <AskOverlay from={introFrames + playFrames} until={introFrames + endStart + 6} title={p.askTitle} line={p.askLine} sub={p.askSub} accent={pal.accent} /> : null}
       {endP > 0 ? (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", background: `rgba(5,4,16,${0.88 * endP})`, opacity: endP }}>
           <div style={{ fontFamily: FONT.display, fontSize: Math.min(150, 1700 / p.endCard.title.length), color: pal.accent, lineHeight: 1, textShadow: `0 0 40px ${pal.accent}88`, transform: `scale(${0.9 + endP * 0.1})` }}>{p.endCard.title}</div>
@@ -189,6 +194,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
           <div style={{ marginTop: 40, fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, color: pal.line, letterSpacing: 2 }}>{p.handle}</div>
         </AbsoluteFill>
       ) : null}
+      {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PICHHLE PUZZLE #${String(p.puzzleNo - 1).padStart(3, "0")} KA JAWAB`} answer={p.prevAnswer} accent={pal.accent} bg={`linear-gradient(180deg, ${pal.bgTop}, ${pal.bgBottom})`} /> : null}
     </AbsoluteFill>
   );
 };

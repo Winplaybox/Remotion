@@ -3,6 +3,7 @@ import { AbsoluteFill, interpolate, interpolateColors, random, spring, useCurren
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
+import { PrevAnswerCard } from "@visuals/PrevAnswer";
 import { FPS, PHASE, SPEED_TIERS, type TrackVehicle } from "./model";
 import { buildSchedule, carPose } from "./schedule";
 import { Vehicle, VehicleDefs, VEHICLE_SIZE } from "./vehicles";
@@ -71,8 +72,10 @@ const Road: React.FC<{ laneXs: number[]; frame: number; seed: string }> = ({ lan
 
 export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
   useBundledFonts();
-  const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const introFrames = Math.round(p.introSeconds * fps);
+  // Puzzle time; the "previous answer" card covers the first introSeconds.
+  const frame = useCurrentFrame() - introFrames;
   const g = useGeometry(p);
   const sched = useMemo(() => buildSchedule(p), [p]);
 
@@ -127,15 +130,17 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
     <AbsoluteFill style={{ background: "#0B0C0F", overflow: "hidden" }}>
       <VoiceCues cues={p.voice} />
       {p.sound ? (() => {
-        const sh = shuffleStart / fps, se = shuffleEnd / fps, qe = questionEnd / fps;
+        const o = p.introSeconds;
+        const sh = o + shuffleStart / fps, se = o + shuffleEnd / fps, qe = o + questionEnd / fps;
         const starts = [...new Set(sched.events.map((e) => e.start))];
         const sfx: Sfx[] = [
-          { src: "sfx/horn.mp3", at: 0.15, volume: 0.3 },
-          { src: "sfx/engine_loop.mp3", at: 0.5, until: se, loop: true, volume: 0.14 },
+          ...(o > 0 ? [{ src: "sfx/ding.mp3", at: 0.15, volume: 0.4 }] : []),
+          { src: "sfx/horn.mp3", at: o + 0.15, volume: 0.3 },
+          { src: "sfx/engine_loop.mp3", at: o + 0.5, until: se, loop: true, volume: 0.14 },
           ...starts.map((f): Sfx => ({ src: "sfx/swoosh.mp3", at: sh + f / fps, volume: 0.22 })),
           ...(p.speedTiers ? SPEED_TIERS.slice(1).map((t): Sfx => ({ src: "sfx/riser.mp3", at: sh + p.shuffleSeconds * t.at - 1.1, volume: 0.25 })) : []),
           ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: se - k, volume: 0.45 })),
-          { src: "sfx/ding.mp3", at: qe, volume: 0.55 },
+          ...(p.answerSeconds > 0 ? [{ src: "sfx/ding.mp3", at: qe, volume: 0.55 }] : []),
           ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: qe + p.answerSeconds - 0.1, volume: 0.4 }] : [])
         ];
         return <SoundBed music="sfx/music_chase.mp3" musicVolume={0.13} duck={duckFromCues(p.voice)} sfx={sfx} />;
@@ -227,6 +232,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           <div style={{ marginTop: 50, fontFamily: FONT.ui, fontWeight: 900, fontSize: 40, color: "#111", background: accent, padding: "20px 48px", borderRadius: 99, border: "4px solid #3A2500", transform: `scale(${1 + Math.sin(frame / 6) * 0.03})` }}>{p.endCard.button.replace("{next}", String(p.level + 1))}</div>
         </AbsoluteFill>
       ) : null}
+      {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PICHHLE LEVEL ${p.level - 1} KA JAWAB`} answer={p.prevAnswer} accent={p.colors.accent} bg="linear-gradient(180deg, #121317, #0B0C0F)" /> : null}
     </AbsoluteFill>
   );
 };
