@@ -75,7 +75,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
     const tinted = isOdd && p.oddRule === "tint";
     return (
       <g key={i} transform={`translate(${c.x} ${c.y}) scale(${scale})`} opacity={opacity}>
-        <Element a={a} dir={c.dir} r={r} sats={p.satellites} body={tinted ? pal.oddTint : pal.body} line={tinted ? pal.oddTint : pal.line} />
+        <Element a={a} dir={c.dir} r={r} sats={p.satellites} body={tinted ? pal.oddTint : pal.body} line={tinted ? pal.oddTint : pal.line} odd={isOdd && p.oddRule === "shape"} glyphs={p.glyphs} />
       </g>
     );
   };

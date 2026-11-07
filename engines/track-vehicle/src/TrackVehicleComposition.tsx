@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, interpolateColors, random, spring, useCurrentFrame, useVideoConfig, Easing } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
-import { FPS, PHASE, type TrackVehicle } from "./model";
+import { FPS, PHASE, SPEED_TIERS, type TrackVehicle } from "./model";
 import { buildSchedule, carPose } from "./schedule";
 import { Vehicle, VehicleDefs, VEHICLE_SIZE } from "./vehicles";
 
@@ -167,6 +167,21 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           </div>
           <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 34, color: "#fff", width: 70 }}>{Math.ceil(timeLeft)}s</div>
         </div>
+        {p.speedTiers && frame >= shuffleStart && !isQuestion ? (() => {
+          const prog = sf / (shuffleEnd - shuffleStart);
+          const idx = SPEED_TIERS.reduce((k, t, i) => (prog >= t.at ? i : k), 0);
+          const tier = SPEED_TIERS[idx] ?? SPEED_TIERS[0];
+          const since = sf - tier.at * (shuffleEnd - shuffleStart);
+          const pop = spring({ frame: since, fps, config: { damping: 9, stiffness: 180 } });
+          return (
+            <div style={{ position: "absolute", top: 380, width: "100%", display: "flex", justifyContent: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: 44, color: "#111", background: tier.color, padding: "8px 30px", borderRadius: 99, transform: `scale(${0.7 + pop * 0.3})`, boxShadow: `0 0 40px ${tier.color}88` }}>
+                <span>⚡ SPEED:</span><span>{tier.label}</span>
+                <span style={{ display: "flex", gap: 6 }}>{SPEED_TIERS.map((_, i) => <span key={i} style={{ width: 16, height: 16, borderRadius: 4, background: i <= idx ? "#111" : "rgba(0,0,0,.2)" }} />)}</span>
+              </div>
+            </div>
+          );
+        })() : null}
         {isQuestion ? (
           <div style={{ position: "absolute", top: 335, width: "100%", display: "flex", justifyContent: "center", opacity: swapTitle }}>
             <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 28, color: "#fff", padding: "10px 26px", borderRadius: 99, border: "2px solid rgba(255,255,255,.45)", background: "rgba(0,0,0,.45)" }}>

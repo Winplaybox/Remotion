@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /** Every vehicle the engine can draw (top-down, facing up). Add one in vehicles.tsx and list it here. */
-export const VEHICLE_KINDS = ["kaalipeeli", "bestbus", "taxi", "police", "ambulance", "bus", "truck", "sports", "auto", "suv"] as const;
+export const VEHICLE_KINDS = ["kaalipeeli", "bestbus", "taxi", "police", "ambulance", "bus", "truck", "sports", "auto", "suv", "firetruck", "schoolbus", "tempo", "scooter", "tractor", "tanker"] as const;
 export type VehicleKind = (typeof VEHICLE_KINDS)[number];
 
 export const TrackVehicleSchema = z.object({
@@ -29,6 +29,8 @@ export const TrackVehicleSchema = z.object({
   shuffleSeconds: z.number().min(4).max(60),
   /** 1 = calm, 3 = brutal. Controls speed ramp and simultaneous swaps. */
   difficulty: z.number().min(1).max(3),
+  /** Stepped speed: DHEEMA -> TEZ -> AUR TEZ -> SABSE TEZ, with an on-screen badge. false = old smooth ramp. */
+  speedTiers: z.boolean().default(false),
   /** Probability that a swap involves the target (keeps it honest but trackable). */
   targetBias: z.number().min(0).max(1),
   questionSeconds: z.number().min(1),
@@ -51,7 +53,13 @@ const ROTATION: { vehicle: VehicleKind; label: string; colors: TrackVehicle["col
   { vehicle: "ambulance", label: "AMBULANCE", colors: { target: "#FFFFFF", decoy: "#6B6F78", trim: "#FF4D4D", accent: "#FF4D4D" } },
   { vehicle: "truck", label: "TRUCK", colors: { target: "#FF8A00", decoy: "#6B6F78", trim: "#FFD08A", accent: "#FF8A00" } },
   { vehicle: "sports", label: "LAAL CAR", colors: { target: "#FF2D55", decoy: "#6B6F78", trim: "#FF8FA6", accent: "#FF2D55" } },
-  { vehicle: "suv", label: "SUV", colors: { target: "#00C2FF", decoy: "#6B6F78", trim: "#9BE7FF", accent: "#00C2FF" } }
+  { vehicle: "suv", label: "SUV", colors: { target: "#00C2FF", decoy: "#6B6F78", trim: "#9BE7FF", accent: "#00C2FF" } },
+  { vehicle: "firetruck", label: "FIRE BRIGADE", colors: { target: "#E3262C", decoy: "#6B6F78", trim: "#FFD0D0", accent: "#FF4D4D" } },
+  { vehicle: "scooter", label: "SCOOTY", colors: { target: "#FF5FA2", decoy: "#7A7F88", trim: "#FFFFFF", accent: "#FF5FA2" } },
+  { vehicle: "schoolbus", label: "SCHOOL BUS", colors: { target: "#FFC21A", decoy: "#7A7F88", trim: "#3A2A00", accent: "#FFC21A" } },
+  { vehicle: "tempo", label: "TEMPO", colors: { target: "#1F8BFF", decoy: "#6B6F78", trim: "#BFDFFF", accent: "#1F8BFF" } },
+  { vehicle: "tractor", label: "TRACTOR", colors: { target: "#2BB34A", decoy: "#6B6F78", trim: "#FFE08A", accent: "#2BB34A" } },
+  { vehicle: "tanker", label: "TANKER", colors: { target: "#F2F2F2", decoy: "#6B6F78", trim: "#FF8A00", accent: "#FF8A00" } }
 ];
 const GRIDS = [[3, 3], [3, 4], [3, 4], [4, 4]] as const;
 
@@ -61,7 +69,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
   const v = ROTATION[(d - 1) % ROTATION.length] ?? ROTATION[0]!;
   const week = (d - 1) % 7; // ramps every week, resets with a new vehicle mix
   const [cols, rows] = GRIDS[Math.min(3, Math.floor(week / 2))] ?? GRIDS[0];
-  const long = v.vehicle === "bestbus" || v.vehicle === "truck" || v.vehicle === "ambulance";
+  const long = ["bestbus", "truck", "ambulance", "firetruck", "schoolbus", "tanker"].includes(v.vehicle);
   return {
     ...KPC_BRAND,
     voice: [],
@@ -78,6 +86,8 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     rows: long ? Math.min(rows, 3) : rows,
     targetSlot: -1,
     seed: `kpc-${d}`,
+    // Levels 1-3 were published with the smooth ramp; keep them identical.
+    speedTiers: d > 3,
     shuffleSeconds: 8 + Math.round(week * 0.5),
     difficulty: Math.min(3, 1 + week * 0.34),
     targetBias: 0.9,
@@ -100,9 +110,17 @@ export function trackVehicleDuration(p: TrackVehicle): number {
   return Math.round(PHASE.intro + PHASE.show + PHASE.hide + (p.shuffleSeconds + p.questionSeconds + p.answerSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
 }
 
+/** Stepped speed tiers (fraction of the shuffle where each starts). */
+export const SPEED_TIERS = [
+  { at: 0, label: "DHEEMA", voice: "", color: "#5BD17A" },
+  { at: 0.28, label: "TEZ", voice: "तेज़!", color: "#FFD23F" },
+  { at: 0.52, label: "AUR TEZ", voice: "और तेज़!", color: "#FF8A00" },
+  { at: 0.76, label: "SABSE TEZ!", voice: "सबसे तेज़!", color: "#FF2D55" }
+] as const;
+
 const VEHICLE_VOICE: Record<string, string> = {
   "KAALI PEELI": "काली पीली टैक्सी", AUTO: "ऑटो रिक्शा", "BEST BUS": "बेस्ट बस", POLICE: "पुलिस की गाड़ी",
-  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "LAAL CAR": "लाल कार", SUV: "एसयूवी"
+  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "FIRE BRIGADE": "फायर ब्रिगेड", SCOOTY: "स्कूटी", "SCHOOL BUS": "स्कूल बस", TEMPO: "टेम्पो", TRACTOR: "ट्रैक्टर", TANKER: "टैंकर", "LAAL CAR": "लाल कार", SUV: "एसयूवी"
 };
 
 /** Hinglish voice lines (Devanagari so the Hindi TTS voice reads them naturally). answer = 1-based slot number. */
@@ -114,6 +132,7 @@ export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: s
   const lines = [
     { file: "hook.wav", at: 0.3, text: `${name} पर नज़र रखो। आँख मत हटाना!` },
     { file: "go.wav", at: shuffleStart, text: "शफल शुरू!" },
+    ...(p.speedTiers ? SPEED_TIERS.slice(1).map((t, i) => ({ file: `tier${i + 1}.wav`, at: shuffleStart + p.shuffleSeconds * t.at, text: t.voice })) : []),
     { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
   ];
   if (p.answerSeconds > 0) lines.push({ file: "reveal.wav", at: answerAt + 0.1, text: `जवाब है, नंबर ${answer}!` });
