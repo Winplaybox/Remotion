@@ -6,6 +6,7 @@
  *   ... --youtube        upload to YouTube, scheduled for the slot time
  *   ... --meta           publish to Instagram + Facebook now (needs a public video URL host)
  *   ... --dry            write props/metadata only, no render
+ *   ... --auto-narrate   fill missing narration WAVs with Edge TTS before rendering
  *
  * Files: output/<channel>/post-NNN.{json,mp4,meta.json}
  */
@@ -37,6 +38,18 @@ async function main() {
     const story = props as { scenes: { audio?: string; narration: string }[] };
     const audioDir = path.join("public", "audio", channel, tag);
     fs.writeFileSync(path.join(outDir, `${tag}.narration.json`), JSON.stringify(story.scenes.map((s, i) => ({ file: `scene-${i + 1}.wav`, text: s.narration })), null, 2));
+    const missing = () => story.scenes.filter((_, i) => !fs.existsSync(path.join(audioDir, `scene-${i + 1}.wav`))).length;
+    // --auto-narrate: generate missing scene WAVs with Edge TTS (same approach as daily-devotional-shorts).
+    // WAVs committed to public/audio (e.g. IndicF5 in your own voice) always win; only gaps are filled.
+    if (flag("auto-narrate") && missing() > 0) {
+      const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+      console.log(`[narration] generating ${missing()} missing scene(s) with Edge TTS`);
+      try {
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+      } catch (e) {
+        console.warn(`[narration] Edge TTS failed: ${(e as Error).message}`);
+      }
+    }
     story.scenes.forEach((s, i) => { if (fs.existsSync(path.join(audioDir, `scene-${i + 1}.wav`))) s.audio = `audio/${channel}/${tag}/scene-${i + 1}.wav`; });
     const have = story.scenes.filter((s) => s.audio).length;
     console.log(`[narration] ${have}/${story.scenes.length} WAVs in ${audioDir}`);
