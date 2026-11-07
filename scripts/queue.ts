@@ -78,7 +78,9 @@ if (cmd === "plan") {
   for (const p of todo) {
     const dest = path.join(queue, "video", p.channel, `${p.tag}.mp4`);
     if (fs.existsSync(dest) && !force) continue;
-    copyDir(path.join(voiceRoot, p.channel, p.tag), path.join("public", "audio", p.channel, p.tag));
+    const audioDir = path.join("public", "audio", p.channel, p.tag);
+    const ownAudio = hasFiles(audioDir); // committed WAVs (e.g. IndicF5) win and are left alone
+    if (!ownAudio) copyDir(path.join(voiceRoot, p.channel, p.tag), audioDir);
     try {
       run("npx", ["ts-node", "scripts/post.ts", "--channel", p.channel, "--n", String(p.n), "--force", "--no-queue"]);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -88,6 +90,8 @@ if (cmd === "plan") {
     } catch (e) {
       failed.push(`${p.channel} ${p.tag}`);
       console.warn(`[render] ${p.channel} ${p.tag} failed: ${(e as Error).message}`);
+    } finally {
+      if (!ownAudio) fs.rmSync(audioDir, { recursive: true, force: true });
     }
   }
   console.log(`[render] done. ${failed.length ? `not rendered: ${failed.join(", ")}` : "all rendered"}`);
