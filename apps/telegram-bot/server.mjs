@@ -78,6 +78,7 @@ http.createServer((req, res) => {
     await tg("setMyCommands", { commands: [
       { command: "topic", description: "Topic se video: /topic dadi Holi kyun" },
       { command: "script", description: "Apni script se video" },
+      { command: "style", description: "Video ke caption mein: /style cartoon" },
       { command: "idea", description: "Video idea bhejo" },
       { command: "narrators", description: "Narrators ki list" },
       { command: "myid", description: "Aapka Telegram ID" },
