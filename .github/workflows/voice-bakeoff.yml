@@ -73,11 +73,14 @@ jobs:
                   open(f"out/polly-{voice.lower()}/line-{i}.mp3", "wb").write(r["AudioStream"].read())
                   print(voice, engine, "line", i, "ok")
           PY
+      - uses: actions/setup-python@v5
+        if: env.HF_TOKEN != ''
+        with: { python-version: "3.10" }
       - name: IndicF5 (optional, needs HF_TOKEN secret with access to ai4bharat/IndicF5)
         if: env.HF_TOKEN != ''
         continue-on-error: true
         run: |
-          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile && cd indicf5
+          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile "numpy<2" && cd indicf5
           python - <<'PY'
           import os, numpy as np, soundfile as sf
           from transformers import AutoModel
