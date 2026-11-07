@@ -164,7 +164,7 @@ function askFields(d: number): Partial<OddOrbit> {
     prevAnswer: `ROW ${row} · #${col}`,
     revealSeconds: 5.2,
     footer: "COMMENT MEIN BATAIYE: ROW + NUMBER 👇",
-    endCard: { show: true, title: "SAHI JAWAB AGLI VIDEO MEIN 👀", line: "Main ek solo dev hoon — ek cozy Chakra Puzzle game bana raha hoon 🎮", button: "FOLLOW KARO", seconds: 4 }
+    endCard: { show: false, title: "", line: "", button: "", seconds: 0 }
   };
 }
 

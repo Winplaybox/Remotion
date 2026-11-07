@@ -120,7 +120,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     questionSeconds: 5.2,
     answerSeconds: 0,
     cta: "AAPKA JAWAB? COMMENT MEIN BATAIYE 👇",
-    endCard: { ...base.endCard, title: "SAHI JAWAB AGLI VIDEO MEIN 👀", line: "Main ek solo dev hoon — ek cozy Kaali Peeli Chase game bana raha hoon 🎮", button: "FOLLOW KARO", seconds: 4 }
+    endCard: { ...base.endCard, show: false, seconds: 0 }
   };
 }
 
