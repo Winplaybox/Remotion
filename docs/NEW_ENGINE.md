@@ -4,13 +4,31 @@ This repo turns one idea into an endless daily channel: **post number in → fin
 
 > **AI agent: read this whole file, then `engines/_template/`, then one reference engine closest to the idea before writing code.**
 
+## The Engine Builder pipeline
+
+| Step | Who / what | Output | Gate |
+|---|---|---|---|
+| 1. Idea → architecture | Agent writes a short design in the PR: the viewer's task, what changes day to day, the answer, the difficulty ramp, the voice lines | PR description | Human agrees with the idea |
+| 2. Architecture → code | `npm run engine:new -- <slug> <Pascal>` then the agent **writes the real game logic** (the template is only a placeholder puzzle) | `engines/<slug>/` wired into Studio, catalog and a **disabled** channel | `npx tsc --noEmit`, `npm run lint` |
+| 3. Code → 30 days | `<x>ForDay(n)` with seeded variety | — | `tests/engine-catalog.test.ts`: schema, length, all 30 days unique, voice lines in order and not stacked, answer for every post |
+| 4. Narration + music | `<x>VoiceLines` (Devanagari Hinglish) + `SoundBed` (original kit in `public/sfx`) | — | voice test above; loudness in QA |
+| 5. Render → QA | `npm run engine:qa -- --engine <slug>` (also runs in CI as job **engine-qa**) | `qa/<slug>/contact-sheet.png`, `day01.mp4`, `report.md` | stills render, audio stream present, mean −40…−10 dB, peak ≤ −0.3 dB, **a human looks at the contact sheet and the MP4** |
+| 6. Quality pass → PR | branch + PR, never `main` | PR with QA artifact | all CI checks green |
+| 7. Approval → publishing | human merges, adds `YT_TOKEN_<ID>`, sets `START_<ID>` + `LIVE_<ID>` | channel goes live | — |
+
+### Three non-negotiable conditions
+
+1. **The template does not write the game.** It is a working placeholder ("find the one with a different beat") so the wiring compiles and renders. The agent must replace the model and composition with the real mechanic, layout and answer logic.
+2. **Published posts are frozen.** `locks/published.json` stores the generated props of every published post; `tests/published-lock.test.ts` fails if any stored key changes. Lock posts as they go out: `npm run engine:lock -- --engine <slug> --upto <last published post>`. New fields must default to the old behaviour; new behaviour starts from a post number above the lock (see `ASK_FROM`, `LEGACY`, `speedTiers: d > 3`).
+3. **Production approval.** TypeScript, lint, tests (including locks), rendered previews and the audio check must pass, and a human reviews the QA artifact before merging. New channels are created disabled and only a human turns them on.
+
 ## 0. Scaffold
 
 ```bash
-node scripts/new-engine.mjs bubble-pop BubblePop     # copies engines/_template -> engines/bubble-pop
+npm run engine:new -- bubble-pop BubblePop --channel "Bubble Pop" --handle @BubblePop --slots 07:30,18:30
 ```
 
-The template is a complete, working puzzle ("find the one with a different beat"): schema, day builder, speed ramp, timer, reveal, end card, voice lines, music + SFX. Replace the puzzle logic, keep the structure.
+This creates `engines/bubble-pop/src/{model.ts,BubblePopComposition.tsx}` from `engines/_template`, registers the composition in `apps/studio/src/remotion/Root.tsx`, adds it to `engines/catalog.ts` (so tests and QA cover it) and adds a **disabled** channel to `channels/channels.ts` (start 2099-01-01, `autoPublish: false`). It does not write the game; see condition 1.
 
 ## 1. The contract every engine follows
 
@@ -53,14 +71,14 @@ Hinglish everywhere (Roman on screen, Devanagari for voice). Titles say exactly 
 ## 5. Shipping rules
 
 1. **Never change a post that is already published.** If you change a day builder, keep posts ≤ the last uploaded number byte-identical (see the `LEGACY` map in `engines/odd-orbit/src/model.ts` and `speedTiers: d > 3` in `engines/track-vehicle`). Prove it by diffing the props JSON before/after.
-2. Add a test in `tests/` that builds 30 days and checks: schema parses, answer in range, no two consecutive posts identical, voice lines don't overlap events.
-3. Render stills of 3–4 frames (hook, mid, reveal, end card) for 3 different days and **look at them**: text fits, nothing under the YouTube UI.
-4. `npx tsc --noEmit && npm run lint && npm test` must pass.
+2. The generic gate in `tests/engine-catalog.test.ts` covers every catalog engine automatically; add engine-specific tests for the game logic (e.g. the answer really is the odd one).
+3. `npm run engine:qa -- --engine <slug>` and **look at** `qa/<slug>/contact-sheet.png` and `day01.mp4`.
+4. `npx tsc --noEmit && npm run lint && npm test` must pass (includes the published-post locks).
 5. Work on a branch, open a PR. Never push to `main`.
 
 ## 6. Going live
 
-1. Add the channel to `channels/channels.ts` (slots in IST, `startDate`, token secret name, `voice`, `answer`).
+1. The scaffold already added a disabled channel to `channels/channels.ts`; fill in its titles/tags and slots.
 2. Create the YouTube channel and put its token in GitHub: `node scripts/publish/setup-secrets.mjs …`.
 3. Merge. From then on: Prepare Voice (Actions) → Claude render (04:41 IST) → Publish Channels (hourly) → answer comment. See `docs/CHANNELS.md`.
 
