@@ -28,6 +28,8 @@ export interface ChannelConfig {
   voice?: (n: number) => VoiceLine[];
   /** Answer comment posted on the video once it is public (pin it in YouTube Studio). */
   answer?: (n: number) => string;
+  /** From this post on the answer is revealed in the next video; the comment is posted once post n+1 is public. */
+  answerInNextFrom?: number;
 }
 
 export interface VoiceLine { file: string; text: string; at: number }
@@ -51,6 +53,7 @@ export const CHANNELS = {
     metaSecretPrefix: "META_CHAKRA",
     resolve: (n) => chakraPuzzleForDay(n),
     voice: (n) => chakraVoiceLines(chakraPuzzleForDay(n)),
+    answerInNextFrom: 4,
     answer: (n) => { const { row, col } = oddCellOf(chakraPuzzleForDay(n)); return `✅ JAWAB: ROW ${row} · #${col}\nAapne pakda? Reply mein batao 👇\nKal naya puzzle — follow karo, sabse pehle khelo! 🎮`; },
     meta: (n) => {
       const p = chakraPuzzleForDay(n);
@@ -75,6 +78,7 @@ export const CHANNELS = {
     metaSecretPrefix: "META_KPC",
     resolve: (n) => kaaliPeeliForDay(n),
     voice: (n) => { const p = kaaliPeeliForDay(n); return kaaliPeeliVoiceLines(p, buildSchedule(p).answerSlot + 1); },
+    answerInNextFrom: 4,
     answer: (n) => `✅ JAWAB: #${buildSchedule(kaaliPeeliForDay(n)).answerSlot + 1}\nAapne pakda? Reply mein batao 👇\nKal naya level — follow karo, sabse pehle khelo! 🎮`,
     meta: (n) => {
       const p = kaaliPeeliForDay(n);

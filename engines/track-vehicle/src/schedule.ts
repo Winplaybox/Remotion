@@ -1,5 +1,6 @@
 import { random } from "remotion";
-import { FPS, SPEED_TIERS, type TrackVehicle } from "./model";
+import { FPS, SPEED_TIERS } from "./constants";
+import type { TrackVehicle } from "./model";
 
 export interface SwapEvent { a: number; b: number; fromA: number; fromB: number; start: number; end: number; bend: number }
 export interface Schedule { slots: number; targetCar: number; events: SwapEvent[]; byCar: SwapEvent[][]; answerSlot: number }
