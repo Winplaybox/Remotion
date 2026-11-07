@@ -6,7 +6,7 @@ Three channels, one repo. Every slot has a fixed post number, so each upload is 
 |---|---|---|---|---|
 | Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | English (global) | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
 | Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | English (global) | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
-| EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice | 18:30 | India evening |
+| EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice + captions | 19:00 | Switches over from colab-YT, see below |
 
 All slots, start dates, titles, descriptions, tags and captions are in `channels/channels.ts`.
 
@@ -80,3 +80,12 @@ The bar is **per channel**: 1,000 subscribers + 10M Shorts views in 90 days (20M
 4. Every Reel also goes to Instagram and Facebook. Those views don't count for YouTube, but they bring followers back to YouTube.
 
 No tool can guarantee 10M views in 28 days. This plan maximises how often and how consistently each channel posts, and gives you the data to double down on what works.
+
+## EpicBharatSaga switch-over from colab-YT
+
+The old pipeline (Winplaybox/colab-YT, `epic_bharat_saga_scheduler.yml`) keeps posting until the switch. On switch day, do all of these together so the channel never double-posts:
+
+1. Put the channel token in this repo: `node scripts/publish/setup-secrets.mjs --only-ebs --ebs-token <colab-YT>/channels/EpicBharatSaga/token.json`. If you don't have that file, create it with `python channels/EpicBharatSaga/authenticate_youtube.py` in colab-YT.
+2. Merge the colab-YT PR that removes the EpicBharatSaga cron.
+3. Set the repo variables `START_EPICBHARATSAGA=<switch date YYYY-MM-DD>` (that day = EP01) and `LIVE_EPICBHARATSAGA=true`.
+4. Have at least 7 episodes written (`content/epicbharatsaga/vishnu-season.ts`) and narrated with IndicF5. Missing narration posts with captions only while `EBS_ALLOW_SILENT=true`.

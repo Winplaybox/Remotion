@@ -4,7 +4,7 @@
  * and publishes to Instagram/Facebook right away.
  *   npx ts-node scripts/due.ts [--from ISO] [--hours 1]
  */
-import { CHANNELS, todayIST, slotTimeISO, type ChannelId } from "../channels/channels";
+import { CHANNELS, isLive, startDateOf, todayIST, slotTimeISO, type ChannelId } from "../channels/channels";
 
 const args = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -18,7 +18,7 @@ for (const dayOffset of [0, 1]) {
   const date = todayIST(new Date(from + dayOffset * 86_400_000));
   for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
     if (only && only !== channel) continue;
-    if (date < CHANNELS[channel].startDate) continue;
+    if (!isLive(channel) || date < startDateOf(channel)) continue;
     CHANNELS[channel].slots.forEach((hhmm, slot) => {
       const t = Date.parse(slotTimeISO(date, hhmm));
       // slot falls in [from+30min, from+30min+hours): rendered 30-90 min ahead

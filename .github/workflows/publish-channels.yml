@@ -44,6 +44,9 @@ jobs:
       - run: npm ci
       - id: due
         shell: bash
+        env:
+          LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
+          START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
         run: |
           if [ -n "${{ inputs.channel }}" ] && [ -n "${{ inputs.n }}" ]; then
             echo "matrix={\"include\":[{\"channel\":\"${{ inputs.channel }}\",\"n\":\"${{ inputs.n }}\",\"date\":\"\",\"slot\":0}]}" >> "$GITHUB_OUTPUT"
@@ -76,6 +79,8 @@ jobs:
       META_EBS_PAGE_ID: ${{ secrets.META_EBS_PAGE_ID }}
       META_EBS_IG_USER_ID: ${{ secrets.META_EBS_IG_USER_ID }}
       META_EBS_PAGE_TOKEN: ${{ secrets.META_EBS_PAGE_TOKEN }}
+      LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
+      START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:

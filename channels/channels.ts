@@ -12,6 +12,11 @@ export interface ChannelConfig {
   /** Publish times in IST, "HH:MM". Post number = (day - 1) * slots.length + slotIndex + 1. */
   slots: readonly string[];
   narrated: boolean;
+  /**
+   * false = only published when the repo variable LIVE_<ID>=true is set (ID = channel id upper-cased, "-" -> "_").
+   * Used to switch a channel over from another pipeline on a chosen day without double-posting.
+   */
+  autoPublish: boolean;
   /** GitHub secret holding this channel's YouTube OAuth token JSON. */
   youtubeTokenSecret: string;
   /** GitHub secret prefix for Meta: <PREFIX>_PAGE_ID, <PREFIX>_IG_USER_ID, <PREFIX>_PAGE_TOKEN. */
@@ -34,6 +39,7 @@ export const CHANNELS = {
     startDate: "2026-11-10",
     slots: ["06:30", "08:30", "19:30"],
     narrated: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_CHAKRA_PUZZLE",
     metaSecretPrefix: "META_CHAKRA",
     resolve: (n) => chakraPuzzleForDay(n),
@@ -55,6 +61,7 @@ export const CHANNELS = {
     startDate: "2026-11-10",
     slots: ["07:00", "09:00", "20:00"],
     narrated: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_KAALI_PEELI_CHASE",
     metaSecretPrefix: "META_KPC",
     resolve: (n) => kaaliPeeliForDay(n),
@@ -74,8 +81,11 @@ export const CHANNELS = {
     name: "EpicBharatSaga",
     composition: "EpicBharatSaga",
     startDate: "2026-11-10",
-    slots: ["18:30"],
+    slots: ["19:00"],
     narrated: true,
+    // Switch-over from Winplaybox/colab-YT: set repo variables LIVE_EPICBHARATSAGA=true and START_EPICBHARATSAGA=<YYYY-MM-DD>
+    // on the same day the colab-YT EpicBharatSaga cron is disabled. Never both.
+    autoPublish: false,
     youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
     metaSecretPrefix: "META_EBS",
     resolve: (n) => epicBharatSagaForDay(n),
@@ -100,11 +110,24 @@ export function todayIST(now = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 }
 
+const envKey = (channel: ChannelId) => channel.toUpperCase().replace(/-/g, "_");
+
+/** Start date, overridable per channel with START_<ID> (repo variable). */
+export function startDateOf(channel: ChannelId): string {
+  return process.env[`START_${envKey(channel)}`] || CHANNELS[channel].startDate;
+}
+
+/** Whether the hourly publisher may post this channel. */
+export function isLive(channel: ChannelId): boolean {
+  return CHANNELS[channel].autoPublish || process.env[`LIVE_${envKey(channel)}`] === "true";
+}
+
 export function dayNumber(channel: ChannelId, date: string): number {
-  const start = Date.parse(`${CHANNELS[channel].startDate}T00:00:00Z`);
+  const startDate = startDateOf(channel);
+  const start = Date.parse(`${startDate}T00:00:00Z`);
   const target = Date.parse(`${date}T00:00:00Z`);
   const d = Math.round((target - start) / 86_400_000) + 1;
-  if (d < 1) throw new Error(`${channel}: ${date} is before startDate ${CHANNELS[channel].startDate}`);
+  if (d < 1) throw new Error(`${channel}: ${date} is before startDate ${startDate}`);
   return d;
 }
 
