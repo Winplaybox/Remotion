@@ -113,7 +113,7 @@ export function epicBharatSagaForDay(day: number): StoryDiorama {
   if (!authored) throw new Error(`EpicBharatSaga EP${ep} (${VISHNU_SEASON.outline[ep - 1] ?? "?"}) is not written yet in content/epicbharatsaga/vishnu-season.ts`);
   const input: StoryDioramaInput = {
     brand: "EPIC BHARAT SAGA",
-    handle: "@epicbharatsaga",
+    handle: "@EpicBharatSaga",
     tag: `${VISHNU_SEASON.name} · EP `,
     tagAccent: `${String(ep).padStart(2, "0")}/${VISHNU_SEASON.total}`,
     palette: VISHNU_SEASON.palette,

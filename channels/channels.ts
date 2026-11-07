@@ -83,7 +83,7 @@ export const CHANNELS = {
       const name = VISHNU_SEASON.outline[n - 1] ?? "";
       return {
         title: `Vishnu ka ${ORDINAL[n - 1] ?? `${n}th`} avatar: ${name.charAt(0)}${name.slice(1).toLowerCase()} 🙏 | EP ${String(n).padStart(2, "0")} #shorts`,
-        description: `Vishnu Season · EP ${String(n).padStart(2, "0")} — ${name}\nDashavatar ki kahani, roz ek episode.\n\nSubscribe @epicbharatsaga\n#sanatandharma #vishnu #dashavatar #hindumythology #shorts`,
+        description: `Vishnu Season · EP ${String(n).padStart(2, "0")} — ${name}\nDashavatar ki kahani, roz ek episode.\n\nSubscribe @EpicBharatSaga\n#sanatandharma #vishnu #dashavatar #hindumythology #shorts`,
         tags: ["sanatan dharma", "vishnu", "dashavatar", name.toLowerCase(), "hindu mythology", "bhagavata purana", "shorts"],
         caption: `Vishnu Season · EP ${String(n).padStart(2, "0")} — ${name} 🙏\n#sanatandharma #vishnu #dashavatar #reels`,
         language: "hi",
