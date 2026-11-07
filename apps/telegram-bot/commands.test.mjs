@@ -203,3 +203,16 @@ test("settings language/aspect/length flow into the job", async () => {
   assert.equal(j.dispatch.payload.language, "english");
   assert.equal(j.dispatch.payload.aspect, "16:9");
 });
+
+test("/shorts from a video caption, a reply, or a link; limits and defaults", async () => {
+  const c = ctx();
+  const cap = await handle(msg(undefined, CREATOR, { video: { file_id: "L1", file_size: 10_000_000 }, caption: "/shorts 2 30" }), c);
+  assert.equal(cap.dispatch.event, "tg-shorts");
+  assert.deepEqual([cap.dispatch.payload.fileId, cap.dispatch.payload.count, cap.dispatch.payload.seconds], ["L1", 2, 30]);
+  const link = await handle(msg("/shorts https://example.com/talk.mp4", CREATOR), c);
+  assert.deepEqual([link.dispatch.payload.url, link.dispatch.payload.count, link.dispatch.payload.seconds], ["https://example.com/talk.mp4", 3, 45]);
+  const big = await handle(msg(undefined, CREATOR, { video: { file_id: "L", file_size: 80_000_000 }, caption: "/shorts" }), c);
+  assert.match(big.replies[0].text, /link bhejo/);
+  assert.match((await handle(msg("/shorts", CREATOR), c)).replies[0].text, /Lambi video/);
+  assert.notEqual((await handle(msg("/shorts https://x.y/v.mp4", STRANGER), c)).dispatch?.event, "tg-shorts");
+});

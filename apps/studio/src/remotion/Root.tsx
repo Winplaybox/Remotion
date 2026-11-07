@@ -23,6 +23,8 @@ import { NarratorThumbnail } from "../../../../engines/narrator-video/src/Narrat
 import { NarratorVideoComposition } from "../../../../engines/narrator-video/src/NarratorVideoComposition";
 import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type ToonVideo } from "../../../../engines/toon-video/src/model";
 import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
+import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } from "../../../../engines/short-clip/src/model";
+import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -46,6 +48,10 @@ export const Root: React.FC = () => (
       {NARRATOR_IDS.map((id) => (
         <Composition key={id} id={`NarratorVideo-${id}`} component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={{ ...NARRATOR_DEMO, narrator: id }} />
       ))}
+    </Folder>
+    <Folder name="ShortClip">
+      <Composition id="ShortClip" component={ShortClipComposition} schema={ShortClipSchema} {...video} durationInFrames={shortClipDuration(SHORT_CLIP_DEMO)} defaultProps={SHORT_CLIP_DEMO}
+        calculateMetadata={({ props }: { props: ShortClip }) => ({ durationInFrames: shortClipDuration(props) })} />
     </Folder>
     <Folder name="ToonVideo">
       <Composition id="ToonVideo" component={ToonVideoComposition} schema={ToonVideoSchema} {...video} durationInFrames={toonVideoDuration(TOON_DEMO)} defaultProps={TOON_DEMO}
