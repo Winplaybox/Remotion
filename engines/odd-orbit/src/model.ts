@@ -33,6 +33,10 @@ export const OddOrbitSchema = z.object({
   speedJitter: z.number().min(0).max(0.5),
   playSeconds: z.number().positive(),
   revealSeconds: z.number().min(0),
+  /** Speed ramp: everything starts slow (startSpeed x) and ends fast (endSpeed x) by the end of play. */
+  startSpeed: z.number().positive().default(1),
+  endSpeed: z.number().positive().default(1),
+  endCard: z.object({ show: z.boolean(), title: z.string(), line: z.string(), button: z.string(), seconds: z.number().min(0) }).default({ show: false, title: "", line: "", button: "", seconds: 0 }),
   showTimer: z.boolean(),
   palette: z.object({
     bgTop: z.string(),
@@ -51,10 +55,10 @@ export type OddOrbit = z.infer<typeof OddOrbitSchema>;
 export const CHAKRA_BRAND = { brand: "CHAKRA PUZZLE", handle: "@ChakraPuzzle" } as const;
 
 export const RULE_COPY: Record<OddOrbit["oddRule"], { title: string; subtitle: string }> = {
-  reverse: { title: "FIND THE ONE SPINNING BACKWARDS", subtitle: "Only ONE moves the other way 👀" },
-  faster: { title: "FIND THE FASTEST ONE", subtitle: "One is spinning faster than the rest ⚡" },
-  slower: { title: "FIND THE SLOWEST ONE", subtitle: "One of them is a little lazy 🐢" },
-  tint: { title: "FIND THE ODD COLOR", subtitle: "Look closely — the difference is tiny 🔍" }
+  reverse: { title: "ULTA GHOOMNE WALA DHUNDO", subtitle: "Sirf EK ulta ghoom raha hai 👀" },
+  faster: { title: "SABSE TEZ WALA DHUNDO", subtitle: "Ek baaki sab se tez bhaag raha hai ⚡" },
+  slower: { title: "SABSE DHEEMA WALA DHUNDO", subtitle: "Ek thoda aalsi hai 🐢" },
+  tint: { title: "ALAG RANG WALA DHUNDO", subtitle: "Dhyaan se dekho, farak chhota hai 🔍" }
 };
 
 const PALETTES: OddOrbit["palette"][] = [
@@ -90,9 +94,9 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     difficulty: level.difficulty,
     title: copy.title,
     subtitle: copy.subtitle,
-    footer: "COMMENT THE ROW + NUMBER 👇",
-    revealFooter: "GOT IT? NEW PUZZLE EVERY DAY 🔥",
-    answerPrefix: "ANSWER",
+    footer: "COMMENT KARO: ROW + NUMBER 👇",
+    revealFooter: "SAHI PAKDA? KAL NAYA PUZZLE 🔥",
+    answerPrefix: "JAWAB",
     element,
     oddRule,
     cols: level.cols,
@@ -102,8 +106,11 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     satellites: element === "ring" ? 2 : 1,
     speed: element === "gear" || element === "chakra" ? 0.28 : element === "clock" ? 0.35 : 0.45,
     speedJitter: speedRule ? 0.02 : level.jitter,
-    playSeconds: 10 + Math.min(3, Math.floor(((d - 1) % 7) / 2)),
-    revealSeconds: 3,
+    playSeconds: 12 + Math.min(1, Math.floor(((d - 1) % 7) / 4)),
+    revealSeconds: 2.6,
+    startSpeed: 0.45,
+    endSpeed: 1.35,
+    endCard: { show: true, title: "CHAKRA PUZZLE", line: "Main ek solo dev hoon — ek cozy Chakra Puzzle game bana raha hoon 🎮", button: "FOLLOW KARO, SABSE PEHLE KHELO", seconds: 5 },
     showTimer: true,
     palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!
   };
@@ -118,7 +125,14 @@ export const ODD_ORBIT_VARIANTS: Record<string, Partial<OddOrbit>> = Object.from
 
 export const FPS = 30;
 export function oddOrbitDuration(p: OddOrbit): number {
-  return Math.round((p.playSeconds + p.revealSeconds) * FPS);
+  return Math.round((p.playSeconds + p.revealSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
+}
+
+/** "Effective seconds" of spin at time t with a linear speed ramp (slow start, fast finish). */
+export function rampedTime(p: Pick<OddOrbit, "playSeconds" | "startSpeed" | "endSpeed">, t: number): number {
+  const T = p.playSeconds, lo = p.startSpeed, hi = p.endSpeed;
+  const tt = Math.min(t, T);
+  return lo * tt + ((hi - lo) * tt * tt) / (2 * T) + Math.max(0, t - T) * hi;
 }
 
 /** Grid position of the odd element (same rule the composition uses). */
@@ -140,6 +154,7 @@ export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at:
   return [
     { file: "hook.wav", at: 0.4, text: `${RULE_VOICE[p.oddRule]} टाइम शुरू!` },
     { file: "hurry.wav", at: Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड! कमेंट में लिखो।" },
-    { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` }
+    { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` },
+    ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ, और चक्र पज़ल नाम का एक कोज़ी गेम बना रहा हूँ। फॉलो करो, सबसे पहले खेलो!" }] : [])
   ];
 }

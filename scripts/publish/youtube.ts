@@ -5,7 +5,7 @@ import type { PostMeta } from "../../channels/channels";
 interface UploadArgs { video: string; meta: PostMeta; publishAt: string; tokenJson?: string | undefined; clientSecretJson?: string | undefined }
 
 /** Upload as private + scheduled publishAt, then read back to verify the schedule. Returns the video ID. */
-export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientSecretJson }: UploadArgs): Promise<string> {
+export function youtubeClient(tokenJson?: string, clientSecretJson?: string) {
   if (!tokenJson) throw new Error("YouTube: missing the channel token secret");
   const t = JSON.parse(tokenJson);
   // Python google-auth "authorized_user" tokens (colab-YT) carry their own client_id/client_secret.
@@ -15,7 +15,11 @@ export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientS
   const auth = new google.auth.OAuth2(c.client_id, c.client_secret, "http://localhost");
   const access = t.access_token ?? (typeof t.token === "string" ? t.token : undefined);
   auth.setCredentials({ refresh_token: t.refresh_token, access_token: access, token_type: "Bearer" });
-  const yt = google.youtube({ version: "v3", auth });
+  return google.youtube({ version: "v3", auth });
+}
+
+export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientSecretJson }: UploadArgs): Promise<string> {
+  const yt = youtubeClient(tokenJson, clientSecretJson);
 
   let at = new Date(publishAt);
   if (at.getTime() < Date.now() + 10 * 60_000) at = new Date(Date.now() + 15 * 60_000); // slot already passed -> publish in 15 min

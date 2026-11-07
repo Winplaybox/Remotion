@@ -4,18 +4,20 @@ Three channels, one repo. Every slot has a fixed post number, so each upload is 
 
 | Channel | Composition | Language | Slots (IST) | Why these times |
 |---|---|---|---|---|
-| Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | English (global) | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
-| Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | English (global) | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
+| Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | Hinglish + voice, ~20 s | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
+| Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | Hinglish + voice, ~20 s | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
 | EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice + captions | 19:00 | Switches over from colab-YT, see below |
 
 All slots, start dates, titles, descriptions, tags and captions are in `channels/channels.ts`.
 
 ## How it runs
 
-`.github/workflows/publish-channels.yml` runs every hour:
-1. `scripts/due.ts` finds the slots that start 30–90 minutes from now.
-2. `scripts/post.ts` resolves post N, renders the MP4, uploads it to YouTube as private and scheduled for the exact slot time, then posts the Reel to Instagram and Facebook.
-3. The MP4 and metadata are kept as a workflow artifact for 7 days.
+Claude renders, GitHub uploads.
+
+1. **Voice (GitHub Actions, `prepare-voice.yml`)**: at 02:45 and 14:45 IST, and on every push that changes content, Edge TTS makes the Hinglish voice for the next 3 days of posts and puts it on the `render-queue` branch (`voice/<channel>/post-NNN/`).
+2. **Video (Claude)**: every morning at 04:41 IST Claude renders each voiced post with Remotion (`npx ts-node scripts/queue.ts render --queue queue --push-each`) and pushes the MP4 to `render-queue` (`video/<channel>/post-NNN.mp4`).
+3. **Upload (GitHub Actions, `publish-channels.yml`, hourly)**: `scripts/due.ts` finds slots 30–90 min away; `scripts/post.ts` takes Claude's MP4 from `render-queue`, schedules it on YouTube for the exact slot and posts the Reel to Instagram + Facebook. If Claude's video is missing, it renders the post itself so nothing is skipped (set repo variable `CI_RENDER_FALLBACK=false` to forbid that).
+4. **Answer comment**: the `answers` job posts the answer as a comment on puzzle videos once they are public. The YouTube API cannot pin comments: pin it in YouTube Studio (one tap) if you want it on top.
 
 Scheduled runs only fire from the **default branch** and only when the repo variable `AUTO_PUBLISH=true` is set.
 
