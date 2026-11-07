@@ -23,3 +23,5 @@ npm run quality:render -- output/orbit-puzzle.mp4
 ```
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for module boundaries, quality gates and the 28-day milestone.
+
+Building a new engine: [docs/NEW_ENGINE.md](docs/NEW_ENGINE.md). Next-phase engine ideas (ranked): [docs/ENGINE_IDEAS.md](docs/ENGINE_IDEAS.md).
