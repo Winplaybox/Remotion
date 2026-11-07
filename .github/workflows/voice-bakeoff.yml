@@ -80,7 +80,7 @@ jobs:
         if: env.HF_TOKEN != ''
         continue-on-error: true
         run: |
-          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile "numpy<2" "transformers==4.49.0" "accelerate<1.5" && cd indicf5
+          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile "numpy<2" "transformers==4.49.0" "accelerate<1.5" "torch==2.5.1" "torchaudio==2.5.1" && cd indicf5
           python - <<'PY'
           import os, numpy as np, soundfile as sf
           from transformers import AutoModel
