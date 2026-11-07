@@ -17,7 +17,7 @@ export const DAILY_VIDEO_LIMIT = 5;
 
 const narratorList = () => Object.entries(NARRATORS).map(([id, about]) => `• ${id} — ${about}`).join("\n");
 
-export const HELP = `🙏 Namaste! Main video bot hoon.
+const helpText = (style) => `🙏 Namaste! Main video bot hoon.
 
 💡 Idea bhejo — koi bhi message, link ya sample video bhejo (ya /idea <text>). Admin review karega.
 
@@ -27,15 +27,19 @@ export const HELP = `🙏 Namaste! Main video bot hoon.
 /script <narrator>
 <apni script, nayi line se>
 
-🎨 Real video → cartoon (invited users):
+${style ? `🎨 Real video → cartoon (invited users):
 Video bhejo, caption mein: /style cartoon
 (ya video pe reply karke /style anime)
 Styles: ${STYLES.join(", ")}
 
-🎙️ Narrators:
+` : ""}🎙️ Narrators:
 ${narratorList()}
 
 /narrators — list · /myid — aapka Telegram ID`;
+/** Help without /style (video-to-video is switched off unless TG_STYLE_ENABLED=true). */
+export const HELP = helpText(false);
+export const HELP_WITH_STYLE = helpText(true);
+export const STYLE_OFF = "🎨 Video-to-video abhi band hai — jaldi aayega! Tab tak /topic ya /script se video banwao.";
 
 const IDEA_OK = "✅ Got it! Aapka idea future pipeline list mein add ho gaya hai. Admin isko review karega. 🙏";
 
@@ -53,7 +57,7 @@ export function splitNarrator(args) {
 }
 
 /**
- * ctx: { allow: Set<string>, admin: string, usage: Map<string, {day, n}>, today: string }
+ * ctx: { allow: Set<string>, admin: string, usage: Map<string, {day, n}>, today: string, styleEnabled?: boolean }
  */
 export function handle(update, ctx) {
   const msg = update.message || update.edited_message;
@@ -74,6 +78,7 @@ export function handle(update, ctx) {
 
   const videoOf = (m) => m?.video || (m?.document && /^video\//.test(m.document.mime_type || "") ? m.document : null);
   const styleCmd = parseCommand(msg.caption || "")?.cmd === "style" ? parseCommand(msg.caption) : c?.cmd === "style" ? c : null;
+  if (styleCmd && !ctx.styleEnabled) return { replies: [STYLE_OFF] };
   if (styleCmd) {
     const vid = videoOf(msg) || videoOf(msg.reply_to_message);
     const [first = "", ...titleWords] = styleCmd.args.split(/\s+/).filter(Boolean);
@@ -96,13 +101,13 @@ export function handle(update, ctx) {
 
   if (!c) {
     // Any plain message, link, photo or sample video = an idea.
-    if (!text && !msg.video && !msg.document && !msg.photo) return { replies: [HELP] };
+    if (!text && !msg.video && !msg.document && !msg.photo) return { replies: [ctx.styleEnabled ? HELP_WITH_STYLE : HELP] };
     return idea(text || "(sample video)");
   }
   switch (c.cmd) {
     case "start":
     case "help":
-      return { replies: [HELP] };
+      return { replies: [ctx.styleEnabled ? HELP_WITH_STYLE : HELP] };
     case "narrators":
       return { replies: [`🎙️ Narrators:\n${narratorList()}\n\nUse: /topic dadi <topic>`] };
     case "myid":
@@ -130,8 +135,8 @@ export function handle(update, ctx) {
       };
     }
     case "ideas":
-      return isAdmin ? { replies: [], listIdeas: true } : { replies: [HELP] };
+      return isAdmin ? { replies: [], listIdeas: true } : { replies: [ctx.styleEnabled ? HELP_WITH_STYLE : HELP] };
     default:
-      return { replies: [HELP] };
+      return { replies: [ctx.styleEnabled ? HELP_WITH_STYLE : HELP] };
   }
 }

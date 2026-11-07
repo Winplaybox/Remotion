@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { handle, parseCommand, splitNarrator, NARRATORS, STYLES, DAILY_VIDEO_LIMIT } from "./commands.mjs";
+import { handle, parseCommand, splitNarrator, NARRATORS, STYLES, DAILY_VIDEO_LIMIT, HELP, STYLE_OFF } from "./commands.mjs";
 
-const ctx = (over = {}) => ({ allow: new Set(["42"]), admin: "1", usage: new Map(), today: "2026-11-08", ...over });
+const ctx = (over = {}) => ({ allow: new Set(["42"]), admin: "1", usage: new Map(), today: "2026-11-08", styleEnabled: true, ...over });
 const msg = (text, from = 42, extra = {}) => ({ message: { message_id: 7, chat: { id: from }, from: { id: from, first_name: "Ravi" }, text, ...extra } });
 
 test("parses commands with bot suffix and multi-line args", () => {
@@ -77,4 +77,12 @@ test("/style without video, too big, or by a stranger", () => {
   assert.match(big.replies[0], /20 MB/);
   const stranger = handle(msg(undefined, 99, { video: { file_id: "V" }, caption: "/style" }), ctx());
   assert.equal(stranger.dispatch.event, "tg-idea");
+});
+
+test("video-to-video is off by default: no job, no /style in help", () => {
+  const off = handle(msg(undefined, 1, { video: { file_id: "V" }, caption: "/style cartoon" }), ctx({ styleEnabled: false }));
+  assert.equal(off.dispatch, undefined);
+  assert.equal(off.replies[0], STYLE_OFF);
+  assert.doesNotMatch(HELP, /\/style/);
+  assert.doesNotMatch(handle(msg("/help"), ctx({ styleEnabled: false })).replies[0], /\/style/);
 });
