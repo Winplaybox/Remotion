@@ -29,6 +29,7 @@ jobs:
       START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
       PYTHON: python
+      QUEUE_REMOTE: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
