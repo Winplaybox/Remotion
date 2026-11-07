@@ -20,6 +20,9 @@ jobs:
     env:
       OMNIVOICE_API_KEY: bakeoff-local-only
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
       LINES: |
         भगवान विष्णु का पहला अवतार... एक मछली था। मत्स्य अवतार।
         इनमें से एक उल्टा घूम रहा है। ढूँढो, कौन सा? टाइम शुरू!
@@ -54,11 +57,30 @@ jobs:
         run: |
           python -m pip install --quiet edge-tts; mkdir -p out/edge; i=0
           while IFS= read -r line; do [ -z "$line" ] && continue; i=$((i+1)); python -m edge_tts --voice hi-IN-MadhurNeural --rate=+5% --text "$line" --write-media out/edge/line-$i.mp3; done <<< "$LINES"
+      - name: Amazon Polly (Kajal neural + Aditi standard, hi-IN)
+        if: env.AWS_ACCESS_KEY_ID != ''
+        continue-on-error: true
+        run: |
+          python -m pip install --quiet boto3
+          python - <<'PY'
+          import os, boto3
+          polly = boto3.client("polly", region_name=os.environ.get("AWS_REGION") or "us-east-1")
+          lines = [l for l in os.environ["LINES"].splitlines() if l.strip()]
+          for voice, engine in [("Kajal", "neural"), ("Aditi", "standard")]:
+              os.makedirs(f"out/polly-{voice.lower()}", exist_ok=True)
+              for i, l in enumerate(lines, 1):
+                  r = polly.synthesize_speech(Text=l, VoiceId=voice, Engine=engine, LanguageCode="hi-IN", OutputFormat="mp3", SampleRate="24000")
+                  open(f"out/polly-{voice.lower()}/line-{i}.mp3", "wb").write(r["AudioStream"].read())
+                  print(voice, engine, "line", i, "ok")
+          PY
+      - uses: actions/setup-python@v5
+        if: env.HF_TOKEN != ''
+        with: { python-version: "3.10" }
       - name: IndicF5 (optional, needs HF_TOKEN secret with access to ai4bharat/IndicF5)
         if: env.HF_TOKEN != ''
         continue-on-error: true
         run: |
-          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile && cd indicf5
+          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile "numpy<2" && cd indicf5
           python - <<'PY'
           import os, numpy as np, soundfile as sf
           from transformers import AutoModel
