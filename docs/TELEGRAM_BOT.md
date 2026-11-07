@@ -7,6 +7,7 @@ Telegram ──webhook──▶ Render.com (apps/telegram-bot/server.mjs)      i
               GitHub Actions (.github/workflows/telegram-bot.yml)
    tg-idea  : content/ideas/inbox.jsonl on branch bot-data + message to admin
    tg-video : Gemini → beats → Edge TTS → Remotion NarratorVideo → sendVideo to the same chat (~5–8 min)
+   tg-style : user's real video → Remotion ToonVideo (SVG filters, no AI) → sendVideo (~1 min per 8–10 s of video)
 ```
 
 ## What users can do
@@ -16,6 +17,7 @@ Telegram ──webhook──▶ Render.com (apps/telegram-bot/server.mjs)      i
 | Any message, link, photo or **sample video** (or `/idea <text>`) | everyone | "✅ Got it! Aapka idea future pipeline list mein add ho gaya hai. Admin isko review karega." — admin gets the idea (+ the video) |
 | `/topic <narrator> <topic>` e.g. `/topic dadi Holi kyun manate hain` | allowlist + admin | "🎬 Video ban raha hai…" then the finished MP4 |
 | `/script <narrator>` + script on the next lines | allowlist + admin | Same; keeps the user's words (AI only splits into beats, adds emoji + Hindi voice line) |
+| A video with caption `/style cartoon [title]` (or reply `/style anime` to a video) | allowlist + admin | Real → **cartoon / anime / comic / sketch / watercolor**, opens with a REAL→style swipe, original audio kept |
 | `/narrators`, `/myid`, `/help` | everyone | lists |
 | `/ideas` | admin | last 10 ideas |
 
@@ -34,6 +36,14 @@ Non-admins: 5 videos/day.
 
 Add one: a new entry in `NARRATORS` (`engines/narrator-video/src/model.ts`) **and** in `apps/telegram-bot/commands.mjs`
 (the test checks they match).
+
+## Real video → cartoon (engines/toon-video)
+
+Made only with Remotion: every frame goes through an SVG filter chain (smoothing, posterize, colour boost, edge lines,
+halftone / paper / watercolour displacement). No AI model, no extra cost, own code (safe for monetized channels).
+Limits: Telegram bots can download up to **20 MB**; up to **90 s** is converted; rendered at 720×1280 for speed.
+It is a filter look, not AI re-drawing — faces/hands keep their real shapes. Add a style: an entry in `TOON_STYLES`, a
+`<filter id="toon-<style>">` in `ToonVideoComposition.tsx`, and the id in `apps/telegram-bot/commands.mjs` (`STYLES`).
 
 ## One-time setup (admin, ~15 min)
 

@@ -11,11 +11,10 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { bundle } from "@remotion/bundler";
-import { renderMedia, selectComposition } from "@remotion/renderer";
 import { NARRATORS, NARRATOR_DEMO, NarratorVideoSchema, type NarratorId, type NarratorVideo } from "../../engines/narrator-video/src/model";
 import { parseDraft, scriptPrompt, splitScript, topicPrompt, type Draft } from "./script";
 import { sendMessage, sendVideo } from "./telegram";
+import { renderComposition } from "./render";
 
 interface Job { kind: "topic" | "script"; narrator: string; text: string; chatId: string | number; messageId?: number; user?: { id?: number; name?: string } }
 
@@ -74,20 +73,7 @@ function voiceBeats(d: Draft): NarratorVideo["beats"] {
   });
 }
 
-async function render(props: NarratorVideo): Promise<string> {
-  const alias = Object.fromEntries(["core", "motion", "audio", "visuals", "camera"].map((k) => [`@${k}`, path.join(root, "packages", k, "src")]));
-  const serveUrl = await bundle({
-    entryPoint: path.join(root, "apps/studio/src/remotion/index.ts"),
-    publicDir: path.join(root, "public"),
-    webpackOverride: (c) => ({ ...c, resolve: { ...c.resolve, alias: { ...(c.resolve?.alias ?? {}), ...alias, "@runtime": path.join(root, "packages/scene-runtime/src") } } })
-  });
-  const chrome = process.env.REMOTION_CHROME || undefined;
-  const composition = await selectComposition({ serveUrl, id: "NarratorVideo", inputProps: props, ...(chrome ? { browserExecutable: chrome } : {}) });
-  const out = path.join(root, "output", "tg", `${jobId}.mp4`);
-  fs.mkdirSync(path.dirname(out), { recursive: true });
-  await renderMedia({ composition, serveUrl, codec: "h264", inputProps: props, outputLocation: out, crf: 24, ...(chrome ? { browserExecutable: chrome } : {}) });
-  return out;
-}
+const render = (props: NarratorVideo) => renderComposition("NarratorVideo", props, path.join(root, "output", "tg", `${jobId}.mp4`));
 
 (async () => {
   if (!dry && (!job.kind || !job.text || !job.chatId)) throw new Error("PAYLOAD needs kind, text, chatId");

@@ -2,18 +2,19 @@ name: Telegram Bot Jobs
 
 # Triggered by the Telegram webhook server (apps/telegram-bot/server.mjs on Render) via repository_dispatch.
 #   tg-video: topic/script -> Gemini beats -> Edge TTS -> Remotion NarratorVideo -> sent back to the chat
+#   tg-style: real video (Telegram file) -> Remotion ToonVideo (cartoon/anime/comic/sketch/watercolor) -> sent back
 #   tg-idea : idea appended to content/ideas/inbox.jsonl on branch bot-data, admin notified
 # Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY.  Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
 on:
   repository_dispatch:
-    types: [tg-video, tg-idea]
+    types: [tg-video, tg-style, tg-idea]
 
 permissions:
   contents: write
 
 jobs:
   video:
-    if: github.event.action == 'tg-video'
+    if: github.event.action == 'tg-video' || github.event.action == 'tg-style'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -32,7 +33,7 @@ jobs:
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           TG_ADMIN_ID: ${{ vars.TG_ADMIN_ID }}
           PYTHON: python
-        run: npx ts-node scripts/telegram/make-video.ts
+        run: npx ts-node scripts/telegram/${{ github.event.action == 'tg-style' && 'make-toon.ts' || 'make-video.ts' }}
 
   idea:
     if: github.event.action == 'tg-idea'

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { handle, parseCommand, splitNarrator, NARRATORS, DAILY_VIDEO_LIMIT } from "./commands.mjs";
+import { handle, parseCommand, splitNarrator, NARRATORS, STYLES, DAILY_VIDEO_LIMIT } from "./commands.mjs";
 
 const ctx = (over = {}) => ({ allow: new Set(["42"]), admin: "1", usage: new Map(), today: "2026-11-08", ...over });
 const msg = (text, from = 42, extra = {}) => ({ message: { message_id: 7, chat: { id: from }, from: { id: from, first_name: "Ravi" }, text, ...extra } });
@@ -52,4 +52,29 @@ test("short scripts are rejected, /ideas is admin-only", () => {
   assert.equal(handle(msg("/script dadi bas"), ctx()).dispatch, undefined);
   assert.equal(handle(msg("/ideas", 1), ctx()).listIdeas, true);
   assert.equal(handle(msg("/ideas", 42), ctx()).listIdeas, undefined);
+});
+
+test("style ids match the Remotion toon engine", () => {
+  const src = fs.readFileSync(new URL("../../engines/toon-video/src/model.ts", import.meta.url), "utf8");
+  for (const id of STYLES) assert.match(src, new RegExp(`\\n  ${id}: \\{`), `engine is missing style ${id}`);
+});
+
+test("/style as video caption or as a reply to a video", () => {
+  const cap = handle(msg(undefined, 42, { video: { file_id: "V1", file_size: 1000 }, caption: "/style comic Mera ghar" }), ctx());
+  assert.equal(cap.dispatch.event, "tg-style");
+  assert.deepEqual([cap.dispatch.payload.style, cap.dispatch.payload.fileId, cap.dispatch.payload.title], ["comic", "V1", "Mera ghar"]);
+  const rep = handle(msg("/style anime", 42, { reply_to_message: { video: { file_id: "V2" } } }), ctx());
+  assert.equal(rep.dispatch.payload.fileId, "V2");
+  assert.equal(rep.dispatch.payload.style, "anime");
+  const def = handle(msg(undefined, 42, { video: { file_id: "V3" }, caption: "/style" }), ctx());
+  assert.equal(def.dispatch.payload.style, "cartoon");
+});
+
+test("/style without video, too big, or by a stranger", () => {
+  assert.equal(handle(msg("/style cartoon"), ctx()).dispatch, undefined);
+  const big = handle(msg(undefined, 42, { video: { file_id: "V", file_size: 25 * 1024 * 1024 }, caption: "/style" }), ctx());
+  assert.equal(big.dispatch, undefined);
+  assert.match(big.replies[0], /20 MB/);
+  const stranger = handle(msg(undefined, 99, { video: { file_id: "V" }, caption: "/style" }), ctx());
+  assert.equal(stranger.dispatch.event, "tg-idea");
 });
