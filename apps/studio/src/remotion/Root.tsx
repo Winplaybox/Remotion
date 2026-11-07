@@ -18,7 +18,8 @@ import { withNarrationDurations } from "../../../../engines/story-diorama/src/me
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
 import { TemplateSchema, templateDuration, templateForDay, type Template } from "../../../../engines/_template/src/model";
 import { TemplateComposition } from "../../../../engines/_template/src/TemplateComposition";
-import { NARRATOR_DEMO, NARRATOR_IDS, NarratorVideoSchema, narratorVideoDuration, type NarratorVideo } from "../../../../engines/narrator-video/src/model";
+import { NARRATOR_DEMO, NARRATOR_IDS, NarratorThumbSchema, NarratorVideoSchema, narratorVideoDuration, sizeOf, thumbSizeOf, type NarratorThumb, type NarratorVideo } from "../../../../engines/narrator-video/src/model";
+import { NarratorThumbnail } from "../../../../engines/narrator-video/src/NarratorThumbnail";
 import { NarratorVideoComposition } from "../../../../engines/narrator-video/src/NarratorVideoComposition";
 import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type ToonVideo } from "../../../../engines/toon-video/src/model";
 import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
@@ -39,7 +40,9 @@ export const Root: React.FC = () => (
     {/* @engine-builder:compositions */}
     <Folder name="NarratorVideo">
       <Composition id="NarratorVideo" component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={NARRATOR_DEMO}
-        calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props) })} />
+        calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props), ...sizeOf(props.aspect) })} />
+      <Still id="NarratorThumbnail" component={NarratorThumbnail} schema={NarratorThumbSchema} width={1280} height={720} defaultProps={{ narrator: "dadi", title: NARRATOR_DEMO.title, icon: "🪔", aspect: "16:9" } as NarratorThumb}
+        calculateMetadata={({ props }: { props: NarratorThumb }) => thumbSizeOf(props.aspect)} />
       {NARRATOR_IDS.map((id) => (
         <Composition key={id} id={`NarratorVideo-${id}`} component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={{ ...NARRATOR_DEMO, narrator: id }} />
       ))}

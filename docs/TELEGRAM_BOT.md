@@ -20,7 +20,8 @@ Pressing Topic / Script / Idea asks for the text in the next message (10 min).
 |---|---|---|
 | Any message, link, photo or sample video, or `/idea <text>` | everyone | **Idea `IDEA-00001`, status Pending Admin Review**; likely duplicates flagged; admin gets Approve / Reject / P1–P5 / Merge / Produce buttons. Ideas never start a video by themselves |
 | `/topic [narrator] <topic>` | allowlist, `/allow`ed users, admin | job `JOB-00001` with a live status message (progress bar, 🛑 Cancel) → MP4 in the chat |
-| `/script [narrator]` + script on the next lines | same | keeps the user's words |
+| `/preview [narrator] <topic>` | same | the script comes first (numbered beats) with ▶️ Render / 🛑 Cancel; send an edited `/script` to change it |
+| `/script [narrator] [enhance]` + script on the next lines, or a `.txt`/`.md` file with caption `/script` | same | keeps the user's words and dialogue by default; `enhance` lets the AI tighten it (no new facts) |
 | video with caption `/style cartoon` | same, only when `TG_STYLE_ENABLED=true` | off by default |
 | `/status [JOB]`, `/history`, `/cancel [JOB]` | everyone (own jobs) | progress, past videos + ideas, stop a job (the worker stops at its next step) |
 | `/settings`, `/narrators` | everyone | narrator, Hinglish/हिंदी/English, 9:16/16:9, ~30/50/90 s — used for the next video |
@@ -34,6 +35,11 @@ Limits: 5 videos per user per 24 h (stored in the database; admin unlimited). Te
 `/channel ID name` · `/note ID text` · `/merge ID INTO_ID` · `/produce ID [narrator]` (APPROVED ideas only → topic video,
 idea becomes IN_PRODUCTION → COMPLETED when delivered) · `/allow TG_ID` / `/disallow TG_ID` · `/jobs [STATUS]` · `/retry JOB`.
 Idea owners get a message when their idea is approved, rejected, in production or completed.
+
+Every finished video comes with: the MP4 (9:16 or 16:9), a **thumbnail** (1280×720 or 1080×1920), and a message with
+**title, description, hashtags and sources**. Topic videos first run a research step (Gemini + Google Search grounding);
+the script may only use those facts, and the sources are listed. Without sources the message says "verify facts".
+Languages: Hinglish (Roman captions, Hindi voice), हिंदी (Devanagari captions; font bundled), English (Indian-English voices).
 
 ## Data (Supabase)
 

@@ -11,7 +11,10 @@ const FONT_FILES: ReadonlyArray<readonly [family: string, file: string, weight: 
   ["JetBrains Mono", "jetbrains-mono-latin-500-normal.woff2", "500", "normal"],
   ["JetBrains Mono", "jetbrains-mono-latin-700-normal.woff2", "700", "normal"],
   ["Poppins", "poppins-latin-800-italic.woff2", "800", "italic"],
-  ["Poppins", "poppins-latin-900-italic.woff2", "900", "italic"]
+  ["Poppins", "poppins-latin-900-italic.woff2", "900", "italic"],
+  // Hindi (Devanagari) captions/titles — OFL, see public/fonts/NotoSansDevanagari-OFL.txt
+  ["Noto Sans Devanagari", "noto-sans-devanagari-devanagari-700-normal.woff2", "700", "normal"],
+  ["Noto Sans Devanagari", "noto-sans-devanagari-devanagari-900-normal.woff2", "900", "normal"]
 ];
 
 let loading: Promise<void> | null = null;
@@ -43,8 +46,8 @@ export function useBundledFonts(): void {
 }
 
 export const FONT = {
-  display: "Anton, Impact, sans-serif",
-  ui: "Inter, Arial, sans-serif",
+  display: "Anton, 'Noto Sans Devanagari', Impact, sans-serif",
+  ui: "Inter, 'Noto Sans Devanagari', Arial, sans-serif",
   mono: "'JetBrains Mono', monospace",
   punch: "Poppins, Inter, sans-serif"
 } as const;
