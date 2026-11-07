@@ -29,6 +29,8 @@ export const TrackVehicleSchema = z.object({
   shuffleSeconds: z.number().min(4).max(60),
   /** 1 = calm, 3 = brutal. Controls speed ramp and simultaneous swaps. */
   difficulty: z.number().min(1).max(3),
+  /** Background music, engine, swoosh per swap, horn, ticks (original kit in public/sfx). */
+  sound: z.boolean().default(true),
   /** Stepped speed: DHEEMA -> TEZ -> AUR TEZ -> SABSE TEZ, with an on-screen badge. false = old smooth ramp. */
   speedTiers: z.boolean().default(false),
   /** Probability that a swap involves the target (keeps it honest but trackable). */
@@ -73,6 +75,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
   return {
     ...KPC_BRAND,
     voice: [],
+    sound: true,
     vehicle: v.vehicle,
     label: v.label,
     titlePrefix: "NAZAR RAKHO:",
