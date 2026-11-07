@@ -5,8 +5,8 @@ import { ELEMENT_RENDERERS } from "./elements";
 import type { OddOrbit } from "./model";
 
 const W = 1080;
-const GRID_TOP = 470;
-const GRID_BOTTOM = 1660;
+const GRID_TOP = 590;
+const GRID_BOTTOM = 1600;
 const TAU = Math.PI * 2;
 
 interface Cell { x: number; y: number; row: number; col: number; phase: number; mul: number; dir: number; delay: number }
@@ -14,7 +14,7 @@ interface Cell { x: number; y: number; row: number; col: number; phase: number; 
 function useLayout(p: OddOrbit) {
   return useMemo(() => {
     const rows = Math.ceil(p.count / p.cols);
-    const pitch = Math.min(960 / p.cols, (GRID_BOTTOM - GRID_TOP) / rows);
+    const pitch = Math.min(900 / p.cols, (GRID_BOTTOM - GRID_TOP) / rows);
     const gridW = pitch * p.cols;
     const gridH = pitch * rows;
     const x0 = (W - gridW) / 2 + pitch / 2;
@@ -81,18 +81,42 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
       <AbsoluteFill style={{ background: `radial-gradient(ellipse 60% 38% at ${50 + glowDrift / 20}% ${55 + glowDrift / 40}%, ${pal.glow}aa, transparent 70%)` }} />
       <Stars seed={p.seed} frame={frame} />
 
-      <div style={{ position: "absolute", top: 250, width: "100%", textAlign: "center", opacity: head, transform: `translateY(${(1 - head) * -30}px)` }}>
-        <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 54, color: "#fff", letterSpacing: 0.5, textShadow: "0 4px 24px rgba(0,0,0,.6)" }}>{p.title}</div>
-        <div style={{ fontFamily: FONT.ui, fontWeight: 500, fontSize: 32, color: "#D8DCF0", marginTop: 14, opacity: 1 - reveal }}>{p.subtitle}</div>
+      {/* brand row */}
+      <div style={{ position: "absolute", top: 96, left: 60, right: 60, display: "flex", justifyContent: "space-between", alignItems: "center", opacity: head }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, fontFamily: FONT.ui, fontWeight: 900, fontSize: 28, letterSpacing: 4, color: pal.line }}>
+          <svg width={44} height={44} viewBox="-22 -22 44 44"><circle r={18} fill="none" stroke={pal.accent} strokeWidth={4} /><circle r={6} fill={pal.accent} /><g transform={`rotate(${frame * 3})`}><circle cx={18} r={5} fill={pal.body} /></g></svg>
+          {p.brand}
+        </div>
+        <div style={{ fontFamily: FONT.display, fontSize: 64, color: pal.accent, lineHeight: 1 }}>#{String(p.puzzleNo).padStart(3, "0")}</div>
       </div>
 
-      {p.showTimer ? (
-        <div style={{ position: "absolute", top: 400, left: 300, right: 300, opacity: head * (1 - reveal) }}>
-          <div style={{ height: 6, borderRadius: 6, background: "rgba(255,255,255,.12)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${(timeLeft / p.playSeconds) * 100}%`, background: timeLeft < 3 ? "#FF6B6B" : pal.accent, boxShadow: `0 0 16px ${pal.accent}` }} />
-          </div>
+      {/* title block */}
+      <div style={{ position: "absolute", top: 196, left: 60, right: 60, textAlign: "center", opacity: head, transform: `translateY(${(1 - head) * -30}px)` }}>
+        <div style={{ fontFamily: FONT.display, fontSize: 92, lineHeight: 1.0, color: "#fff", letterSpacing: 1, textShadow: `0 6px 0 ${pal.glow}` }}>{p.title}</div>
+        <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 32, color: pal.line, marginTop: 18, opacity: 1 - reveal }}>{p.subtitle}</div>
+      </div>
+
+      {/* difficulty + timer */}
+      <div style={{ position: "absolute", top: 470, left: 90, right: 90, display: "flex", alignItems: "center", gap: 22, opacity: head * (1 - reveal) }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: FONT.mono, fontWeight: 700, fontSize: 24, color: "#111", background: pal.accent, padding: "8px 16px", borderRadius: 10 }}>
+          {p.difficulty.toUpperCase()}
+          <span style={{ letterSpacing: 2 }}>{["●○○○", "●●○○", "●●●○", "●●●●"][["easy", "medium", "hard", "expert"].indexOf(p.difficulty)]}</span>
         </div>
-      ) : null}
+        {p.showTimer ? (
+          <>
+            <div style={{ flex: 1, height: 10, borderRadius: 10, background: "rgba(255,255,255,.12)", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(timeLeft / p.playSeconds) * 100}%`, background: timeLeft < 3 ? "#FF5A5A" : pal.line, boxShadow: `0 0 14px ${pal.line}` }} />
+            </div>
+            <div style={{ fontFamily: FONT.display, fontSize: 44, color: "#fff", width: 70, textAlign: "right" }}>{Math.ceil(timeLeft)}s</div>
+          </>
+        ) : null}
+      </div>
+
+      {/* grid panel */}
+      <div style={{ position: "absolute", top: GRID_TOP - 30, bottom: 1920 - GRID_BOTTOM - 30, left: 60, right: 60, borderRadius: 36, border: `2px solid ${pal.line}33`, background: "rgba(255,255,255,.025)", boxShadow: `inset 0 0 80px ${pal.glow}55` }} />
+      {[0, 1, 2, 3].map((k) => (
+        <div key={k} style={{ position: "absolute", width: 34, height: 34, borderColor: pal.accent, borderStyle: "solid", borderWidth: 0, ...(k < 2 ? { top: GRID_TOP - 30 } : { top: GRID_BOTTOM + 30 - 34 }), ...(k % 2 === 0 ? { left: 60 } : { right: 60 }), ...(k === 0 ? { borderTopWidth: 5, borderLeftWidth: 5, borderTopLeftRadius: 36 } : k === 1 ? { borderTopWidth: 5, borderRightWidth: 5, borderTopRightRadius: 36 } : k === 2 ? { borderBottomWidth: 5, borderLeftWidth: 5, borderBottomLeftRadius: 36 } : { borderBottomWidth: 5, borderRightWidth: 5, borderBottomRightRadius: 36 }), opacity: head }} />
+      ))}
 
       <svg width={W} height={1920} style={{ position: "absolute", inset: 0 }}>
         <defs>
@@ -105,6 +129,10 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
             <stop offset="0" stopColor="#fff" />
             <stop offset="0.45" stopColor={pal.line} />
             <stop offset="1" stopColor={pal.glow} />
+          </radialGradient>
+          <radialGradient id="oo-flame">
+            <stop offset="0" stopColor="#FFC24D" stopOpacity={0.8} />
+            <stop offset="1" stopColor="#FF8A1C" stopOpacity={0} />
           </radialGradient>
         </defs>
         {cells.map((c, i) => (i === odd ? null : drawCell(c, i, false)))}
@@ -125,16 +153,15 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
       {oddCell && reveal > 0.01 ? (
         <div style={{ position: "absolute", left: 0, right: 0, top: oddCell.y + (oddCell.y > 1300 ? -r * 2.6 - 70 : r * 2.4), display: "flex", justifyContent: "center", opacity: reveal, transform: `scale(${0.8 + reveal * 0.2})` }}>
           <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 34, color: "#071018", background: pal.accent, padding: "12px 28px", borderRadius: 999, boxShadow: `0 0 40px ${pal.accent}88` }}>
-            ROW {oddCell.row + 1} · #{oddCell.col + 1}
+            {p.answerPrefix}: ROW {oddCell.row + 1} · #{oddCell.col + 1}
           </div>
         </div>
       ) : null}
 
-      <div style={{ position: "absolute", top: 1730, width: "100%", textAlign: "center", fontFamily: FONT.ui, fontWeight: 800, fontSize: 34, color: "#E9ECFA", letterSpacing: 0.5, opacity: head }}>
-        {reveal > 0.5 ? "DID YOU GET IT? FOLLOW FOR DAILY PUZZLES" : p.footer}
+      <div style={{ position: "absolute", top: 1680, width: "100%", textAlign: "center", fontFamily: FONT.ui, fontWeight: 900, fontSize: 38, color: "#fff", opacity: head }}>
+        {reveal > 0.5 ? p.revealFooter : p.footer}
       </div>
-      <div style={{ position: "absolute", top: 1820, width: "100%", textAlign: "center", fontFamily: FONT.ui, fontWeight: 700, fontSize: 22, color: "#9AA0C0", letterSpacing: 3 }}>{p.brand}</div>
-      <div style={{ position: "absolute", top: 404, right: 120, fontFamily: FONT.mono, fontWeight: 700, fontSize: 24, color: "#9AA0C0", opacity: p.showTimer ? head * (1 - reveal) : 0, transform: "translateY(-50%)" }}>{Math.ceil(timeLeft)}s</div>
+      <div style={{ position: "absolute", top: 1760, width: "100%", textAlign: "center", fontFamily: FONT.mono, fontWeight: 700, fontSize: 26, color: pal.line, opacity: 0.75, letterSpacing: 2 }}>{p.handle}</div>
     </AbsoluteFill>
   );
 };

@@ -49,9 +49,14 @@ const Road: React.FC<{ laneXs: number[]; frame: number; seed: string }> = ({ lan
     {laneXs.map((x, i) => {
       const edge = i === 0 || i === laneXs.length - 1;
       return edge
-        ? <line key={i} x1={x} x2={x} y1={0} y2={H} stroke="#E8E8E8" strokeOpacity={0.35} strokeWidth={5} />
+        ? <g key={i}><line x1={x} x2={x} y1={0} y2={H} stroke="#111" strokeWidth={16} /><line x1={x} x2={x} y1={-60} y2={H + 60} stroke="#FFC800" strokeOpacity={0.8} strokeWidth={16} strokeDasharray="40 40" strokeDashoffset={-frame * 14} /></g>
         : <line key={i} x1={x} x2={x} y1={-80} y2={H + 80} stroke="#F2F2F2" strokeOpacity={0.55} strokeWidth={6} strokeDasharray="70 70" strokeDashoffset={-frame * 14} />;
     })}
+    {[380, 1610].map((zy) => (
+      <g key={zy} transform={`translate(0 ${((zy + frame * 14) % (H + 200)) - 100})`} opacity={0.22}>
+        {Array.from({ length: 14 }, (_, k) => <rect key={k} x={(laneXs[0] ?? 0) + 20 + k * (((laneXs[laneXs.length - 1] ?? W) - (laneXs[0] ?? 0) - 40) / 14)} y={0} width={34} height={90} fill="#fff" />)}
+      </g>
+    ))}
     {Array.from({ length: 34 }, (_, i) => {
       const x = random(`${seed}-sx${i}`) * W;
       const len = 80 + random(`${seed}-sl${i}`) * 320;
@@ -151,8 +156,8 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           : null}
 
         {/* title */}
-        <div style={{ position: "absolute", top: 205, width: "100%", textAlign: "center", fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(96, 1800 / ((isQuestion ? p.questionPrefix : p.titlePrefix).length + p.label.length + 2)), whiteSpace: "nowrap", letterSpacing: -2, color: "#fff", textShadow: "0 6px 30px rgba(0,0,0,.8)", transform: `translateY(${(1 - titleIn) * -40}px) scale(${isQuestion ? 0.9 + swapTitle * 0.1 : 1})`, opacity: titleIn }}>
-          {isQuestion ? p.questionPrefix : p.titlePrefix} <span style={{ color: accent }}>{p.label}{isQuestion ? "?" : ""}</span>
+        <div style={{ position: "absolute", top: 205, width: "100%", textAlign: "center", fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(96, 1800 / ((isQuestion ? p.questionPrefix + p.questionSuffix : p.titlePrefix).length + p.label.length + 2)), whiteSpace: "nowrap", letterSpacing: -2, color: "#fff", textShadow: "0 6px 30px rgba(0,0,0,.8)", transform: `translateY(${(1 - titleIn) * -40}px) scale(${isQuestion ? 0.9 + swapTitle * 0.1 : 1})`, opacity: titleIn }}>
+          {isQuestion ? p.questionPrefix : p.titlePrefix} <span style={{ color: accent }}>{p.label}</span>{isQuestion ? p.questionSuffix : ""}
         </div>
         <div style={{ position: "absolute", top: 340, left: 210, right: 210, display: "flex", alignItems: "center", gap: 22, opacity: timerVisible }}>
           <div style={{ flex: 1, height: 12, borderRadius: 12, background: "rgba(255,255,255,.12)", overflow: "hidden" }}>
@@ -163,22 +168,29 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
         {isQuestion ? (
           <div style={{ position: "absolute", top: 335, width: "100%", display: "flex", justifyContent: "center", opacity: swapTitle }}>
             <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 28, color: "#fff", padding: "10px 26px", borderRadius: 99, border: "2px solid rgba(255,255,255,.45)", background: "rgba(0,0,0,.45)" }}>
-              {answerP > 0.5 ? `It was #${sched.answerSlot + 1} — did you get it?` : p.cta}
+              {answerP > 0.5 ? p.answerLine.replace("{n}", String(sched.answerSlot + 1)) : p.cta}
             </div>
           </div>
         ) : null}
         {frame >= showStart && frame < hideStart + 10 ? (
           <div style={{ position: "absolute", left: g.slotXY(sched.targetCar)[0] - 300, width: 600, top: g.slotXY(sched.targetCar)[1] + g.l * g.scale * 0.68, display: "flex", justifyContent: "center", opacity: highlight }}>
-            <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 28, letterSpacing: 3, color: "#111", background: accent, padding: "8px 20px", borderRadius: 99, boxShadow: `0 0 30px ${accent}` }}>▲ REMEMBER THIS ONE</div>
+            <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 28, letterSpacing: 3, color: "#111", background: accent, padding: "8px 20px", borderRadius: 99, boxShadow: `0 0 30px ${accent}` }}>{p.rememberText}</div>
           </div>
         ) : null}
-        <div style={{ position: "absolute", top: 1680, width: "100%", textAlign: "center", fontFamily: FONT.ui, fontWeight: 800, fontSize: 24, letterSpacing: 9, color: "rgba(255,255,255,.55)" }}>{p.brand}</div>
+        <div style={{ position: "absolute", top: 1680, width: "100%", textAlign: "center", fontFamily: FONT.ui, fontWeight: 800, fontSize: 24, letterSpacing: 9, color: "rgba(255,255,255,.55)" }}>{p.handle}</div>
+        <div style={{ position: "absolute", top: 92, left: 60, right: 60, display: "flex", justifyContent: "space-between", alignItems: "center", opacity: titleIn }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, fontFamily: FONT.ui, fontWeight: 900, fontSize: 26, letterSpacing: 4, color: "#fff" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: "repeating-linear-gradient(45deg, #FFC800 0 8px, #111 8px 16px)" }} />
+            {p.brand}
+          </div>
+          <div style={{ fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: 34, color: "#111", background: accent, padding: "6px 20px", borderRadius: 10 }}>LEVEL {String(p.level).padStart(2, "0")}</div>
+        </div>
         <AbsoluteFill style={{ background: "radial-gradient(ellipse 75% 60% at 50% 50%, transparent 55%, rgba(0,0,0,.75))" }} />
       </AbsoluteFill>
 
       {endP > 0 ? (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: endP, transform: `scale(${0.92 + endP * 0.08})` }}>
-          <div style={{ fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: 150, color: accent, WebkitTextStroke: "6px #3A2500", textShadow: "0 10px 0 #3A2500, 0 20px 40px rgba(0,0,0,.6)", transform: "rotate(-4deg)" }}>{p.endCard.title}</div>
+          <div style={{ fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(150, 1500 / p.endCard.title.length), color: accent, WebkitTextStroke: "6px #3A2500", textShadow: "0 10px 0 #3A2500, 0 20px 40px rgba(0,0,0,.6)", transform: "rotate(-4deg)" }}>{p.endCard.title}</div>
           <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 44, color: "#fff", textAlign: "center", maxWidth: 820, marginTop: 50, lineHeight: 1.25 }}>{p.endCard.line}</div>
           <div style={{ marginTop: 50, fontFamily: FONT.ui, fontWeight: 900, fontSize: 40, color: "#111", background: accent, padding: "20px 48px", borderRadius: 99, border: "4px solid #3A2500", transform: `scale(${1 + Math.sin(frame / 6) * 0.03})` }}>{p.endCard.button}</div>
         </AbsoluteFill>

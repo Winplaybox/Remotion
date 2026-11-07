@@ -3,6 +3,8 @@ import type { VehicleKind } from "./model";
 
 /** Footprint in local units (width, length). Everything is drawn centred, facing up. */
 export const VEHICLE_SIZE: Record<VehicleKind, { w: number; l: number }> = {
+  kaalipeeli: { w: 98, l: 186 },
+  bestbus: { w: 112, l: 300 },
   taxi: { w: 100, l: 190 },
   police: { w: 100, l: 192 },
   ambulance: { w: 108, l: 220 },
@@ -193,7 +195,39 @@ const Auto: React.FC<VehicleProps> = ({ color, trim }) => {
   );
 };
 
-const RENDERERS: Record<VehicleKind, React.FC<VehicleProps>> = { taxi: Taxi, police: Police, ambulance: Ambulance, bus: Bus, truck: Truck, sports: Sports, auto: Auto, suv: Suv };
+/** Mumbai kaali-peeli: black body, yellow roof, roof carrier. */
+const KaaliPeeli: React.FC<VehicleProps> = ({ color, lit }) => {
+  const { w, l } = VEHICLE_SIZE.kaalipeeli;
+  return (
+    <CarShell w={w} l={l} color="#161616" trim={color} frontR={0.26}>
+      <rect x={-w * 0.34} y={-l / 2 + l * 0.37} width={w * 0.68} height={l * 0.25} rx={10} fill={color} />
+      <rect x={-w * 0.34} y={-l / 2 + l * 0.37} width={w * 0.68} height={l * 0.25} rx={10} fill="url(#tv-sheen)" />
+      {[0.42, 0.5, 0.58].map((k) => <line key={k} x1={-w * 0.3} x2={w * 0.3} y1={-l / 2 + l * k} y2={-l / 2 + l * k} stroke="#3A2E00" strokeWidth={3} strokeOpacity={0.6} />)}
+      <rect x={-w * 0.38} y={-l / 2 + 20} width={w * 0.76} height={l * 0.13} rx={8} fill={color} opacity={0.95} />
+      <circle cx={0} cy={-l / 2 + l * 0.5} r={60} fill="url(#tv-amber)" opacity={lit * 0.8} />
+    </CarShell>
+  );
+};
+
+/** Mumbai BEST bus: red with a cream band, roof hatches. */
+const BestBus: React.FC<VehicleProps> = ({ color, trim }) => {
+  const { w, l } = VEHICLE_SIZE.bestbus;
+  return (
+    <g>
+      <Wheels w={w} l={l} front={0.15} rear={0.2} />
+      <rect x={-w / 2} y={-l / 2} width={w} height={l} rx={16} fill={color} stroke="#111" strokeWidth={3} />
+      <rect x={-w / 2} y={-l / 2} width={w} height={l} rx={16} fill="url(#tv-sheen)" />
+      <rect x={-w / 2 + 6} y={-l / 2 + 34} width={10} height={l - 50} fill={trim} />
+      <rect x={w / 2 - 16} y={-l / 2 + 34} width={10} height={l - 50} fill={trim} />
+      <rect x={-w * 0.42} y={-l / 2 + 8} width={w * 0.84} height={22} rx={8} fill={GLASS} />
+      {[0.22, 0.48, 0.74].map((k) => <rect key={k} x={-w * 0.22} y={-l / 2 + l * k} width={w * 0.44} height={36} rx={6} fill="#000" opacity={0.25} />)}
+      <text x={0} y={-l / 2 + l * 0.38} textAnchor="middle" fontFamily="Inter" fontWeight={900} fontSize={26} fill={trim} transform={`rotate(-90 0 ${-l / 2 + l * 0.38})`}>BEST</text>
+      <Lights w={w} l={l} inset={0.16} />
+    </g>
+  );
+};
+
+const RENDERERS: Record<VehicleKind, React.FC<VehicleProps>> = { kaalipeeli: KaaliPeeli, bestbus: BestBus, taxi: Taxi, police: Police, ambulance: Ambulance, bus: Bus, truck: Truck, sports: Sports, auto: Auto, suv: Suv };
 
 export const Vehicle: React.FC<VehicleProps> = (props) => {
   const R = RENDERERS[props.kind];

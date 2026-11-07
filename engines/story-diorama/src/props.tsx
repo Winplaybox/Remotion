@@ -318,7 +318,9 @@ const Lotus: React.FC<PropCtx> = () => {
   );
 };
 
-const Water: React.FC<PropCtx> = ({ lf }) => {
+const Water: React.FC<PropCtx> = ({ lf, data }) => {
+  const k = num(data.amp, 1);
+  const pads = data.pads !== false;
   const wave = (amp: number, off: number, y: number) => {
     const pts = Array.from({ length: 41 }, (_, i) => {
       const x = -700 + i * 35;
@@ -328,14 +330,14 @@ const Water: React.FC<PropCtx> = ({ lf }) => {
   };
   return (
     <g>
-      <path d={wave(10, 0, 0)} fill="#1C7C8C" opacity={0.92} />
-      <path d={wave(8, 2, 40)} fill="#166A79" />
-      <path d={wave(6, 4, 120)} fill="#0F5563" />
+      <path d={wave(10 * k, 0, 0)} fill={str(data.c1, "#1C7C8C")} opacity={0.92} />
+      <path d={wave(8 * k, 2, 40)} fill={str(data.c2, "#166A79")} />
+      <path d={wave(6 * k, 4, 120)} fill={str(data.c3, "#0F5563")} />
       {[0, 1, 2].map((k) => {
         const ph = ((lf / 45 + k / 3) % 1);
         return <ellipse key={k} cy={20} rx={120 + ph * 360} ry={(120 + ph * 360) * 0.12} fill="none" stroke="#BFF3F5" strokeWidth={3} opacity={(1 - ph) * 0.6} />;
       })}
-      {[[-380, 90], [400, 150], [-200, 240]].map(([x, y], i) => <ellipse key={i} cx={x} cy={y} rx={90} ry={22} fill="#3E9A5C" filter={SHADOW} />)}
+      {pads ? [[-380, 90], [400, 150], [-200, 240]].map(([x, y], i) => <ellipse key={i} cx={x} cy={y} rx={90} ry={22} fill="#3E9A5C" filter={SHADOW} />) : null}
     </g>
   );
 };
@@ -392,7 +394,7 @@ const FestivalTracker: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
           <g key={i} opacity={isDone || isNext ? 1 : 0.45}>
             <rect x={-350} y={y - 46} width={84} height={84} rx={10} fill="none" stroke={pal.ink} strokeWidth={5} />
             {isDone ? <g transform={`translate(-308 ${y - 6})`}><Check p={p} color={pal.accent} size={1.2} /></g> : null}
-            <text x={-230} y={y + 22} fontFamily={FONT.display} fontSize={60} fill={pal.ink} textDecoration={isDone ? "line-through" : undefined}>{`DAY ${i + 1} · ${it}`}</text>
+            <text x={-230} y={y + 22} fontFamily={FONT.display} fontSize={60} fill={pal.ink} textDecoration={isDone ? "line-through" : undefined}>{`${str(data.prefix, "DAY")} ${i + 1} · ${it}`}</text>
             {isNext ? (
               <ellipse cx={60} cy={y} rx={400} ry={66} fill="none" stroke={pal.accent3} strokeWidth={7} strokeDasharray={1700} strokeDashoffset={1700 * (1 - ring)} transform={`rotate(-2 60 ${y})`} />
             ) : null}
@@ -442,7 +444,136 @@ const Progress: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
   );
 };
 
+
+/* ---------- Matsya / ocean kit ---------- */
+
+/** Golden fish facing right. data.horn adds Matsya's horn. Origin = body centre. */
+const Fish: React.FC<PropCtx> = ({ lf, data }) => {
+  const tail = Math.sin(lf / 4) * 10;
+  const horn = data.horn === true;
+  return (
+    <g filter={SHADOW}>
+      <g transform={`rotate(${tail} -150 0)`}>
+        <path d="M -140 0 L -250 -90 Q -225 0 -250 90 Z" fill="#E8A21C" />
+        <path d="M -150 0 L -230 -60 Q -212 0 -230 60 Z" fill="#F7C64B" />
+      </g>
+      <path d="M -160 0 C -100 -110 90 -120 170 -10 C 90 110 -100 100 -160 0 Z" fill="#F4B728" />
+      <path d="M -160 0 C -100 -110 90 -120 170 -10 C 60 -40 -80 -40 -160 0 Z" fill="#FFD966" />
+      {Array.from({ length: 12 }, (_, i) => <path key={i} d={`M ${-90 + (i % 6) * 34} ${(i < 6 ? -20 : 18)} q 14 14 28 0`} fill="none" stroke="#C97F0E" strokeWidth={4} opacity={0.6} />)}
+      <path d="M -20 -78 Q 20 -150 70 -80 Z" fill="#E8A21C" />
+      <path d="M 0 60 Q 30 110 60 58 Z" fill="#E8A21C" />
+      <circle cx={112} cy={-24} r={15} fill="#fff" /><circle cx={116} cy={-24} r={8} fill="#1C1A17" />
+      <path d="M 150 10 Q 162 18 170 8" stroke="#8A4B0A" strokeWidth={4} fill="none" />
+      {horn ? <path d="M 120 -70 Q 150 -170 110 -230 Q 135 -150 95 -78 Z" fill="#FFF1C9" stroke="#C97F0E" strokeWidth={4} /> : null}
+      <circle cx={10} cy={-30} r={220} fill="url(#sd-sunglow)" opacity={0.35} />
+    </g>
+  );
+};
+
+const Boat: React.FC<PropCtx> = ({ data }) => (
+  <g filter={SHADOW}>
+    <path d="M -230 -40 L 230 -40 Q 200 60 120 70 L -120 70 Q -200 60 -230 -40 Z" fill="#8A4B24" />
+    {[-150, -75, 0, 75, 150].map((x) => <line key={x} x1={x} x2={x * 0.85} y1={-36} y2={64} stroke="#5E3015" strokeWidth={4} />)}
+    <path d="M -230 -40 L 230 -40" stroke="#5E3015" strokeWidth={10} strokeLinecap="round" />
+    <path d="M -140 -40 L -140 -150 Q 0 -200 140 -150 L 140 -40 Z" fill="#E9D3A6" />
+    <path d="M -140 -150 Q 0 -200 140 -150" fill="none" stroke="#8A4B24" strokeWidth={8} />
+    {data.sages !== false ? Array.from({ length: 7 }, (_, i) => (
+      <g key={i} transform={`translate(${-105 + i * 35} -70)`}>
+        <circle cy={-28} r={14} fill="#E8B48A" />
+        <path d="M -12 -40 Q 0 -60 12 -40 Z" fill="#F2F2F2" />
+        <path d="M -16 -14 Q 0 -22 16 -14 L 18 30 L -18 30 Z" fill={i % 2 ? "#E06A1B" : "#F28C28"} />
+      </g>
+    )) : null}
+    <line x1={0} x2={0} y1={-190} y2={-330} stroke="#5E3015" strokeWidth={8} />
+    <path d="M 0 -330 L 70 -310 L 0 -290 Z" fill="#F28C28" />
+  </g>
+);
+
+const Kamandalu: React.FC<PropCtx> = ({ lf }) => {
+  const peek = Math.sin(lf / 10) * 6;
+  return (
+    <g>
+      <g filter={SHADOW}>
+        <path d="M -130 -60 Q -150 120 0 130 Q 150 120 130 -60 Q 70 -100 0 -100 Q -70 -100 -130 -60 Z" fill="#B87333" />
+        <path d="M -130 -60 Q 0 -10 130 -60 Q 70 -100 0 -100 Q -70 -100 -130 -60 Z" fill="#7A4A1F" />
+        <ellipse cy={-70} rx={110} ry={24} fill="#3FA7C9" />
+        <path d="M 120 -40 Q 220 -40 230 -120" fill="none" stroke="#B87333" strokeWidth={22} strokeLinecap="round" />
+        <path d="M -110 -90 Q 0 -230 110 -90" fill="none" stroke="#7A4A1F" strokeWidth={12} />
+        <path d="M -100 20 Q 0 60 100 20" fill="none" stroke="#E2A066" strokeWidth={6} opacity={0.6} />
+      </g>
+      <g transform={`translate(10 ${-80 + peek}) scale(0.18)`}><Fish lf={lf} fps={30} data={{}} pal={{ paper: "", ink: "", accent: "", accent2: "", accent3: "" }} /></g>
+      <circle cy={-80} r={90} fill="url(#sd-sunglow)" opacity={0.5} />
+    </g>
+  );
+};
+
+/** Kamandal -> matka -> sarovar -> samudra with the fish growing at each step. */
+const GrowthSteps: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
+  const labels = arr(data.labels).length ? arr(data.labels) : ["KAMANDAL", "MATKA", "SAROVAR", "SAMUDRA"];
+  const step = Number(data.stepSeconds ?? 1) * fps;
+  return (
+    <g>
+      {labels.map((label, i) => {
+        const p = spring({ frame: lf - i * step, fps, config: { damping: 13 } });
+        const y = -i * 260;
+        const x = i % 2 === 0 ? -170 : 170;
+        const vessel = 70 + i * 45;
+        return (
+          <g key={label} transform={`translate(${x} ${y})`} opacity={clamp01(p * 2)}>
+            <g transform={`scale(${0.6 + p * 0.4})`} filter={SHADOW}>
+              {i === 0 ? <path d="M -60 -30 Q -70 60 0 66 Q 70 60 60 -30 Q 0 -50 -60 -30 Z" fill="#B87333" /> : null}
+              {i === 1 ? <path d="M -80 -50 Q -120 40 -50 80 L 50 80 Q 120 40 80 -50 Q 40 -70 30 -90 L -30 -90 Q -40 -70 -80 -50 Z" fill="#A0522D" /> : null}
+              {i >= 2 ? <ellipse rx={vessel * 1.6} ry={vessel * 0.45} cy={20} fill={i === 2 ? "#2E8FA6" : "#1C6E8C"} /> : null}
+              {i >= 2 ? <ellipse rx={vessel * 1.6} ry={vessel * 0.45} cy={20} fill="none" stroke="#BFF3F5" strokeWidth={4} opacity={0.6} /> : null}
+              <g transform={`translate(0 ${i >= 2 ? -10 : -30}) scale(${0.12 + i * 0.12})`}><Fish lf={lf} fps={fps} data={{}} pal={pal} /></g>
+            </g>
+            <text y={i >= 2 ? 120 : 130} textAnchor="middle" fontFamily={FONT.mono} fontWeight={700} fontSize={30} fill={pal.paper} letterSpacing={3}>{`${i + 1}. ${label}`}</text>
+            {i < labels.length - 1 ? <path d={`M ${i % 2 === 0 ? 80 : -80} -120 Q 0 -200 ${i % 2 === 0 ? 260 : -260} -200`} transform={`translate(${i % 2 === 0 ? 0 : 0} 0)`} fill="none" stroke={pal.accent2} strokeWidth={5} strokeDasharray="12 12" opacity={clamp01((lf - (i + 0.6) * step) / 8)} /> : null}
+          </g>
+        );
+      })}
+    </g>
+  );
+};
+
+/** Matsya towing the boat with the serpent-rope. */
+const Towing: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
+  const bob = Math.sin(lf / 9) * 12;
+  const bob2 = Math.sin(lf / 9 + 1.2) * 10;
+  return (
+    <g>
+      <path d={`M 250 ${-210 + bob} C 120 ${-260 + bob} 0 ${-160 + bob2} -170 ${-180 + bob2}`} fill="none" stroke="#3E7A3A" strokeWidth={16} strokeLinecap="round" />
+      <path d={`M 250 ${-210 + bob} C 120 ${-260 + bob} 0 ${-160 + bob2} -170 ${-180 + bob2}`} fill="none" stroke="#9BD07A" strokeWidth={4} strokeDasharray="10 14" strokeLinecap="round" />
+      <g transform={`translate(-260 ${bob2}) scale(0.9) rotate(${Math.sin(lf / 12) * 3})`}><Boat lf={lf} fps={fps} data={data} pal={pal} /></g>
+      <g transform={`translate(300 ${-80 + bob}) scale(1.05) rotate(-8)`}><Fish lf={lf} fps={fps} data={{ horn: true }} pal={pal} /></g>
+    </g>
+  );
+};
+
+/** Four Veda bundles rising out of darkness. */
+const Vedas: React.FC<PropCtx> = ({ lf, fps, pal }) => (
+  <g>
+    {["RIG", "YAJUR", "SAMA", "ATHARVA"].map((name, i) => {
+      const p = spring({ frame: lf - i * 8, fps, config: { damping: 12 } });
+      const x = (i - 1.5) * 220;
+      return (
+        <g key={name} transform={`translate(${x} ${(1 - p) * 200 + Math.sin(lf / 15 + i) * 8})`} opacity={clamp01(p * 2)}>
+          <circle cy={-60} r={130} fill="url(#sd-sunglow)" opacity={0.6} />
+          <g filter={SHADOW}>
+            <rect x={-70} y={-150} width={140} height={190} rx={10} fill="#C0392B" />
+            <rect x={-62} y={-142} width={124} height={174} rx={8} fill="#F3E2B8" />
+            {[0, 1, 2, 3, 4].map((k) => <line key={k} x1={-46} x2={46} y1={-110 + k * 26} y2={-110 + k * 26} stroke="#B07A3A" strokeWidth={4} opacity={0.6} />)}
+            <rect x={-80} y={-40} width={160} height={22} rx={4} fill="#E2A33A" />
+          </g>
+          <text y={90} textAnchor="middle" fontFamily={FONT.display} fontSize={44} fill={pal.paper}>{name}</text>
+        </g>
+      );
+    })}
+  </g>
+);
+
 export const PROPS: Record<PropName, React.FC<PropCtx>> = {
+  fish: Fish, boat: Boat, kamandalu: Kamandalu, growthSteps: GrowthSteps, towing: Towing, vedas: Vedas,
   moon: Moon, moonPhases: MoonPhases, clouds: Clouds, hills: Hills, doorway: Doorway, toran: Toran, diya: Diya, diyaRow: DiyaRow,
   rangoli: Rangoli, rooftops: Rooftops, lotus: Lotus, water: Water, tree: Tree, temple: Temple, sun: Sun, noteCard: NoteCard,
   festivalTracker: FestivalTracker, progress: Progress, monthCalendar: MonthCalendar

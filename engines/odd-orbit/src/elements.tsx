@@ -154,6 +154,58 @@ const Gear: React.FC<ElementProps> = ({ a, r, body, line }) => (
   </g>
 );
 
+
+/** Sudarshan-style chakra: flame-toothed wheel spinning, with a glowing marker. */
+const Chakra: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
+  const teeth = 12;
+  const pts: string[] = [];
+  for (let i = 0; i < teeth; i++) {
+    const a0 = (i / teeth) * TAU, a1 = ((i + 0.5) / teeth) * TAU, a2 = ((i + 1) / teeth) * TAU;
+    const [x0, y0] = pt(a0, r * 0.62), [xt, yt] = pt(a0 + (a1 - a0) * 0.9, r * 0.86), [x2, y2] = pt(a2, r * 0.62);
+    pts.push(`${i === 0 ? "M" : "L"} ${x0.toFixed(2)} ${y0.toFixed(2)} Q ${xt.toFixed(2)} ${yt.toFixed(2)} ${x2.toFixed(2)} ${y2.toFixed(2)}`);
+  }
+  const deg = (a * 180) / Math.PI;
+  const ghost = [1, 2, 3].map((k) => <path key={k} d={`${pts.join(" ")} Z`} fill="none" stroke={line} strokeOpacity={0.12 / k} strokeWidth={r * 0.05} transform={`rotate(${deg - dir * k * 7})`} />);
+  return (
+    <g>
+      {ghost}
+      <g transform={`rotate(${deg})`}>
+        <path d={`${pts.join(" ")} Z`} fill={line} fillOpacity={0.12} stroke={line} strokeOpacity={0.85} strokeWidth={r * 0.045} strokeLinejoin="round" />
+        <circle r={r * 0.46} fill="none" stroke={line} strokeOpacity={0.5} strokeWidth={r * 0.03} />
+        {Array.from({ length: 8 }, (_, i) => {
+          const [x, y] = pt((i / 8) * TAU, r * 0.46);
+          return <line key={i} x1={0} y1={0} x2={x} y2={y} stroke={line} strokeOpacity={0.55} strokeWidth={r * 0.03} />;
+        })}
+        <circle cx={r * 0.46} cy={0} r={r * 0.24} fill="url(#oo-glow)" />
+        <circle cx={r * 0.46} cy={0} r={r * 0.08} fill={body} />
+      </g>
+      <circle r={r * 0.12} fill={body} />
+    </g>
+  );
+};
+
+/** A diya flame orbiting a brass ring. */
+const DiyaOrbit: React.FC<ElementProps> = ({ a, dir, r, line }) => {
+  const ring = r * 0.74;
+  const [x, y] = pt(a, ring);
+  const trail = Array.from({ length: 10 }, (_, j) => {
+    const [tx, ty] = pt(a - dir * (j + 1) * 0.08, ring);
+    return <circle key={j} cx={tx} cy={ty} r={r * 0.07 * (1 - j / 11)} fill="#FF9F1C" opacity={0.45 * (1 - j / 10)} />;
+  });
+  return (
+    <g>
+      <circle r={ring} fill="none" stroke={line} strokeOpacity={0.5} strokeWidth={r * 0.05} strokeDasharray={`${r * 0.05} ${r * 0.09}`} />
+      <path d={`M ${-r * 0.2} ${-r * 0.02} Q 0 ${r * 0.18} ${r * 0.2} ${-r * 0.02} Z`} fill="#B5532E" />
+      {trail}
+      <circle cx={x} cy={y} r={r * 0.34} fill="url(#oo-flame)" />
+      <g transform={`translate(${x} ${y}) rotate(0)`}>
+        <path d={`M 0 ${-r * 0.2} C ${r * 0.09} ${-r * 0.08} ${r * 0.09} ${r * 0.02} 0 ${r * 0.06} C ${-r * 0.09} ${r * 0.02} ${-r * 0.09} ${-r * 0.08} 0 ${-r * 0.2} Z`} fill="#FFB938" />
+        <path d={`M 0 ${-r * 0.1} C ${r * 0.04} ${-r * 0.04} ${r * 0.04} ${r * 0.02} 0 ${r * 0.04} C ${-r * 0.04} ${r * 0.02} ${-r * 0.04} ${-r * 0.04} 0 ${-r * 0.1} Z`} fill="#FFF4C2" />
+      </g>
+    </g>
+  );
+};
+
 export const ELEMENT_RENDERERS: Record<OddOrbit["element"], React.FC<ElementProps>> = {
   ring: Ring,
   planet: Planet,
@@ -162,5 +214,7 @@ export const ELEMENT_RENDERERS: Record<OddOrbit["element"], React.FC<ElementProp
   comet: Comet,
   clock: Clock,
   spinner: Spinner,
-  gear: Gear
+  gear: Gear,
+  chakra: Chakra,
+  diya: DiyaOrbit
 };

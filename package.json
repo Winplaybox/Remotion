@@ -19,7 +19,9 @@
     "quality:render": "ts-node scripts/verify-render.ts",
     "render:engine": "ts-node scripts/render-engine.ts",
     "validate:engine": "ts-node scripts/validate-engine.ts",
-    "manifest:render": "ts-node scripts/write-render-manifest.ts"
+    "manifest:render": "ts-node scripts/write-render-manifest.ts",
+    "daily": "ts-node scripts/daily.ts",
+    "daily:all": "ts-node scripts/daily.ts --channel chakra-puzzle && ts-node scripts/daily.ts --channel kaali-peeli-chase && ts-node scripts/daily.ts --channel epicbharatsaga"
   },
   "dependencies": {
     "@remotion/cli": "4.0.257",

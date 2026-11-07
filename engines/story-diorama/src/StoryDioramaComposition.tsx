@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, random, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Img, interpolate, random, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { FPS, type StoryDiorama, type StoryLayer, type StoryScene } from "./model";
 import { PROPS, PropDefs } from "./props";
@@ -79,7 +79,7 @@ const Layer: React.FC<{ layer: StoryLayer; frame: number; fps: number; sceneP: n
 
 const Particles: React.FC<{ kind: StoryScene["particles"]; frame: number; seed: string }> = ({ kind, frame, seed }) => {
   if (kind === "none") return null;
-  const n = kind === "stars" ? 80 : kind === "petals" ? 26 : 34;
+  const n = kind === "stars" ? 80 : kind === "petals" ? 26 : kind === "rain" ? 90 : 34;
   return (
     <svg width={W} height={H} style={{ position: "absolute", inset: 0 }}>
       {Array.from({ length: n }, (_, i) => {
@@ -102,6 +102,12 @@ const Particles: React.FC<{ kind: StoryScene["particles"]; frame: number; seed: 
           const y = ((r2 * H + frame * sp) % (H + 100)) - 50;
           const x = r1 * W + Math.sin(frame / 25 + i) * 50;
           return <ellipse key={i} cx={0} cy={0} rx={14} ry={8} fill={r3 > 0.5 ? "#F28C28" : "#F6C343"} transform={`translate(${x} ${y}) rotate(${frame * (2 + r3 * 4) + i * 40})`} opacity={0.9} />;
+        }
+        if (kind === "rain") {
+          const sp = 38 + r3 * 20;
+          const y = ((r2 * (H + 200) + frame * sp) % (H + 200)) - 100;
+          const x = r1 * (W + 300) - 150 + (y * 0.18);
+          return <line key={i} x1={x} y1={y} x2={x - 14} y2={y - 70} stroke="#CFE3F5" strokeWidth={2.5} opacity={0.35 + r3 * 0.3} />;
         }
         if (kind === "bubbles") {
           const sp = 1.5 + r3 * 3;
@@ -148,14 +154,42 @@ const Headline: React.FC<{ scene: StoryScene; frame: number; fps: number; pal: P
   );
 };
 
-const TornTag: React.FC<{ tag: string; accent: string; pal: Pal }> = ({ tag, accent, pal }) => {
-  const pts: string[] = [];
-  for (let i = 0; i <= 20; i++) pts.push(`${i * 5}% ${random(`tt${i}`) * 9}%`);
-  for (let i = 20; i >= 0; i--) pts.push(`${i * 5}% ${91 + random(`tb${i}`) * 9}%`);
+const SeriesHeader: React.FC<{ brand: string; tag: string; accent: string; pal: Pal }> = ({ brand, tag, accent, pal }) => (
+  <div style={{ position: "absolute", top: 62, left: 62, right: 62, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 14, fontFamily: FONT.display, fontSize: 36, letterSpacing: 2, color: pal.accent2, background: "rgba(20,16,12,.78)", padding: "6px 16px 6px 10px", borderRadius: 8, boxShadow: "0 5px 0 rgba(0,0,0,.3)" }}>
+      <svg width={40} height={40} viewBox="-20 -20 40 40">
+        {[0, 45, 90, 135].map((r) => <ellipse key={r} rx={6} ry={18} fill={pal.accent2} opacity={0.85} transform={`rotate(${r})`} />)}
+        <circle r={6} fill={pal.accent} />
+      </svg>
+      {brand}
+    </div>
+    <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 24, color: pal.ink, background: pal.paper, padding: "10px 18px", borderRadius: 8, border: `3px solid ${pal.accent2}`, boxShadow: "0 5px 0 rgba(0,0,0,.3)" }}>
+      {tag}<span style={{ color: pal.accent }}>{accent}</span>
+    </div>
+  </div>
+);
+
+/** Caption chunks timed by character share across the narration (or scene) length. */
+const Captions: React.FC<{ text: string; frame: number; fps: number; seconds: number; pal: Pal }> = ({ text, frame, fps, seconds, pal }) => {
+  if (!text) return null;
+  const words = text.split(/\s+/).filter(Boolean);
+  const chunks: string[] = [];
+  for (let i = 0; i < words.length; i += 4) chunks.push(words.slice(i, i + 4).join(" "));
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const start = 0.25 * fps, end = (seconds - 0.35) * fps;
+  let acc = 0;
+  let current = -1, chunkStart = 0;
+  chunks.forEach((c, i) => {
+    const s = start + ((end - start) * acc) / total;
+    acc += c.length;
+    if (frame >= s) { current = i; chunkStart = s; }
+  });
+  if (current < 0 || frame > end + 6) return null;
+  const pop = spring({ frame: frame - chunkStart, fps, config: { damping: 14, stiffness: 220 } });
   return (
-    <div style={{ position: "absolute", top: 52, right: 54, transform: "rotate(-2deg)", filter: "drop-shadow(0 6px 6px rgba(0,0,0,.35))" }}>
-      <div style={{ background: pal.paper, clipPath: `polygon(${pts.join(",")})`, padding: "18px 30px", fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, color: pal.ink, letterSpacing: 1 }}>
-        {tag}<span style={{ color: pal.accent }}>{accent}</span>
+    <div style={{ position: "absolute", left: 60, right: 60, top: 1585, display: "flex", justifyContent: "center" }}>
+      <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 46, lineHeight: 1.15, color: pal.paper, textAlign: "center", background: "rgba(20,16,12,.72)", padding: "14px 26px", borderRadius: 14, borderBottom: `5px solid ${pal.accent2}`, transform: `scale(${0.9 + pop * 0.1})`, opacity: Math.min(1, pop * 1.4) }}>
+        {chunks[current]}
       </div>
     </div>
   );
@@ -194,7 +228,7 @@ const PaperFinish: React.FC = () => (
 
 /* ---------- scene ---------- */
 
-const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean }> = ({ scene, pal, tf, first }) => {
+const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean; captions: boolean }> = ({ scene, pal, tf, first, captions }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const dur = scene.seconds * fps;
@@ -213,6 +247,7 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean 
       </div>
       <div style={{ position: "absolute", top: 196, left: 62, right: 62, height: 2, background: base, opacity: 0.35 }} />
       <Headline scene={scene} frame={frame} fps={fps} pal={pal} base={base} />
+      {captions ? <Captions text={scene.caption} frame={frame} fps={fps} seconds={scene.seconds} pal={pal} /> : null}
       {!first && wipe < 1 ? <div style={{ position: "absolute", left: 0, right: 0, top: `${(1 - wipe) * 100}%`, height: 14, background: pal.paper, boxShadow: "0 -8px 20px rgba(0,0,0,.4)" }} /> : null}
     </AbsoluteFill>
   );
@@ -229,11 +264,12 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
         const len = Math.round(scene.seconds * FPS) + (i < p.scenes.length - 1 ? p.transitionFrames : 0);
         return (
           <Sequence key={scene.id} from={from} durationInFrames={len} name={scene.id}>
-            <Scene scene={scene} pal={p.palette} tf={p.transitionFrames} first={i === 0} />
+            <Scene scene={scene} pal={p.palette} tf={p.transitionFrames} first={i === 0} captions={p.showCaptions} />
+            {scene.audio ? <Audio src={staticFile(scene.audio)} /> : null}
           </Sequence>
         );
       })}
-      <TornTag tag={p.tag} accent={p.tagAccent} pal={p.palette} />
+      <SeriesHeader brand={p.brand} tag={p.tag} accent={p.tagAccent} pal={p.palette} />
       <PaperFinish />
     </AbsoluteFill>
   );

@@ -1,20 +1,26 @@
 import { z } from "zod";
 
 /** Every orbit element the engine can draw. Add a new renderer in elements.tsx and list it here. */
-export const ORBIT_ELEMENTS = ["ring", "planet", "atom", "binary", "comet", "clock", "spinner", "gear"] as const;
+export const ORBIT_ELEMENTS = ["chakra", "diya", "ring", "planet", "atom", "binary", "comet", "clock", "spinner", "gear"] as const;
 /** How the odd one differs from the rest. */
 export const ODD_RULES = ["reverse", "faster", "slower", "tint"] as const;
+export const DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 
 export const OddOrbitSchema = z.object({
+  brand: z.string(),
+  handle: z.string(),
+  puzzleNo: z.number().int().min(1),
+  difficulty: z.enum(DIFFICULTIES),
   title: z.string().min(1),
   subtitle: z.string(),
   footer: z.string(),
-  brand: z.string(),
+  revealFooter: z.string(),
+  answerPrefix: z.string(),
   element: z.enum(ORBIT_ELEMENTS),
   oddRule: z.enum(ODD_RULES),
   cols: z.number().int().min(3).max(12),
   count: z.number().int().min(6).max(160),
-  /** Grid index of the odd element. Omit (-1) to let the seed pick it. */
+  /** Grid index of the odd element. -1 = the seed picks it. */
   oddIndex: z.number().int().min(-1),
   seed: z.string().min(1),
   satellites: z.number().int().min(1).max(4),
@@ -38,43 +44,73 @@ export const OddOrbitSchema = z.object({
 
 export type OddOrbit = z.infer<typeof OddOrbitSchema>;
 
-export const ODD_ORBIT_DEMO: OddOrbit = {
-  title: "FIND THE ONE GOING BACKWARDS",
-  subtitle: "Only one orbit moves the other way 👀",
-  footer: "COMMENT WHERE YOU FOUND IT",
-  brand: "LOOP LAB",
-  element: "ring",
-  oddRule: "reverse",
-  cols: 9,
-  count: 100,
-  oddIndex: -1,
-  seed: "loop-001",
-  satellites: 2,
-  speed: 0.45,
-  speedJitter: 0.18,
-  playSeconds: 11,
-  revealSeconds: 3,
-  showTimer: true,
-  palette: {
-    bgTop: "#05060F",
-    bgBottom: "#0B0D22",
-    glow: "#3B2E7A",
-    line: "#C9D6FF",
-    body: "#FFFFFF",
-    accent: "#7CF7D4",
-    oddTint: "#FFB86B"
-  }
+/** Channel identity: Chakra Puzzle. Change names/colours here only. */
+export const CHAKRA_BRAND = { brand: "CHAKRA PUZZLE", handle: "@chakrapuzzle" } as const;
+
+export const RULE_COPY: Record<OddOrbit["oddRule"], { title: string; subtitle: string }> = {
+  reverse: { title: "ULTA GHOOMNE WALA DHUNDO", subtitle: "Sirf EK ulta ghoom raha hai 👀" },
+  faster: { title: "SABSE TEZ WALA DHUNDO", subtitle: "Ek baaki sab se tez bhaag raha hai ⚡" },
+  slower: { title: "SABSE DHEEMA WALA DHUNDO", subtitle: "Ek thoda aalsi hai 🐢" },
+  tint: { title: "ALAG RANG WALA DHUNDO", subtitle: "Dhyaan se dekho, farak chhota hai 🔍" }
 };
 
-export const ODD_ORBIT_VARIANTS: Record<string, Partial<OddOrbit>> = {
-  Atom: { element: "atom", title: "ONE ATOM SPINS BACKWARDS", subtitle: "Can you spot it in 10 seconds?", cols: 7, count: 63, seed: "atom-7", palette: { ...ODD_ORBIT_DEMO.palette, glow: "#0E4D6B", line: "#8FE9FF", accent: "#FFE066" } },
-  Planet: { element: "planet", title: "ONE MOON ORBITS THE WRONG WAY", subtitle: "Look closely 🔭", cols: 6, count: 48, seed: "planet-3", palette: { ...ODD_ORBIT_DEMO.palette, glow: "#5A2A12", line: "#FFD9A8", accent: "#FF7AB6" } },
-  Clock: { element: "clock", title: "ONE CLOCK RUNS BACKWARDS", subtitle: "Every second counts ⏱", cols: 7, count: 70, seed: "clock-9", speed: 0.35, palette: { ...ODD_ORBIT_DEMO.palette, glow: "#1F3B2A", line: "#D9FFE8", accent: "#FFD166" } },
-  Gear: { element: "gear", oddRule: "faster", title: "ONE GEAR IS FASTER", subtitle: "Only one breaks the rhythm ⚙️", cols: 7, count: 63, seed: "gear-2", speed: 0.25, speedJitter: 0.02, palette: { ...ODD_ORBIT_DEMO.palette, glow: "#4A3A10", line: "#FFE7A3", accent: "#7CF7D4" } },
-  Binary: { element: "binary", title: "FIND THE REVERSED STAR PAIR", subtitle: "Two stars, one wrong direction ✨", cols: 8, count: 88, seed: "bin-4" },
-  Comet: { element: "comet", title: "ONE COMET FLIES BACKWARDS", subtitle: "Follow the tails ☄️", cols: 8, count: 80, seed: "comet-5", palette: { ...ODD_ORBIT_DEMO.palette, glow: "#123A5C", line: "#A8D8FF", accent: "#FF9F68" } },
-  Spinner: { element: "spinner", title: "ONE LOADER IS REVERSED", subtitle: "Your brain will skip it 🌀", cols: 8, count: 96, seed: "spin-6", speed: 0.6 }
-};
+const PALETTES: OddOrbit["palette"][] = [
+  { bgTop: "#0A0820", bgBottom: "#1A0F2E", glow: "#5B2C83", line: "#FFD27A", body: "#FFF4D6", accent: "#FF9F1C", oddTint: "#FF6B9A" },
+  { bgTop: "#04121A", bgBottom: "#0B2230", glow: "#0E5A6B", line: "#9EF0FF", body: "#FFFFFF", accent: "#FFD166", oddTint: "#FF9F68" },
+  { bgTop: "#140708", bgBottom: "#2A0E10", glow: "#7A2A1A", line: "#FFC9A3", body: "#FFF1E6", accent: "#FFD23F", oddTint: "#7CF7D4" },
+  { bgTop: "#06140C", bgBottom: "#0D2418", glow: "#1F6B3E", line: "#C8FFD9", body: "#FFFFFF", accent: "#FFB938", oddTint: "#FF7AB6" }
+];
+
+const ELEMENT_ROTATION: OddOrbit["element"][] = ["chakra", "ring", "diya", "atom", "planet", "clock", "gear", "comet", "binary", "spinner"];
+const LEVELS = [
+  { difficulty: "easy", cols: 6, count: 42, jitter: 0.08 },
+  { difficulty: "medium", cols: 7, count: 63, jitter: 0.12 },
+  { difficulty: "hard", cols: 9, count: 99, jitter: 0.18 },
+  { difficulty: "expert", cols: 10, count: 130, jitter: 0.22 }
+] as const;
+
+/** Day N of the channel (1-based) -> a complete, deterministic puzzle. */
+export function chakraPuzzleForDay(day: number): OddOrbit {
+  const d = Math.max(1, Math.floor(day));
+  const element = ELEMENT_ROTATION[(d - 1) % ELEMENT_ROTATION.length] ?? "chakra";
+  // weekly ramp: Mon-Tue easy/medium ... weekend expert
+  const level = LEVELS[Math.min(3, Math.floor(((d - 1) % 7) / 2))] ?? LEVELS[0];
+  const ruleCycle: OddOrbit["oddRule"][] = ["reverse", "reverse", "faster", "reverse", "slower", "reverse", "tint"];
+  let oddRule = ruleCycle[(d - 1) % ruleCycle.length] ?? "reverse";
+  if (element === "gear" && oddRule === "reverse") oddRule = "faster";
+  const speedRule = oddRule === "faster" || oddRule === "slower";
+  const copy = RULE_COPY[oddRule];
+  return {
+    ...CHAKRA_BRAND,
+    puzzleNo: d,
+    difficulty: level.difficulty,
+    title: copy.title,
+    subtitle: copy.subtitle,
+    footer: "COMMENT KARO: ROW + NUMBER 👇",
+    revealFooter: "SAHI PAKDA? KAL NAYA PUZZLE 🔥",
+    answerPrefix: "JAWAB",
+    element,
+    oddRule,
+    cols: level.cols,
+    count: level.count,
+    oddIndex: -1,
+    seed: `chakra-${d}`,
+    satellites: element === "ring" ? 2 : 1,
+    speed: element === "gear" || element === "chakra" ? 0.28 : element === "clock" ? 0.35 : 0.45,
+    speedJitter: speedRule ? 0.02 : level.jitter,
+    playSeconds: 10 + Math.min(3, Math.floor(((d - 1) % 7) / 2)),
+    revealSeconds: 3,
+    showTimer: true,
+    palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!
+  };
+}
+
+export const ODD_ORBIT_DEMO: OddOrbit = chakraPuzzleForDay(1);
+
+/** Preview compositions in Studio: one per element. */
+export const ODD_ORBIT_VARIANTS: Record<string, Partial<OddOrbit>> = Object.fromEntries(
+  ELEMENT_ROTATION.map((el, i) => [el, chakraPuzzleForDay(i + 1)])
+);
 
 export const FPS = 30;
 export function oddOrbitDuration(p: OddOrbit): number {
