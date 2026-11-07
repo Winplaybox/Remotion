@@ -63,6 +63,7 @@ jobs:
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     env:
       YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      YT_TOKEN_EPICBHARATSAGA_CLIENT: ${{ secrets.YT_TOKEN_EPICBHARATSAGA_CLIENT }}
       YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
       YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
       YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}

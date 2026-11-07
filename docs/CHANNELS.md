@@ -21,6 +21,17 @@ Scheduled runs only fire from the **default branch** and only when the repo vari
 
 ## One-time setup
 
+**Fast path (recommended):** on your PC, inside this repo:
+
+```bash
+npm ci
+gh auth login     # once
+node scripts/publish/setup-secrets.mjs --client C:/path/client_secret.json --ebs-dir C:/Users/sagar/Desktop/Project/daily-devotional-shorts --ebs-silent
+```
+
+This sets every YouTube secret plus `AUTO_PUBLISH`. Tokens go straight from Google to GitHub and are never shown. The manual table below is the same thing done by hand.
+
+
 Add these in Settings → Secrets and variables → Actions:
 
 | Secret | What |
