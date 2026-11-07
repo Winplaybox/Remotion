@@ -37,7 +37,7 @@ async function main() {
   // Videos rendered by Claude wait on the render-queue branch; use them instead of rendering here.
   const video = path.join(outDir, `${tag}.mp4`);
   let prerendered = false;
-  if (!flag("dry") && !flag("no-queue")) {
+  if (!flag("dry") && !flag("no-queue") && !flag("refresh-narration")) {
     try {
       execFileSync("git", ["fetch", "--quiet", "--depth", "1", "origin", "render-queue"], { stdio: "ignore" });
       const buf = execFileSync("git", ["show", `FETCH_HEAD:video/${channel}/${tag}.mp4`], { maxBuffer: 512 * 1024 * 1024 });
@@ -62,7 +62,7 @@ async function main() {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       console.log(`[narration] generating ${missing()} missing scene(s) with Edge TTS`);
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", ...(flag("refresh-narration") ? [] : ["--missing-only"]), "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
       } catch (e) {
         console.warn(`[narration] Edge TTS failed: ${(e as Error).message}`);
       }

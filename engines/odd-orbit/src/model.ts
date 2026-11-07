@@ -110,7 +110,7 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     revealSeconds: 2.6,
     startSpeed: 0.45,
     endSpeed: 1.35,
-    endCard: { show: true, title: "CHAKRA PUZZLE", line: "Main ek solo dev hoon — ek cozy Chakra Puzzle game bana raha hoon 🎮", button: "FOLLOW KARO, SABSE PEHLE KHELO", seconds: 5 },
+    endCard: { show: true, title: "CHAKRA PUZZLE", line: "Kal ka naya puzzle miss mat karna!", button: "FOLLOW KARO, KAL NAYA PUZZLE KHELO", seconds: 5 },
     showTimer: true,
     palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!
   };
@@ -155,6 +155,6 @@ export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at:
     { file: "hook.wav", at: 0.4, text: `${RULE_VOICE[p.oddRule]} टाइम शुरू!` },
     { file: "hurry.wav", at: Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड! कमेंट में लिखो।" },
     { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` },
-    ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ, और चक्र पज़ल नाम का एक कोज़ी गेम बना रहा हूँ। फॉलो करो, सबसे पहले खेलो!" }] : [])
+    ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "कल का नया चक्र पज़ल देखने के लिए फॉलो करो!" }] : [])
   ];
 }

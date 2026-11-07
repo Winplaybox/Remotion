@@ -83,7 +83,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     targetBias: 0.9,
     questionSeconds: 2.5,
     answerSeconds: 2,
-    endCard: { show: true, title: "KAALI PEELI CHASE", line: "Main ek solo dev hoon — ek cozy Kaali Peeli Chase game bana raha hoon 🎮", button: "FOLLOW KARO, SABSE PEHLE KHELO", seconds: 5 },
+    endCard: { show: true, title: "KAALI PEELI CHASE", line: "Kal ka naya vehicle chase challenge miss mat karna!", button: "FOLLOW KARO, KAL NAYA CHALLENGE KHELO", seconds: 5 },
     colors: v.colors
   };
 }
@@ -117,6 +117,6 @@ export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: s
     { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
   ];
   if (p.answerSeconds > 0) lines.push({ file: "reveal.wav", at: answerAt + 0.1, text: `जवाब है, नंबर ${answer}!` });
-  if (p.endCard.show) lines.push({ file: "outro.wav", at: answerAt + p.answerSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ, और काली पीली चेज़ नाम का एक कोज़ी गेम बना रहा हूँ। फॉलो करो, सबसे पहले खेलो!" });
+  if (p.endCard.show) lines.push({ file: "outro.wav", at: answerAt + p.answerSeconds + 0.2, text: "कल का नया व्हीकल चेज़ चैलेंज देखने के लिए फॉलो करो!" });
   return lines;
 }
