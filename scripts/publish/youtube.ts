@@ -21,6 +21,16 @@ export function youtubeClient(tokenJson?: string, clientSecretJson?: string) {
 export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientSecretJson }: UploadArgs): Promise<string> {
   const yt = youtubeClient(tokenJson, clientSecretJson);
 
+  // Idempotent: if a video with this exact title is already on the channel (e.g. scheduled by a manual run), reuse it.
+  const ch = await yt.channels.list({ part: ["contentDetails"], mine: true });
+  const uploads = ch.data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+  if (uploads) {
+    const recent = await yt.playlistItems.list({ part: ["snippet"], playlistId: uploads, maxResults: 50 });
+    const dup = recent.data.items?.find((i) => i.snippet?.title === meta.title.slice(0, 100));
+    const dupId = dup?.snippet?.resourceId?.videoId;
+    if (dupId) { console.log(`[YouTube] already uploaded as ${dupId}, skipping`); return dupId; }
+  }
+
   let at = new Date(publishAt);
   if (at.getTime() < Date.now() + 10 * 60_000) at = new Date(Date.now() + 15 * 60_000); // slot already passed -> publish in 15 min
   const res = await yt.videos.insert({

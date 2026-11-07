@@ -43,7 +43,7 @@ export const CHANNELS = {
   "chakra-puzzle": {
     name: "Chakra Puzzle",
     composition: "ChakraPuzzle",
-    startDate: "2026-11-10",
+    startDate: "2026-11-08",
     slots: ["06:30", "08:30", "19:30"],
     narrated: false,
     autoPublish: true,
@@ -67,7 +67,7 @@ export const CHANNELS = {
   "kaali-peeli-chase": {
     name: "Kaali Peeli Chase",
     composition: "KaaliPeeliChase",
-    startDate: "2026-11-10",
+    startDate: "2026-11-08",
     slots: ["07:00", "09:00", "20:00"],
     narrated: false,
     autoPublish: true,

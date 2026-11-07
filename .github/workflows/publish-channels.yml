@@ -17,6 +17,14 @@ on:
         description: "Explicit post number (with channel). Empty = due slots."
         required: false
         type: string
+      date:
+        description: "With channel + n: schedule for this date's slot (YYYY-MM-DD). Empty = publish ~15 min from now."
+        required: false
+        type: string
+      slot:
+        description: "Slot index for that date (0 = first slot)."
+        required: false
+        type: string
       youtube:
         description: "Upload to YouTube"
         type: boolean
@@ -51,7 +59,7 @@ jobs:
           START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
         run: |
           if [ -n "${{ inputs.channel }}" ] && [ -n "${{ inputs.n }}" ]; then
-            echo "matrix={\"include\":[{\"channel\":\"${{ inputs.channel }}\",\"n\":\"${{ inputs.n }}\",\"date\":\"\",\"slot\":0}]}" >> "$GITHUB_OUTPUT"
+            echo "matrix={\"include\":[{\"channel\":\"${{ inputs.channel }}\",\"n\":\"${{ inputs.n }}\",\"date\":\"${{ inputs.date }}\",\"slot\":\"${{ inputs.slot || '0' }}\"}]}" >> "$GITHUB_OUTPUT"
           else
             m=$(npx ts-node scripts/due.ts ${{ inputs.channel && format('--channel {0}', inputs.channel) || '' }})
             echo "matrix=$m" >> "$GITHUB_OUTPUT"
@@ -104,7 +112,7 @@ jobs:
         run: |
           set -euo pipefail
           ARGS="--channel ${{ matrix.channel }}"
-          if [ -n "${{ matrix.n || '' }}" ]; then ARGS="$ARGS --n ${{ matrix.n }}"; else ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi
+          if [ -n "${{ matrix.n || '' }}" ]; then ARGS="$ARGS --n ${{ matrix.n }}"; if [ -n "${{ matrix.date }}" ]; then ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi; else ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi
           ARGS="$ARGS --auto-narrate"
           if [ "${{ matrix.channel }}" = "epicbharatsaga" ] && [ "${{ vars.EBS_ALLOW_SILENT }}" != "true" ]; then ARGS="$ARGS --require-narration"; fi
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.youtube }}" = "true" ]; then ARGS="$ARGS --youtube"; fi
