@@ -22,6 +22,8 @@ const days = Number(arg("days") ?? 3);
 const queue = path.resolve(arg("queue") ?? "queue");
 const only = arg("channel");
 const force = args.includes("--force");
+/** Also prepare channels that are not live yet (preview / first renders). */
+const includePaused = args.includes("--include-paused");
 const tagOf = (n: number) => `post-${String(n).padStart(3, "0")}`;
 
 interface Planned { channel: ChannelId; n: number; date: string; slot: number; tag: string }
@@ -33,7 +35,7 @@ function plan(): Planned[] {
     const date = todayIST(new Date(now + d * 86_400_000));
     for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
       if (only && only !== channel) continue;
-      if (!isLive(channel) || date < startDateOf(channel)) continue;
+      if ((!isLive(channel) && !includePaused) || date < startDateOf(channel)) continue;
       CHANNELS[channel].slots.forEach((_, slot) => {
         const n = postNumber(channel, date, slot);
         out.push({ channel, n, date, slot, tag: tagOf(n) });
@@ -76,7 +78,9 @@ if (cmd === "plan") {
   for (const p of todo) {
     const dest = path.join(queue, "video", p.channel, `${p.tag}.mp4`);
     if (fs.existsSync(dest) && !force) continue;
-    copyDir(path.join(voiceRoot, p.channel, p.tag), path.join("public", "audio", p.channel, p.tag));
+    const audioDir = path.join("public", "audio", p.channel, p.tag);
+    const ownAudio = hasFiles(audioDir); // committed WAVs (e.g. IndicF5) win and are left alone
+    if (!ownAudio) copyDir(path.join(voiceRoot, p.channel, p.tag), audioDir);
     try {
       run("npx", ["ts-node", "scripts/post.ts", "--channel", p.channel, "--n", String(p.n), "--force", "--no-queue"]);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
@@ -86,6 +90,8 @@ if (cmd === "plan") {
     } catch (e) {
       failed.push(`${p.channel} ${p.tag}`);
       console.warn(`[render] ${p.channel} ${p.tag} failed: ${(e as Error).message}`);
+    } finally {
+      if (!ownAudio) fs.rmSync(audioDir, { recursive: true, force: true });
     }
   }
   console.log(`[render] done. ${failed.length ? `not rendered: ${failed.join(", ")}` : "all rendered"}`);

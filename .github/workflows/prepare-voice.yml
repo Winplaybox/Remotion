@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       days: { description: "Days ahead", required: false, default: "3" }
+      include_paused: { description: "Also channels not live yet (preview)", type: boolean, default: false }
 
 permissions:
   contents: write
@@ -46,5 +47,5 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           scripts/queue-sync.sh pull
           npx ts-node scripts/queue.ts prune --queue queue
-          npx ts-node scripts/queue.ts voice --days "${{ inputs.days || '3' }}" --queue queue
+          npx ts-node scripts/queue.ts voice --days "${{ inputs.days || '3' }}" --queue queue ${{ inputs.include_paused && '--include-paused' || '' }}
           scripts/queue-sync.sh push "voice $(date -u +%FT%TZ)"
