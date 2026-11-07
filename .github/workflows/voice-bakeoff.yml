@@ -1,0 +1,74 @@
+name: Voice Bake-off
+
+# Same Hindi lines through VoiceStudio (OmniVoice, run from its Docker image inside this job), Edge TTS and,
+# if HF_TOKEN is set, IndicF5. Download the "voice-bakeoff" artifact, listen, pick the winner.
+on:
+  pull_request:
+    paths: [".github/workflows/voice-bakeoff.yml"]
+  workflow_dispatch:
+    inputs:
+      voicestudio_model: { description: "VoiceStudio engine id", required: false, default: "omnivoice" }
+      voicestudio_voice: { description: "VoiceStudio voice id/preset", required: false, default: "default" }
+
+permissions:
+  contents: read
+
+jobs:
+  bakeoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      OMNIVOICE_API_KEY: bakeoff-local-only
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      LINES: |
+        भगवान विष्णु का पहला अवतार... एक मछली था। मत्स्य अवतार।
+        इनमें से एक उल्टा घूम रहा है। ढूँढो, कौन सा? टाइम शुरू!
+        जवाब: रो पाँच, नंबर चार! मैं एक सोलो डेवलपर हूँ, फॉलो करो, सबसे पहले खेलो!
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start VoiceStudio (Docker, CPU)
+        run: |
+          docker run -d --name voicestudio -p 127.0.0.1:3900:3900 \
+            -e OMNIVOICE_API_KEY -e OMNIVOICE_DATA_DIR=/app/omnivoice_data \
+            -v "$PWD/vs-data:/app/omnivoice_data" ghcr.io/debpalash/voicestudio:stable
+          for i in $(seq 1 90); do curl -sf http://127.0.0.1:3900/.well-known/voicestudio-speech && break; sleep 5; done
+          echo; curl -s -H "Authorization: Bearer $OMNIVOICE_API_KEY" http://127.0.0.1:3900/v1/audio/voices | head -c 2000; echo
+          curl -s -H "Authorization: Bearer $OMNIVOICE_API_KEY" http://127.0.0.1:3900/v1/models | head -c 2000; echo
+      - name: VoiceStudio TTS
+        continue-on-error: true
+        run: |
+          mkdir -p out/voicestudio; i=0
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue; i=$((i+1))
+            body=$(jq -n --arg t "$line" --arg m "${{ inputs.voicestudio_model || 'omnivoice' }}" --arg v "${{ inputs.voicestudio_voice || 'default' }}" '{model:$m, input:$t, voice:$v, language:"hi", response_format:"wav"}')
+            start=$(date +%s)
+            code=$(curl -s -o "out/voicestudio/line-$i.wav" -w "%{http_code}" -X POST http://127.0.0.1:3900/v1/audio/speech \
+              -H "Authorization: Bearer $OMNIVOICE_API_KEY" -H "Content-Type: application/json" -d "$body" --max-time 900)
+            echo "line $i -> HTTP $code in $(( $(date +%s) - start ))s"
+            [ "$code" = "200" ] || { head -c 600 "out/voicestudio/line-$i.wav"; echo; }
+          done <<< "$LINES"
+          docker logs voicestudio 2>&1 | tail -40
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Edge TTS (current)
+        run: |
+          python -m pip install --quiet edge-tts; mkdir -p out/edge; i=0
+          while IFS= read -r line; do [ -z "$line" ] && continue; i=$((i+1)); python -m edge_tts --voice hi-IN-MadhurNeural --rate=+5% --text "$line" --write-media out/edge/line-$i.mp3; done <<< "$LINES"
+      - name: IndicF5 (optional, needs HF_TOKEN secret with access to ai4bharat/IndicF5)
+        if: env.HF_TOKEN != ''
+        continue-on-error: true
+        run: |
+          mkdir -p out/indicf5 && git clone --depth 1 https://github.com/ai4bharat/IndicF5.git indicf5 && python -m pip install --quiet ./indicf5 soundfile && cd indicf5
+          python - <<'PY'
+          import os, numpy as np, soundfile as sf
+          from transformers import AutoModel
+          m = AutoModel.from_pretrained("ai4bharat/IndicF5", trust_remote_code=True, token=os.environ["HF_TOKEN"])
+          lines = [l for l in os.environ["LINES"].splitlines() if l.strip()]
+          for i, l in enumerate(lines, 1):
+              a = m(l, ref_audio_path="prompts/PAN_F_HAPPY_00001.wav", ref_text="ਭਹੰਪੀ ਵਿੱਚ ਸਮਾਰਕਾਂ ਦੇ ਭਵਨ ਨਿਰਮਾਣ ਕਲਾ ਦੇ ਵੇਰਵੇ ਗੁੰਝਲਦਾਰ ਅਤੇ ਹੈਰਾਨ ਕਰਨ ਵਾਲੇ ਹਨ, ਜੋ ਮੈਨੂੰ ਖੁਸ਼ ਕਰਦੇ  ਹਨ।")
+              a = a.astype(np.float32) / (32768.0 if a.dtype == np.int16 else 1.0)
+              sf.write(f"../out/indicf5/line-{i}.wav", a, 24000)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: voice-bakeoff, path: out/, retention-days: 7 }
