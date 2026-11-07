@@ -14,7 +14,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { CHANNELS, isLive, postNumber, startDateOf, todayIST, type ChannelId } from "../channels/channels";
+import { CHANNELS, type ChannelConfig, isLive, postNumber, startDateOf, todayIST, type ChannelId } from "../channels/channels";
 
 const [cmd = "plan", ...args] = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -47,6 +47,13 @@ function plan(): Planned[] {
 
 const run = (file: string, a: string[]) => execFileSync(file, a, { stdio: "inherit", shell: process.platform === "win32" });
 const copyDir = (from: string, to: string) => { fs.mkdirSync(to, { recursive: true }); for (const f of fs.readdirSync(from)) fs.copyFileSync(path.join(from, f), path.join(to, f)); };
+const voiceJson = (ch: ChannelId, n: number) => { const v = (CHANNELS[ch] as ChannelConfig).voice; return v ? JSON.stringify(v(n)) : null; };
+/** Voice dir is current: lines.json matches, or (older dirs without it) every expected clip is present. */
+const voiceCurrent = (dir: string, expected: string) => {
+  const m = path.join(dir, "lines.json");
+  if (fs.existsSync(m)) return fs.readFileSync(m, "utf8") === expected;
+  return (JSON.parse(expected) as { file: string }[]).every((l) => fs.existsSync(path.join(dir, l.file)));
+};
 const hasFiles = (dir: string) => fs.existsSync(dir) && fs.readdirSync(dir).length > 0;
 
 if (cmd === "plan") {
@@ -54,11 +61,25 @@ if (cmd === "plan") {
 } else if (cmd === "voice") {
   for (const p of plan()) {
     const dest = path.join(queue, "voice", p.channel, p.tag);
-    if (hasFiles(dest) && !force) continue;
+    // Puzzle channels: the voice is current only if lines.json matches today's code (text, files, timing).
+    // Any change (new ending, reworded line) regenerates it, so a video is never rendered with stale or missing clips.
+    const expected = voiceJson(p.channel, p.n);
+    const manifest = path.join(dest, "lines.json");
+    const current = expected === null ? hasFiles(dest) : voiceCurrent(dest, expected);
+    if (current && !force) continue;
+    if (expected !== null) {
+      fs.rmSync(dest, { recursive: true, force: true });
+      fs.rmSync(path.join("public", "audio", p.channel, p.tag), { recursive: true, force: true });
+      fs.rmSync(path.join(queue, "video", p.channel, `${p.tag}.mp4`), { force: true }); // video was made from the old voice
+    }
     try {
       run("npx", ["ts-node", "scripts/post.ts", "--channel", p.channel, "--n", String(p.n), "--dry", "--auto-narrate", "--no-queue"]);
       const src = path.join("public", "audio", p.channel, p.tag);
-      if (hasFiles(src)) { copyDir(src, dest); console.log(`[voice] ${p.channel} ${p.tag} ✓`); }
+      if (hasFiles(src)) {
+        copyDir(src, dest);
+        if (expected !== null) fs.writeFileSync(manifest, expected);
+        console.log(`[voice] ${p.channel} ${p.tag} ✓`);
+      }
     } catch (e) {
       console.warn(`[voice] ${p.channel} ${p.tag} failed: ${(e as Error).message}`);
     }
@@ -78,6 +99,12 @@ if (cmd === "plan") {
   for (const p of todo) {
     const dest = path.join(queue, "video", p.channel, `${p.tag}.mp4`);
     if (fs.existsSync(dest) && !force) continue;
+    const want = voiceJson(p.channel, p.n);
+    if (want !== null && !voiceCurrent(path.join(voiceRoot, p.channel, p.tag), want)) {
+      console.warn(`[render] ${p.channel} ${p.tag} skipped: voice is stale or missing lines — run Prepare Voice first`);
+      failed.push(`${p.channel} ${p.tag} (stale voice)`);
+      continue;
+    }
     const audioDir = path.join("public", "audio", p.channel, p.tag);
     const ownAudio = hasFiles(audioDir); // committed WAVs (e.g. IndicF5) win and are left alone
     if (!ownAudio) copyDir(path.join(voiceRoot, p.channel, p.tag), audioDir);
