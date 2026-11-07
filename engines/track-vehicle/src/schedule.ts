@@ -1,5 +1,5 @@
 import { random } from "remotion";
-import { FPS, type TrackVehicle } from "./model";
+import { FPS, SPEED_TIERS, type TrackVehicle } from "./model";
 
 export interface SwapEvent { a: number; b: number; fromA: number; fromB: number; start: number; end: number; bend: number }
 export interface Schedule { slots: number; targetCar: number; events: SwapEvent[]; byCar: SwapEvent[][]; answerSlot: number }
@@ -24,11 +24,18 @@ export function buildSchedule(p: TrackVehicle): Schedule {
   const dist = (s1: number, s2: number) => Math.hypot(col(s1) - col(s2), row(s1) - row(s2));
   let t = 0;
   let n = 0;
+  // Stepped tiers: each tier has its own swap duration, gap and number of simultaneous swaps.
+  const tierDur = [46 - p.difficulty * 4, 30 - p.difficulty * 3, 21 - p.difficulty * 2.5, Math.max(9, 16 - p.difficulty * 2.5)];
+  const tierGap = [8, 5, 3, 1];
+  const tierOf = (prog: number) => SPEED_TIERS.reduce((k, tier, i) => (prog >= tier.at ? i : k), 0);
   while (t < total - fast) {
     const prog = t / total;
-    const dur = Math.round(lerp(slow, fast, Math.pow(prog, 0.8)));
+    const tier = tierOf(prog);
+    const dur = p.speedTiers ? Math.round(tierDur[tier] ?? fast) : Math.round(lerp(slow, fast, Math.pow(prog, 0.8)));
     if (t + dur > total) break;
-    const maxPairs = Math.max(1, Math.min(Math.floor(slots / 2), Math.round(1 + prog * p.difficulty * 1.2)));
+    const maxPairs = p.speedTiers
+      ? Math.max(1, Math.min(Math.floor(slots / 2), tier === 0 ? 1 : Math.round(tier * 0.6 * p.difficulty)))
+      : Math.max(1, Math.min(Math.floor(slots / 2), Math.round(1 + prog * p.difficulty * 1.2)));
     const pairs = 1 + Math.floor(random(`${p.seed}-k${n}`) * maxPairs);
     const free = new Set(Array.from({ length: slots }, (_, i) => i));
     for (let k = 0; k < pairs && free.size >= 2; k++) {
@@ -47,7 +54,7 @@ export function buildSchedule(p: TrackVehicle): Schedule {
       events.push({ a, b, fromA: s1, fromB: s2, start: t, end: t + dur, bend: random(`${p.seed}-bend${n}-${k}`) < 0.5 ? 1 : -1 });
       carAt[s1] = b; carAt[s2] = a; slotOf[a] = s2; slotOf[b] = s1;
     }
-    t += dur + Math.round(lerp(10, 2, prog) / p.difficulty * 1.5);
+    t += dur + (p.speedTiers ? (tierGap[tier] ?? 1) : Math.round(lerp(10, 2, prog) / p.difficulty * 1.5));
     n++;
   }
   const byCar: SwapEvent[][] = Array.from({ length: slots }, () => []);

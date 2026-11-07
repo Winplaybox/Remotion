@@ -11,6 +11,10 @@ export interface ElementProps {
   sats: number;
   body: string;
   line: string;
+  /** true = draw the "slightly different" variant (shape rule). */
+  odd?: boolean;
+  /** glyph element: [normal, odd] characters. */
+  glyphs?: readonly [string, string];
 }
 
 const TAU = Math.PI * 2;
@@ -34,13 +38,16 @@ const Satellite: React.FC<{ a: number; dir: number; rx: number; ry?: number; siz
   );
 };
 
-const Ring: React.FC<ElementProps> = ({ a, dir, r, sats, body, line }) => (
-  <g>
-    <circle r={r * 0.78} fill="none" stroke={line} strokeOpacity={0.55} strokeWidth={r * 0.045} />
-    <circle r={r * 0.06} fill={line} opacity={0.35} />
-    {Array.from({ length: sats }, (_, i) => <Satellite key={i} a={a + (i * TAU) / sats} dir={dir} rx={r * 0.78} size={r * 0.1} color={body} />)}
-  </g>
-);
+const Ring: React.FC<ElementProps> = ({ a, dir, r, sats, body, line, odd }) => {
+  const n = sats + (odd ? 1 : 0);
+  return (
+    <g>
+      <circle r={r * 0.78} fill="none" stroke={line} strokeOpacity={0.55} strokeWidth={r * 0.045} />
+      <circle r={r * 0.06} fill={line} opacity={0.35} />
+      {Array.from({ length: n }, (_, i) => <Satellite key={i} a={a + (i * TAU) / n} dir={dir} rx={r * 0.78} size={r * 0.1} color={body} />)}
+    </g>
+  );
+};
 
 const Planet: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
   const rx = r * 0.86, ry = r * 0.3, tilt = -18;
@@ -88,7 +95,7 @@ const Comet: React.FC<ElementProps> = ({ a, dir, r, body, line }) => (
   </g>
 );
 
-const Clock: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
+const Clock: React.FC<ElementProps> = ({ a, dir, r, body, line, odd }) => {
   const [hx, hy] = pt(a, r * 0.62);
   const sweep = Array.from({ length: 10 }, (_, j) => {
     const [x, y] = pt(a - dir * (j + 1) * 0.07, r * 0.62);
@@ -97,9 +104,10 @@ const Clock: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
   return (
     <g>
       <circle r={r * 0.8} fill="#ffffff" fillOpacity={0.03} stroke={line} strokeOpacity={0.6} strokeWidth={r * 0.05} />
-      {Array.from({ length: 12 }, (_, i) => {
-        const [x1, y1] = pt((i * TAU) / 12, r * 0.66);
-        const [x2, y2] = pt((i * TAU) / 12, r * (i % 3 === 0 ? 0.52 : 0.6));
+      {Array.from({ length: odd ? 8 : 12 }, (_, i) => {
+        const k = odd ? 8 : 12;
+        const [x1, y1] = pt((i * TAU) / k, r * 0.66);
+        const [x2, y2] = pt((i * TAU) / k, r * (i % (k / 4) === 0 ? 0.52 : 0.6));
         return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={line} strokeOpacity={0.6} strokeWidth={r * 0.035} strokeLinecap="round" />;
       })}
       {sweep}
@@ -144,9 +152,9 @@ const gearPath = (r: number, teeth = 10): string => {
   return `M ${pts.join(" L ")} Z`;
 };
 
-const Gear: React.FC<ElementProps> = ({ a, r, body, line }) => (
+const Gear: React.FC<ElementProps> = ({ a, r, body, line, odd }) => (
   <g transform={`rotate(${(a * 180) / Math.PI})`}>
-    <path d={gearPath(r)} fill={line} fillOpacity={0.14} stroke={line} strokeOpacity={0.75} strokeWidth={r * 0.04} strokeLinejoin="round" />
+    <path d={gearPath(r, odd ? 8 : 10)} fill={line} fillOpacity={0.14} stroke={line} strokeOpacity={0.75} strokeWidth={r * 0.04} strokeLinejoin="round" />
     <circle r={r * 0.3} fill="none" stroke={body} strokeWidth={r * 0.05} />
     <line x1={0} y1={0} x2={r * 0.5} y2={0} stroke={body} strokeWidth={r * 0.07} strokeLinecap="round" />
     <circle cx={r * 0.5} cy={0} r={r * 0.18} fill="url(#oo-glow)" />
@@ -156,7 +164,8 @@ const Gear: React.FC<ElementProps> = ({ a, r, body, line }) => (
 
 
 /** Sudarshan-style chakra: flame-toothed wheel spinning, with a glowing marker. */
-const Chakra: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
+const Chakra: React.FC<ElementProps> = ({ a, dir, r, body, line, odd }) => {
+  const spokes = odd ? 6 : 8;
   const teeth = 12;
   const pts: string[] = [];
   for (let i = 0; i < teeth; i++) {
@@ -172,8 +181,8 @@ const Chakra: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
       <g transform={`rotate(${deg})`}>
         <path d={`${pts.join(" ")} Z`} fill={line} fillOpacity={0.12} stroke={line} strokeOpacity={0.85} strokeWidth={r * 0.045} strokeLinejoin="round" />
         <circle r={r * 0.46} fill="none" stroke={line} strokeOpacity={0.5} strokeWidth={r * 0.03} />
-        {Array.from({ length: 8 }, (_, i) => {
-          const [x, y] = pt((i / 8) * TAU, r * 0.46);
+        {Array.from({ length: spokes }, (_, i) => {
+          const [x, y] = pt((i / spokes) * TAU, r * 0.46);
           return <line key={i} x1={0} y1={0} x2={x} y2={y} stroke={line} strokeOpacity={0.55} strokeWidth={r * 0.03} />;
         })}
         <circle cx={r * 0.46} cy={0} r={r * 0.24} fill="url(#oo-glow)" />
@@ -185,7 +194,7 @@ const Chakra: React.FC<ElementProps> = ({ a, dir, r, body, line }) => {
 };
 
 /** A diya flame orbiting a brass ring. */
-const DiyaOrbit: React.FC<ElementProps> = ({ a, dir, r, line }) => {
+const DiyaOrbit: React.FC<ElementProps> = ({ a, dir, r, line, odd }) => {
   const ring = r * 0.74;
   const [x, y] = pt(a, ring);
   const trail = Array.from({ length: 10 }, (_, j) => {
@@ -194,7 +203,7 @@ const DiyaOrbit: React.FC<ElementProps> = ({ a, dir, r, line }) => {
   });
   return (
     <g>
-      <circle r={ring} fill="none" stroke={line} strokeOpacity={0.5} strokeWidth={r * 0.05} strokeDasharray={`${r * 0.05} ${r * 0.09}`} />
+      <circle r={ring} fill="none" stroke={line} strokeOpacity={0.5} strokeWidth={r * 0.05} strokeDasharray={odd ? `${r * 0.16} ${r * 0.06}` : `${r * 0.05} ${r * 0.09}`} />
       <path d={`M ${-r * 0.2} ${-r * 0.02} Q 0 ${r * 0.18} ${r * 0.2} ${-r * 0.02} Z`} fill="#B5532E" />
       {trail}
       <circle cx={x} cy={y} r={r * 0.34} fill="url(#oo-flame)" />
@@ -202,6 +211,18 @@ const DiyaOrbit: React.FC<ElementProps> = ({ a, dir, r, line }) => {
         <path d={`M 0 ${-r * 0.2} C ${r * 0.09} ${-r * 0.08} ${r * 0.09} ${r * 0.02} 0 ${r * 0.06} C ${-r * 0.09} ${r * 0.02} ${-r * 0.09} ${-r * 0.08} 0 ${-r * 0.2} Z`} fill="#FFB938" />
         <path d={`M 0 ${-r * 0.1} C ${r * 0.04} ${-r * 0.04} ${r * 0.04} ${r * 0.02} 0 ${r * 0.04} C ${-r * 0.04} ${r * 0.02} ${-r * 0.04} ${-r * 0.04} 0 ${-r * 0.1} Z`} fill="#FFF4C2" />
       </g>
+    </g>
+  );
+};
+
+/** A letter/number that sways; the odd cell shows a look-alike character. */
+const Glyph: React.FC<ElementProps> = ({ a, r, body, line, odd, glyphs }) => {
+  const [normal, other] = glyphs ?? ["9", "6"];
+  const sway = Math.sin(a) * 14;
+  return (
+    <g transform={`rotate(${sway})`}>
+      <circle r={r * 0.8} fill={line} fillOpacity={0.06} stroke={line} strokeOpacity={0.25} strokeWidth={r * 0.03} />
+      <text y={r * 0.36} textAnchor="middle" fontFamily="Anton, Impact, sans-serif" fontSize={r * 1.1} fill={body}>{odd ? other : normal}</text>
     </g>
   );
 };
@@ -216,5 +237,6 @@ export const ELEMENT_RENDERERS: Record<OddOrbit["element"], React.FC<ElementProp
   spinner: Spinner,
   gear: Gear,
   chakra: Chakra,
-  diya: DiyaOrbit
+  diya: DiyaOrbit,
+  glyph: Glyph
 };

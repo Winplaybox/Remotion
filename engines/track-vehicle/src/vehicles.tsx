@@ -12,7 +12,13 @@ export const VEHICLE_SIZE: Record<VehicleKind, { w: number; l: number }> = {
   truck: { w: 110, l: 290 },
   sports: { w: 96, l: 184 },
   auto: { w: 92, l: 150 },
-  suv: { w: 108, l: 204 }
+  suv: { w: 108, l: 204 },
+  firetruck: { w: 114, l: 300 },
+  schoolbus: { w: 110, l: 280 },
+  tempo: { w: 100, l: 200 },
+  scooter: { w: 56, l: 130 },
+  tractor: { w: 104, l: 190 },
+  tanker: { w: 112, l: 300 }
 };
 
 export interface VehicleProps {
@@ -227,7 +233,116 @@ const BestBus: React.FC<VehicleProps> = ({ color, trim }) => {
   );
 };
 
-const RENDERERS: Record<VehicleKind, React.FC<VehicleProps>> = { kaalipeeli: KaaliPeeli, bestbus: BestBus, taxi: Taxi, police: Police, ambulance: Ambulance, bus: Bus, truck: Truck, sports: Sports, auto: Auto, suv: Suv };
+/** Fire engine: red, ladder on the roof, flashing lights. */
+const FireTruck: React.FC<VehicleProps> = ({ color, trim, lit, frame }) => {
+  const { w, l } = VEHICLE_SIZE.firetruck;
+  const on = Math.floor(frame / 6) % 2 === 0;
+  return (
+    <g>
+      <Wheels w={w} l={l} front={0.14} rear={0.2} />
+      <rect x={-w / 2} y={-l / 2} width={w} height={l} rx={14} fill={color} stroke={trim} strokeWidth={3.5} />
+      <rect x={-w / 2} y={-l / 2} width={w} height={l} rx={14} fill="url(#tv-sheen)" />
+      <rect x={-w * 0.42} y={-l / 2 + 8} width={w * 0.84} height={24} rx={8} fill={GLASS} />
+      <rect x={-w * 0.22} y={-l / 2 + 60} width={w * 0.44} height={l - 90} rx={4} fill="none" stroke="#D9DCE3" strokeWidth={6} />
+      {Array.from({ length: 9 }, (_, i) => <line key={i} x1={-w * 0.22} x2={w * 0.22} y1={-l / 2 + 80 + i * 22} y2={-l / 2 + 80 + i * 22} stroke="#D9DCE3" strokeWidth={4} />)}
+      <rect x={-w * 0.4} y={-l / 2 + 38} width={w * 0.8} height={12} rx={5} fill={on ? "#FF2D2D" : "#2D6BFF"} />
+      <circle cx={0} cy={-l / 2 + 44} r={70} fill={on ? "url(#tv-red)" : "url(#tv-blue)"} opacity={lit * 0.9} />
+      <Lights w={w} l={l} inset={0.16} />
+    </g>
+  );
+};
+
+/** Yellow school bus with SCHOOL on the roof. */
+const SchoolBus: React.FC<VehicleProps> = ({ color, trim }) => {
+  const { w, l } = VEHICLE_SIZE.schoolbus;
+  return (
+    <g>
+      <Wheels w={w} l={l} front={0.16} rear={0.2} />
+      <rect x={-w / 2} y={-l / 2} width={w} height={l} rx={18} fill={color} stroke={trim} strokeWidth={3.5} />
+      <rect x={-w / 2} y={-l / 2} width={w} height={l} rx={18} fill="url(#tv-sheen)" />
+      <rect x={-w * 0.42} y={-l / 2 + 8} width={w * 0.84} height={22} rx={8} fill={GLASS} />
+      {[0.25, 0.55].map((k) => <rect key={k} x={-w / 2 + 4} y={-l / 2 + l * k} width={w - 8} height={8} fill="#111" opacity={0.5} />)}
+      <text x={0} y={-l / 2 + l * 0.42} textAnchor="middle" fontFamily="Inter" fontWeight={900} fontSize={24} fill="#111" transform={`rotate(-90 0 ${-l / 2 + l * 0.42})`}>SCHOOL</text>
+      <Lights w={w} l={l} inset={0.16} />
+    </g>
+  );
+};
+
+/** Chhota haathi style mini tempo: small cab + open cargo bed with crates. */
+const Tempo: React.FC<VehicleProps> = ({ color, trim }) => {
+  const { w, l } = VEHICLE_SIZE.tempo;
+  const cab = l * 0.32;
+  return (
+    <g>
+      <Wheels w={w} l={l} front={0.16} rear={0.2} />
+      <rect x={-w * 0.46} y={-l / 2} width={w * 0.92} height={cab} rx={16} fill={color} stroke={trim} strokeWidth={3.5} />
+      <path d={`M ${-w * 0.36} ${-l / 2 + 12} Q 0 ${-l / 2 + 4} ${w * 0.36} ${-l / 2 + 12} L ${w * 0.34} ${-l / 2 + 32} L ${-w * 0.34} ${-l / 2 + 32} Z`} fill={GLASS} />
+      <rect x={-w / 2} y={-l / 2 + cab + 6} width={w} height={l - cab - 6} rx={6} fill="#5A4632" stroke={trim} strokeWidth={3.5} />
+      {[[-0.22, 0.48], [0.22, 0.48], [-0.22, 0.72], [0.22, 0.72]].map(([x, y], i) => <rect key={i} x={w * (x ?? 0) - 18} y={-l / 2 + l * (y ?? 0) - 18} width={36} height={36} rx={4} fill={color} opacity={0.75} stroke="#2A2016" strokeWidth={2} />)}
+      <Lights w={w} l={l} inset={0.18} />
+    </g>
+  );
+};
+
+/** Scooter with rider helmet, seen from above. */
+const Scooter: React.FC<VehicleProps> = ({ color, trim }) => {
+  const { w, l } = VEHICLE_SIZE.scooter;
+  return (
+    <g>
+      <rect x={-8} y={-l / 2 - 4} width={16} height={30} rx={6} fill="#0A0B0E" />
+      <rect x={-8} y={l / 2 - 26} width={16} height={30} rx={6} fill="#0A0B0E" />
+      <path d={`M 0 ${-l / 2 + 10} C ${w * 0.5} ${-l / 2 + 20} ${w * 0.5} ${l / 2 - 10} 0 ${l / 2 - 4} C ${-w * 0.5} ${l / 2 - 10} ${-w * 0.5} ${-l / 2 + 20} 0 ${-l / 2 + 10} Z`} fill={color} stroke={trim} strokeWidth={3} />
+      <line x1={-w * 0.62} x2={w * 0.62} y1={-l / 2 + 24} y2={-l / 2 + 24} stroke="#222" strokeWidth={6} strokeLinecap="round" />
+      <ellipse cx={0} cy={4} rx={w * 0.38} ry={l * 0.18} fill="#2A2F3A" />
+      <circle cx={0} cy={-4} r={w * 0.3} fill={trim} stroke="#111" strokeWidth={2} />
+      <rect x={-w * 0.18} y={-10} width={w * 0.36} height={8} rx={3} fill={GLASS} />
+      <circle cx={0} cy={-l / 2 + 8} r={16} fill="url(#tv-head)" />
+      <circle cx={0} cy={l / 2 - 6} r={14} fill="url(#tv-tail)" />
+    </g>
+  );
+};
+
+/** Tractor: big rear wheels, small front, bonnet + seat. */
+const Tractor: React.FC<VehicleProps> = ({ color, trim }) => {
+  const { w, l } = VEHICLE_SIZE.tractor;
+  return (
+    <g>
+      {[-1, 1].map((s) => (
+        <g key={s}>
+          <rect x={s * w / 2 - 12} y={-l / 2 + 18} width={24} height={40} rx={8} fill="#0A0B0E" />
+          <rect x={s * w / 2 - (s > 0 ? 6 : 26)} y={l / 2 - 84} width={32} height={74} rx={10} fill="#0A0B0E" />
+        </g>
+      ))}
+      <rect x={-w * 0.2} y={-l / 2} width={w * 0.4} height={l * 0.55} rx={14} fill={color} stroke={trim} strokeWidth={3.5} />
+      <rect x={-w * 0.2} y={-l / 2} width={w * 0.4} height={l * 0.55} rx={14} fill="url(#tv-sheen)" />
+      {[0.1, 0.2, 0.3].map((k) => <line key={k} x1={-w * 0.14} x2={w * 0.14} y1={-l / 2 + l * k} y2={-l / 2 + l * k} stroke={DARK} strokeOpacity={0.35} strokeWidth={3} />)}
+      <rect x={-w * 0.34} y={l * 0.02} width={w * 0.68} height={l * 0.4} rx={12} fill={color} stroke={trim} strokeWidth={3.5} />
+      <rect x={-w * 0.16} y={l * 0.12} width={w * 0.32} height={28} rx={8} fill="#2A2F3A" />
+      <rect x={-6} y={-l / 2 - 14} width={12} height={22} rx={4} fill="#3A3F48" />
+      <circle cx={0} cy={-l / 2 + 4} r={18} fill="url(#tv-head)" />
+    </g>
+  );
+};
+
+/** Oil/milk tanker: cab + long cylindrical tank. */
+const Tanker: React.FC<VehicleProps> = ({ color, trim }) => {
+  const { w, l } = VEHICLE_SIZE.tanker;
+  const cab = l * 0.24;
+  return (
+    <g>
+      <Wheels w={w} l={l} front={0.12} rear={0.12} />
+      <Wheels w={w} l={l} front={0.12} rear={0.24} />
+      <rect x={-w * 0.46} y={-l / 2} width={w * 0.92} height={cab} rx={18} fill={trim} stroke="#111" strokeWidth={3} />
+      <path d={`M ${-w * 0.38} ${-l / 2 + 14} Q 0 ${-l / 2 + 4} ${w * 0.38} ${-l / 2 + 14} L ${w * 0.36} ${-l / 2 + 36} L ${-w * 0.36} ${-l / 2 + 36} Z`} fill={GLASS} />
+      <rect x={-w / 2} y={-l / 2 + cab + 8} width={w} height={l - cab - 8} rx={w / 2} fill={color} stroke="#111" strokeWidth={3} />
+      <rect x={-w * 0.12} y={-l / 2 + cab + 14} width={w * 0.24} height={l - cab - 20} rx={w * 0.12} fill="#fff" opacity={0.35} />
+      {[0.42, 0.62, 0.82].map((k) => <circle key={k} cx={0} cy={-l / 2 + l * k} r={12} fill="#5A5F68" stroke="#222" strokeWidth={2} />)}
+      <Lights w={w} l={l} inset={0.16} />
+    </g>
+  );
+};
+
+const RENDERERS: Record<VehicleKind, React.FC<VehicleProps>> = { kaalipeeli: KaaliPeeli, bestbus: BestBus, taxi: Taxi, police: Police, ambulance: Ambulance, bus: Bus, truck: Truck, sports: Sports, auto: Auto, suv: Suv, firetruck: FireTruck, schoolbus: SchoolBus, tempo: Tempo, scooter: Scooter, tractor: Tractor, tanker: Tanker };
 
 export const Vehicle: React.FC<VehicleProps> = (props) => {
   const R = RENDERERS[props.kind];

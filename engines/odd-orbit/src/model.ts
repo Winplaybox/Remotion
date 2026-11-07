@@ -2,9 +2,11 @@ import { random } from "remotion";
 import { z } from "zod";
 
 /** Every orbit element the engine can draw. Add a new renderer in elements.tsx and list it here. */
-export const ORBIT_ELEMENTS = ["chakra", "diya", "ring", "planet", "atom", "binary", "comet", "clock", "spinner", "gear"] as const;
+export const ORBIT_ELEMENTS = ["chakra", "diya", "ring", "planet", "atom", "binary", "comet", "clock", "spinner", "gear", "glyph"] as const;
+/** Elements that have a "slightly different shape" variant for the `shape` rule. */
+export const SHAPE_ELEMENTS = ["chakra", "gear", "clock", "ring", "diya", "glyph"] as const;
 /** How the odd one differs from the rest. */
-export const ODD_RULES = ["reverse", "faster", "slower", "tint"] as const;
+export const ODD_RULES = ["reverse", "faster", "slower", "tint", "shape"] as const;
 export const DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 
 export const OddOrbitSchema = z.object({
@@ -20,6 +22,8 @@ export const OddOrbitSchema = z.object({
   revealFooter: z.string(),
   answerPrefix: z.string(),
   element: z.enum(ORBIT_ELEMENTS),
+  /** For element "glyph": [normal, odd] characters, e.g. ["9", "6"]. */
+  glyphs: z.tuple([z.string(), z.string()]).default(["9", "6"]),
   oddRule: z.enum(ODD_RULES),
   cols: z.number().int().min(3).max(12),
   count: z.number().int().min(6).max(160),
@@ -58,8 +62,13 @@ export const RULE_COPY: Record<OddOrbit["oddRule"], { title: string; subtitle: s
   reverse: { title: "ULTA GHOOMNE WALA DHUNDO", subtitle: "Sirf EK ulta ghoom raha hai 👀" },
   faster: { title: "SABSE TEZ WALA DHUNDO", subtitle: "Ek baaki sab se tez bhaag raha hai ⚡" },
   slower: { title: "SABSE DHEEMA WALA DHUNDO", subtitle: "Ek thoda aalsi hai 🐢" },
-  tint: { title: "ALAG RANG WALA DHUNDO", subtitle: "Dhyaan se dekho, farak chhota hai 🔍" }
+  tint: { title: "ALAG RANG WALA DHUNDO", subtitle: "Dhyaan se dekho, farak chhota hai 🔍" },
+  shape: { title: "JO ALAG HAI USE DHUNDO", subtitle: "Ek ka design thoda alag hai 🔍" }
 };
+
+/** Letter / number pairs for "glyph" puzzles: everyone sees [0], one cell shows [1]. */
+export const GLYPH_PAIRS: [string, string][] = [["9", "6"], ["O", "Q"], ["E", "F"], ["8", "B"], ["M", "N"], ["C", "G"], ["P", "R"], ["5", "S"], ["W", "V"], ["1", "7"]];
+const GLYPH_VOICE: Record<string, string> = { "9": "नौ", "6": "छह", O: "ओ", Q: "क्यू", E: "ई", F: "एफ", "8": "आठ", B: "बी", M: "एम", N: "एन", C: "सी", G: "जी", P: "पी", R: "आर", "5": "पाँच", S: "एस", W: "डब्ल्यू", V: "वी", "1": "एक", "7": "सात" };
 
 const PALETTES: OddOrbit["palette"][] = [
   { bgTop: "#0A0820", bgBottom: "#1A0F2E", glow: "#5B2C83", line: "#FFD27A", body: "#FFF4D6", accent: "#FF9F1C", oddTint: "#FF6B9A" },
@@ -79,14 +88,21 @@ const LEVELS = [
 /** Day N of the channel (1-based) -> a complete, deterministic puzzle. */
 export function chakraPuzzleForDay(day: number): OddOrbit {
   const d = Math.max(1, Math.floor(day));
-  const element = ELEMENT_ROTATION[(d - 1) % ELEMENT_ROTATION.length] ?? "chakra";
   // weekly ramp: Mon-Tue easy/medium ... weekend expert
   const level = LEVELS[Math.min(3, Math.floor(((d - 1) % 7) / 2))] ?? LEVELS[0];
-  const ruleCycle: OddOrbit["oddRule"][] = ["reverse", "reverse", "faster", "reverse", "slower", "reverse", "tint"];
-  let oddRule = ruleCycle[(d - 1) % ruleCycle.length] ?? "reverse";
+  // Puzzle type rotates daily: spin direction, odd design, speed, hidden letter, colour...
+  // Posts 1-3 were published before the new modes existed; keep them exactly as uploaded.
+  const MODES = ["reverse", "shape", "faster", "glyph", "reverse", "slower", "shape", "tint", "glyph"] as const;
+  const LEGACY: Record<number, (typeof MODES)[number]> = { 1: "reverse", 2: "reverse", 3: "faster" };
+  const mode = LEGACY[d] ?? MODES[(d - 1) % MODES.length] ?? "reverse";
+  let element: OddOrbit["element"] = ELEMENT_ROTATION[(d - 1) % ELEMENT_ROTATION.length] ?? "chakra";
+  let oddRule: OddOrbit["oddRule"] = mode === "glyph" ? "shape" : mode;
+  if (mode === "glyph") element = "glyph";
+  else if (oddRule === "shape" && !(SHAPE_ELEMENTS as readonly string[]).includes(element)) element = SHAPE_ELEMENTS[Math.floor(d / MODES.length) % 5] ?? "chakra";
   if (element === "gear" && oddRule === "reverse") oddRule = "faster";
+  const glyphs = GLYPH_PAIRS[(d * 7 + 2) % GLYPH_PAIRS.length] ?? GLYPH_PAIRS[0]!;
   const speedRule = oddRule === "faster" || oddRule === "slower";
-  const copy = RULE_COPY[oddRule];
+  const copy = element === "glyph" ? { title: `${glyphs[0]} KE BEECH ${glyphs[1]} DHUNDO`, subtitle: `Sab ${glyphs[0]} hain... ek ${glyphs[1]} chhupa hai 👀` } : RULE_COPY[oddRule];
   return {
     ...CHAKRA_BRAND,
     voice: [],
@@ -99,6 +115,7 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     answerPrefix: "JAWAB",
     element,
     oddRule,
+    glyphs,
     cols: level.cols,
     count: level.count,
     oddIndex: -1,
@@ -146,13 +163,14 @@ const RULE_VOICE: Record<OddOrbit["oddRule"], string> = {
   reverse: "इनमें से एक उल्टा घूम रहा है। ढूँढो, कौन सा?",
   faster: "इनमें से एक सबसे तेज़ घूम रहा है। ढूँढो, कौन सा?",
   slower: "इनमें से एक सबसे धीरे घूम रहा है। ढूँढो, कौन सा?",
-  tint: "इनमें से एक का रंग थोड़ा अलग है। ढूँढो, कौन सा?"
+  tint: "इनमें से एक का रंग थोड़ा अलग है। ढूँढो, कौन सा?",
+  shape: "इनमें से एक का डिज़ाइन थोड़ा अलग है। ढूँढो, कौन सा?"
 };
 
 export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at: number }[] {
   const { row, col } = oddCellOf(p);
   return [
-    { file: "hook.wav", at: 0.4, text: `${RULE_VOICE[p.oddRule]} टाइम शुरू!` },
+    { file: "hook.wav", at: 0.4, text: `${p.element === "glyph" ? `सारे ${GLYPH_VOICE[p.glyphs[0]] ?? p.glyphs[0]} हैं, बस एक ${GLYPH_VOICE[p.glyphs[1]] ?? p.glyphs[1]} छुपा है। ढूँढो!` : RULE_VOICE[p.oddRule]} टाइम शुरू!` },
     { file: "hurry.wav", at: Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड! कमेंट में लिखो।" },
     { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` },
     ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "कल का नया चक्र पज़ल देखने के लिए फॉलो करो!" }] : [])
