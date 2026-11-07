@@ -57,7 +57,7 @@ async function main() {
   console.log(`[${cfg.name}] video ${video}`);
 
   if (flag("youtube")) {
-    const id = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env.YT_CLIENT_SECRET_JSON });
+    const id = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env[`${cfg.youtubeTokenSecret}_CLIENT`] || process.env.YT_CLIENT_SECRET_JSON });
     console.log(`[YouTube] https://youtube.com/shorts/${id} scheduled for ${publishAt}`);
   }
   if (flag("meta")) {
