@@ -6,9 +6,14 @@
  *   3. <x>Duration(p)       -> frames
  *   4. <x>VoiceLines(p)     -> Hinglish lines (Devanagari) + when they play
  *   5. <x>Answer(p)         -> text for the answer comment (puzzles)
+ *   6. askOutro             -> REQUIRED for puzzles: the shared ending from engines/ask-outro.ts
+ *                              (question + options -> "comment mein likho" + FOLLOW tap). Never reveal the answer
+ *                              in the same video and never add a separate end card; the next video opens with
+ *                              the previous answer (prevAnswer + PrevAnswerCard). Tests enforce this.
  */
 import { random } from "remotion";
 import { z } from "zod";
+import { AskOutroSchema, askOutro, askOutroSeconds, askOutroVoice } from "../../ask-outro";
 
 export const FPS = 30;
 
@@ -25,10 +30,12 @@ export const TemplateSchema = z.object({
   seed: z.string(),
   /** Seconds the viewer has to solve it. Motion ramps startSpeed -> endSpeed over this time. */
   playSeconds: z.number().positive(),
-  revealSeconds: z.number().min(0),
+  /** Opening card with the previous post's answer (0 on post 1). */
+  introSeconds: z.number().min(0),
+  prevAnswer: z.string(),
+  askOutro: AskOutroSchema,
   startSpeed: z.number().positive(),
   endSpeed: z.number().positive(),
-  endCard: z.object({ show: z.boolean(), title: z.string(), line: z.string(), button: z.string(), seconds: z.number().min(0) }),
   palette: z.object({ bgTop: z.string(), bgBottom: z.string(), line: z.string(), body: z.string(), accent: z.string() })
 });
 export type Template = z.infer<typeof TemplateSchema>;
@@ -42,6 +49,9 @@ const PALETTES: Template["palette"][] = [
 export function templateForDay(day: number): Template {
   const d = Math.max(1, Math.floor(day));
   const week = (d - 1) % 7;
+  const cols = 6 + Math.floor(week / 2);
+  const rows = 8;
+  const prev = d > 1 ? templateAnswer({ seed: `template-${d - 1}`, count: (6 + Math.floor(((d - 2) % 7) / 2)) * rows, cols: 6 + Math.floor(((d - 2) % 7) / 2) }) : null;
   return {
     voice: [],
     sound: true,
@@ -50,22 +60,28 @@ export function templateForDay(day: number): Template {
     postNo: d,
     title: "ALAG WALA DHUNDO",
     subtitle: "Ek ki dhadkan alag hai 👀",
-    cols: 6 + Math.floor(week / 2),
-    count: (6 + Math.floor(week / 2)) * 8,
+    cols,
+    count: cols * rows,
     seed: `template-${d}`,
     playSeconds: 12,
-    revealSeconds: 2.6,
+    introSeconds: prev ? 2.6 : 0,
+    prevAnswer: prev ? `ROW ${prev.row} · #${prev.col}` : "",
+    askOutro: askOutro({
+      question: "ALAG WALA KAHAN HAI?",
+      options: [`ROW 1-${rows}`, `NUMBER 1-${cols}`],
+      voiceQuestion: "आपका जवाब क्या है? रो और नंबर बताइए।",
+      handle: "@MyChannel"
+    }),
     startSpeed: 0.45,
     endSpeed: 1.35,
-    endCard: { show: true, title: "MY CHANNEL", line: "Main ek solo dev hoon — ek cozy game bana raha hoon 🎮", button: "FOLLOW KARO, SABSE PEHLE KHELO", seconds: 5 },
     palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!
   };
 }
 
-export const templateDuration = (p: Template) => Math.round((p.playSeconds + p.revealSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
+export const templateDuration = (p: Template) => Math.round((p.introSeconds + p.playSeconds + askOutroSeconds(p.askOutro)) * FPS);
 
 /** The answer, computed from the seed — the video, the voice and the comment all use this. */
-export function templateAnswer(p: Template) {
+export function templateAnswer(p: Pick<Template, "seed" | "count" | "cols">) {
   const index = Math.floor(random(`${p.seed}-odd`) * p.count);
   return { index, row: Math.floor(index / p.cols) + 1, col: (index % p.cols) + 1 };
 }
@@ -77,12 +93,12 @@ export function rampedTime(p: Pick<Template, "playSeconds" | "startSpeed" | "end
 }
 
 export function templateVoiceLines(p: Template): { file: string; text: string; at: number }[] {
-  const { row, col } = templateAnswer(p);
+  const o = p.introSeconds;
   return [
-    { file: "hook.wav", at: 0.4, text: "इनमें से एक की धड़कन अलग है। ढूँढो, कौन सा? टाइम शुरू!" },
-    { file: "hurry.wav", at: p.playSeconds - 3.2, text: "बस तीन सेकंड! कमेंट में लिखो।" },
-    { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` },
-    { file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ। फॉलो करो, सबसे पहले खेलो!" }
+    ...(o > 0 ? [{ file: "prev.wav", at: 0.2, text: `पिछले पज़ल का जवाब: ${p.prevAnswer.replace("ROW", "रो").replace("·", ",").replace("#", "नंबर ")}।` }] : []),
+    { file: "hook.wav", at: o + 0.4, text: "इनमें से एक की धड़कन अलग है। ढूँढो, कौन सा? टाइम शुरू!" },
+    { file: "hurry.wav", at: o + p.playSeconds - 3.2, text: "बस तीन सेकंड!" },
+    ...askOutroVoice(p.askOutro, o + p.playSeconds)
   ];
 }
 

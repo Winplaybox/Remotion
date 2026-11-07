@@ -1,11 +1,18 @@
 import { z } from "zod";
 import { buildSchedule } from "./schedule";
+import { AskOutroSchema, askOutro, askOutroSeconds, askOutroVoice } from "../../ask-outro";
 import { FPS, PHASE, SPEED_TIERS } from "./constants";
 export { FPS, PHASE, SPEED_TIERS } from "./constants";
 
 /** Every vehicle the engine can draw (top-down, facing up). Add one in vehicles.tsx and list it here. */
 export const VEHICLE_KINDS = ["kaalipeeli", "bestbus", "taxi", "police", "ambulance", "bus", "truck", "sports", "auto", "suv", "firetruck", "schoolbus", "tempo", "scooter", "tractor", "tanker"] as const;
 export type VehicleKind = (typeof VEHICLE_KINDS)[number];
+
+const VEHICLE_VOICE: Record<string, string> = {
+  "KAALI PEELI": "काली पीली टैक्सी", AUTO: "ऑटो रिक्शा", "BEST BUS": "बेस्ट बस", POLICE: "पुलिस की गाड़ी",
+  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "FIRE BRIGADE": "फायर ब्रिगेड", SCOOTY: "स्कूटी", "SCHOOL BUS": "स्कूल बस", TEMPO: "टेम्पो", TRACTOR: "ट्रैक्टर", TANKER: "टैंकर", "LAAL CAR": "लाल कार", SUV: "एसयूवी"
+};
+
 
 export const TrackVehicleSchema = z.object({
   /** Narration clips (seconds from start). Filled by scripts/post.ts --auto-narrate. */
@@ -34,6 +41,8 @@ export const TrackVehicleSchema = z.object({
   difficulty: z.number().min(1).max(3),
   /** "Answer in the next video": no reveal, ask viewers to comment; opening card shows the previous level's answer. */
   askMode: z.boolean().default(false),
+  /** Shared ask ending (engines/ask-outro.ts). Present in ask mode; replaces the question card. */
+  askOutro: AskOutroSchema.optional(),
   introSeconds: z.number().min(0).default(0),
   prevAnswer: z.string().default(""),
   /** Background music, engine, swoosh per swap, horn, ticks (original kit in public/sfx). */
@@ -112,15 +121,24 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
   if (d < ASK_FROM) return base;
   // From level 4 on: answer in the NEXT video, previous level's answer on the opening card.
   const prev = kaaliPeeliForDay(d - 1);
+  const slots = base.cols * base.rows;
+  const name = VEHICLE_VOICE[base.label] ?? base.label.toLowerCase();
+  const outro = askOutro({
+    question: `${base.label} KAHAN HAI?`,
+    options: slots <= 8 ? Array.from({ length: slots }, (_, i) => `#${i + 1}`) : [`NUMBER 1-${slots}`],
+    voiceQuestion: `${name} कहाँ है? नंबर बताइए।`,
+    handle: KPC_BRAND.handle
+  });
   return {
     ...base,
     askMode: true,
+    askOutro: outro,
     introSeconds: 2.6,
     prevAnswer: `#${buildSchedule(prev).answerSlot + 1}`,
-    questionSeconds: 5.2,
+    questionSeconds: askOutroSeconds(outro),
     answerSeconds: 0,
     cta: "AAPKA JAWAB? COMMENT MEIN BATAIYE 👇",
-    endCard: { ...base.endCard, title: "SAHI JAWAB AGLI VIDEO MEIN 👀", line: "Main ek solo dev hoon — ek cozy Kaali Peeli Chase game bana raha hoon 🎮", button: "FOLLOW KARO", seconds: 4 }
+    endCard: { ...base.endCard, show: false, seconds: 0 }
   };
 }
 
@@ -138,10 +156,6 @@ export function trackVehicleDuration(p: TrackVehicle): number {
 }
 
 
-const VEHICLE_VOICE: Record<string, string> = {
-  "KAALI PEELI": "काली पीली टैक्सी", AUTO: "ऑटो रिक्शा", "BEST BUS": "बेस्ट बस", POLICE: "पुलिस की गाड़ी",
-  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "FIRE BRIGADE": "फायर ब्रिगेड", SCOOTY: "स्कूटी", "SCHOOL BUS": "स्कूल बस", TEMPO: "टेम्पो", TRACTOR: "ट्रैक्टर", TANKER: "टैंकर", "LAAL CAR": "लाल कार", SUV: "एसयूवी"
-};
 
 /** Hinglish voice lines (Devanagari so the Hindi TTS voice reads them naturally). answer = 1-based slot number. */
 export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: string; text: string; at: number }[] {
@@ -155,9 +169,7 @@ export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: s
     { file: "hook.wav", at: o + 0.3, text: `${name} पर नज़र रखो। आँख मत हटाना!` },
     { file: "go.wav", at: shuffleStart, text: "शफल शुरू!" },
     ...(p.speedTiers ? SPEED_TIERS.slice(1).map((t, i) => ({ file: `tier${i + 1}.wav`, at: shuffleStart + p.shuffleSeconds * t.at, text: t.voice })) : []),
-    p.askMode
-      ? { file: "question.wav", at: questionAt + 0.1, text: `${name} कहाँ है? आपका जवाब कमेंट में बताइए! देखते हैं कितने लोग सही जवाब दे पाते हैं।` }
-      : { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
+    ...(p.askOutro ? askOutroVoice(p.askOutro, questionAt) : [{ file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }])
   ];
   if (p.answerSeconds > 0) lines.push({ file: "reveal.wav", at: answerAt + 0.1, text: `जवाब है, नंबर ${answer}!` });
   if (p.endCard.show) lines.push({ file: "outro.wav", at: answerAt + p.answerSeconds + 0.2, text: p.askMode ? "सही जवाब अगली वीडियो में बताएँगे। फॉलो करो!" : "कल का नया व्हीकल चेज़ चैलेंज देखने के लिए फॉलो करो!" });

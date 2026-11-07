@@ -4,6 +4,8 @@ import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { AskOverlay, PrevAnswerCard } from "@visuals/PrevAnswer";
+import { AskOutro } from "@visuals/AskOutro";
+import { askOutroSfx, followTapAt } from "../../ask-outro";
 import { ELEMENT_RENDERERS } from "./elements";
 import { rampedTime, type OddOrbit } from "./model";
 
@@ -96,7 +98,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
             ...(p.introSeconds > 0 ? [{ src: "sfx/ding.mp3", at: 0.15, volume: 0.4 }, { src: "sfx/whoosh.mp3", at: p.introSeconds - 0.2, volume: 0.35 }] : []),
             { src: "sfx/pop.mp3", at: p.introSeconds + 0.25, volume: 0.35 },
             ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: p.introSeconds + p.playSeconds - k, volume: 0.5 })),
-            { src: p.askMode ? "sfx/pop.mp3" : "sfx/ding.mp3", at: p.introSeconds + p.playSeconds, volume: 0.55 },
+            ...(p.askOutro ? askOutroSfx(p.askOutro, p.introSeconds + p.playSeconds) : [{ src: p.askMode ? "sfx/pop.mp3" : "sfx/ding.mp3", at: p.introSeconds + p.playSeconds, volume: 0.55 }]),
             ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: p.introSeconds + p.playSeconds + p.revealSeconds - 0.1, volume: 0.4 }] : [])
           ]}
         />
@@ -185,7 +187,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
         {reveal > 0.5 ? p.revealFooter : p.footer}
       </div>
       <div style={{ position: "absolute", top: 1760, width: "100%", textAlign: "center", fontFamily: FONT.mono, fontWeight: 700, fontSize: 26, color: pal.line, opacity: 0.75, letterSpacing: 2 }}>{p.handle}</div>
-      {p.askMode ? <AskOverlay from={introFrames + playFrames} until={introFrames + endStart + 6} title={p.askTitle} line={p.askLine} sub={p.askSub} accent={pal.accent} /> : null}
+      {p.askOutro ? <AskOutro from={introFrames + playFrames} a={p.askOutro} accent={pal.accent} tapAt={followTapAt(p.askOutro)} /> : p.askMode ? <AskOverlay from={introFrames + playFrames} until={introFrames + endStart + 6} title={p.askTitle} line={p.askLine} sub={p.askSub} accent={pal.accent} /> : null}
       {endP > 0 ? (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", background: `rgba(5,4,16,${0.88 * endP})`, opacity: endP }}>
           <div style={{ fontFamily: FONT.display, fontSize: Math.min(150, 1700 / p.endCard.title.length), color: pal.accent, lineHeight: 1, textShadow: `0 0 40px ${pal.accent}88`, transform: `scale(${0.9 + endP * 0.1})` }}>{p.endCard.title}</div>

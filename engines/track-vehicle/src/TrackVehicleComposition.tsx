@@ -4,6 +4,8 @@ import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { PrevAnswerCard } from "@visuals/PrevAnswer";
+import { AskOutro } from "@visuals/AskOutro";
+import { askOutroSfx, followTapAt } from "../../ask-outro";
 import { FPS, PHASE, SPEED_TIERS, type TrackVehicle } from "./model";
 import { buildSchedule, carPose } from "./schedule";
 import { Vehicle, VehicleDefs, VEHICLE_SIZE } from "./vehicles";
@@ -141,6 +143,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           ...(p.speedTiers ? SPEED_TIERS.slice(1).map((t): Sfx => ({ src: "sfx/riser.mp3", at: sh + p.shuffleSeconds * t.at - 1.1, volume: 0.25 })) : []),
           ...[3, 2, 1].map((k): Sfx => ({ src: "sfx/tick.mp3", at: se - k, volume: 0.45 })),
           ...(p.answerSeconds > 0 ? [{ src: "sfx/ding.mp3", at: qe, volume: 0.55 }] : []),
+          ...(p.askOutro ? askOutroSfx(p.askOutro, se) : []),
           ...(p.endCard.show ? [{ src: "sfx/whoosh.mp3", at: qe + p.answerSeconds - 0.1, volume: 0.4 }] : [])
         ];
         return <SoundBed music="sfx/music_chase.mp3" musicVolume={0.13} duck={duckFromCues(p.voice)} sfx={sfx} />;
@@ -202,7 +205,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
             </div>
           );
         })() : null}
-        {isQuestion ? (
+        {isQuestion && !p.askOutro ? (
           <div style={{ position: "absolute", top: 335, width: "100%", display: "flex", justifyContent: "center", opacity: swapTitle }}>
             <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 28, color: "#fff", padding: "10px 26px", borderRadius: 99, border: "2px solid rgba(255,255,255,.45)", background: "rgba(0,0,0,.45)" }}>
               {answerP > 0.5 ? p.answerLine.replace("{n}", String(sched.answerSlot + 1)) : p.cta}
@@ -232,6 +235,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           <div style={{ marginTop: 50, fontFamily: FONT.ui, fontWeight: 900, fontSize: 40, color: "#111", background: accent, padding: "20px 48px", borderRadius: 99, border: "4px solid #3A2500", transform: `scale(${1 + Math.sin(frame / 6) * 0.03})` }}>{p.endCard.button.replace("{next}", String(p.level + 1))}</div>
         </AbsoluteFill>
       ) : null}
+      {p.askOutro ? <AskOutro from={introFrames + shuffleEnd} a={p.askOutro} accent={p.colors.accent} tapAt={followTapAt(p.askOutro)} /> : null}
       {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PICHHLE LEVEL ${p.level - 1} KA JAWAB`} answer={p.prevAnswer} accent={p.colors.accent} bg="linear-gradient(180deg, #121317, #0B0C0F)" /> : null}
     </AbsoluteFill>
   );

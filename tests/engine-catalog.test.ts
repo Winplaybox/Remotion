@@ -1,4 +1,5 @@
 import { ENGINE_CATALOG } from "../engines/catalog";
+import { AskOutroSchema } from "../engines/ask-outro";
 
 /** Quality gate every engine must pass (Engine Builder step "30 days of unique content"). */
 describe.each(ENGINE_CATALOG.map((e) => [e.slug, e] as const))("engine %s", (_slug, e) => {
@@ -39,6 +40,26 @@ describe.each(ENGINE_CATALOG.map((e) => [e.slug, e] as const))("engine %s", (_sl
   }
 
   if (e.answer) {
+    it("puzzle engines declare askFrom (shared AskOutro ending)", () => {
+      expect(e.askFrom).toBeDefined();
+    });
+
+    it("from askFrom on: shared AskOutro, no reveal, no end card, ask voice lines", () => {
+      for (const n of days.filter((d) => d >= (e.askFrom ?? Infinity))) {
+        const p = e.forDay(n) as { askOutro?: unknown; endCard?: { show: boolean }; answerSeconds?: number };
+        expect(() => AskOutroSchema.parse(p.askOutro)).not.toThrow();
+        if (p.endCard) expect(p.endCard.show).toBe(false);
+        if (p.answerSeconds !== undefined) expect(p.answerSeconds).toBe(0);
+        if (e.voiceLines) {
+          const files = e.voiceLines(p as never).map((l) => l.file);
+          expect(files).toEqual(expect.arrayContaining(["ask_q.wav", "ask_cta.wav"]));
+          expect(files).not.toContain("reveal.wav");
+          expect(files).not.toContain("outro.wav");
+          expect(files[files.length - 1]).toBe("ask_cta.wav");
+        }
+      }
+    });
+
     it("has an answer for every post", () => {
       for (const n of days) expect(e.answer!(n).length).toBeGreaterThan(0);
     });
