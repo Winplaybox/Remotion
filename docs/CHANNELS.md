@@ -50,9 +50,11 @@ Variables: `AUTO_PUBLISH=true`. Add `EBS_ALLOW_SILENT=true` only if you want Epi
 
 If a channel's Meta secrets are missing, that channel skips Meta and still uploads to YouTube.
 
-## EpicBharatSaga narration (weekly batch)
+## EpicBharatSaga narration (automatic)
 
-IndicF5 needs a GPU, so narration is made locally or on Colab once a week and committed:
+Narration is generated automatically in GitHub Actions, the same way daily-devotional-shorts does it: Edge TTS reads each scene's Devanagari `narration` with `hi-IN-MadhurNeural` (male) right before rendering. Nothing to run by hand. To change the voice set the repo variable `EDGE_TTS_VOICE` (e.g. `hi-IN-SwaraNeural` for female).
+
+Optional, your own voice: WAVs committed to `public/audio/epicbharatsaga/post-NNN/` always win over Edge TTS, so you can replace any episode with IndicF5:
 
 ```bash
 python scripts/narration/narrate.py --channel epicbharatsaga --n 1-7 --ref ref.wav --ref-text "<exact words in ref.wav>"

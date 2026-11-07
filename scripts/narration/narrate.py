@@ -1,6 +1,9 @@
 """
 Narrate one episode scene-by-scene with IndicF5 (your own voice), Edge TTS as fallback.
 
+GitHub Actions does this automatically with Edge TTS (hi-IN-MadhurNeural) via `post.ts --auto-narrate`,
+so nothing has to be run by hand. Use this script locally only to replace the voice with IndicF5.
+
   1) npm run post -- --channel epicbharatsaga --n 1 --dry          # writes output/epicbharatsaga/post-001.narration.json
   2) python scripts/narration/narrate.py --channel epicbharatsaga --n 1 \
         --ref "C:/path/ref.wav" --ref-text "exact words spoken in ref.wav"
@@ -20,6 +23,7 @@ p.add_argument("--ref-text", help="exact transcript of the reference WAV (Devana
 p.add_argument("--engine", choices=["indicf5", "edge"], default="indicf5")
 p.add_argument("--edge-voice", default="hi-IN-MadhurNeural")
 p.add_argument("--only", type=int, help="regenerate a single scene number")
+p.add_argument("--missing-only", action="store_true", help="skip scenes whose WAV already exists")
 a = p.parse_args()
 
 lo, _, hi = a.n.partition("-")
@@ -58,6 +62,8 @@ def narrate_post(n: int) -> None:
         if a.only and i != a.only:
             continue
         dest = os.path.join(out_dir, s["file"])
+        if a.missing_only and os.path.exists(dest):
+            continue
         with tempfile.TemporaryDirectory() as tmp:
             raw = os.path.join(tmp, "raw.wav")
             if a.engine == "indicf5":
