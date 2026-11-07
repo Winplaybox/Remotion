@@ -18,6 +18,8 @@ import { withNarrationDurations } from "../../../../engines/story-diorama/src/me
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
 import { TemplateSchema, templateDuration, templateForDay, type Template } from "../../../../engines/_template/src/model";
 import { TemplateComposition } from "../../../../engines/_template/src/TemplateComposition";
+import { NARRATOR_DEMO, NARRATOR_IDS, NarratorVideoSchema, narratorVideoDuration, type NarratorVideo } from "../../../../engines/narrator-video/src/model";
+import { NarratorVideoComposition } from "../../../../engines/narrator-video/src/NarratorVideoComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -33,6 +35,13 @@ const TEMPLATE_DEMO = templateForDay(1);
 export const Root: React.FC = () => (
   <>
     {/* @engine-builder:compositions */}
+    <Folder name="NarratorVideo">
+      <Composition id="NarratorVideo" component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={NARRATOR_DEMO}
+        calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props) })} />
+      {NARRATOR_IDS.map((id) => (
+        <Composition key={id} id={`NarratorVideo-${id}`} component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={{ ...NARRATOR_DEMO, narrator: id }} />
+      ))}
+    </Folder>
     <Folder name="Templates">
       <Composition id="EngineTemplate" component={TemplateComposition} schema={TemplateSchema} {...video} durationInFrames={templateDuration(TEMPLATE_DEMO)} defaultProps={TEMPLATE_DEMO}
         calculateMetadata={({ props }: { props: Template }) => ({ durationInFrames: templateDuration(props) })} />
