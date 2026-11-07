@@ -2,6 +2,7 @@ import React from "react";
 import { interpolate, random, spring } from "remotion";
 import { FONT } from "@visuals/fonts";
 import type { PropName, StoryDiorama } from "./model";
+import { AVATAR_PROPS } from "./props-avatars";
 
 export interface PropCtx {
   /** Frames since the layer appeared (can be negative before `at`). */
@@ -394,7 +395,7 @@ const FestivalTracker: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
           <g key={i} opacity={isDone || isNext ? 1 : 0.45}>
             <rect x={-350} y={y - 46} width={84} height={84} rx={10} fill="none" stroke={pal.ink} strokeWidth={5} />
             {isDone ? <g transform={`translate(-308 ${y - 6})`}><Check p={p} color={pal.accent} size={1.2} /></g> : null}
-            <text x={-230} y={y + 22} fontFamily={FONT.display} fontSize={60} fill={pal.ink} textDecoration={isDone ? "line-through" : undefined}>{`${str(data.prefix, "DAY")} ${i + 1} · ${it}`}</text>
+            <text x={-230} y={y + 22} fontFamily={FONT.display} fontSize={60} fill={pal.ink} textDecoration={isDone ? "line-through" : undefined}>{`${str(data.prefix, "DAY")} ${num(data.start, 1) + i} · ${it}`}</text>
             {isNext ? (
               <ellipse cx={60} cy={y} rx={400} ry={66} fill="none" stroke={pal.accent3} strokeWidth={7} strokeDasharray={1700} strokeDashoffset={1700 * (1 - ring)} transform={`rotate(-2 60 ${y})`} />
             ) : null}
@@ -576,7 +577,8 @@ export const PROPS: Record<PropName, React.FC<PropCtx>> = {
   fish: Fish, boat: Boat, kamandalu: Kamandalu, growthSteps: GrowthSteps, towing: Towing, vedas: Vedas,
   moon: Moon, moonPhases: MoonPhases, clouds: Clouds, hills: Hills, doorway: Doorway, toran: Toran, diya: Diya, diyaRow: DiyaRow,
   rangoli: Rangoli, rooftops: Rooftops, lotus: Lotus, water: Water, tree: Tree, temple: Temple, sun: Sun, noteCard: NoteCard,
-  festivalTracker: FestivalTracker, progress: Progress, monthCalendar: MonthCalendar
+  festivalTracker: FestivalTracker, progress: Progress, monthCalendar: MonthCalendar,
+  ...AVATAR_PROPS
 };
 
 export const PropDefs: React.FC = () => (

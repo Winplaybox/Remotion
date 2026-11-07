@@ -1,6 +1,6 @@
 import { chakraPuzzleForDay } from "../engines/odd-orbit/src/model";
 import { kaaliPeeliForDay } from "../engines/track-vehicle/src/model";
-import { epicBharatSagaForDay, VISHNU_SEASON } from "../content/epicbharatsaga/vishnu-season";
+import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
 
 export interface PostMeta { title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string }
 
@@ -90,12 +90,19 @@ export const CHANNELS = {
     metaSecretPrefix: "META_EBS",
     resolve: (n) => epicBharatSagaForDay(n),
     meta: (n) => {
-      const name = VISHNU_SEASON.outline[n - 1] ?? "";
+      const info = episodeInfo(n);
+      if (!info) throw new Error(`EpicBharatSaga EP${n}: no season planned`);
+      const { season, local, name } = info;
+      const nice = name.split(" ").map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ");
+      const ep = String(local).padStart(2, "0");
+      const title = season.id === "vishnu"
+        ? `Vishnu ka ${ORDINAL[local - 1] ?? `${local}th`} avatar: ${nice} 🙏 | EP ${ep} #shorts`
+        : `${season.short}: ${nice} 🙏 | ${season.name.replace(" SEASON", "")} EP ${ep} #shorts`;
       return {
-        title: `Vishnu ka ${ORDINAL[n - 1] ?? `${n}th`} avatar: ${name.charAt(0)}${name.slice(1).toLowerCase()} 🙏 | EP ${String(n).padStart(2, "0")} #shorts`,
-        description: `Vishnu Season · EP ${String(n).padStart(2, "0")} — ${name}\nDashavatar ki kahani, roz ek episode.\n\nSubscribe @EpicBharatSaga\n#sanatandharma #vishnu #dashavatar #hindumythology #shorts`,
-        tags: ["sanatan dharma", "vishnu", "dashavatar", name.toLowerCase(), "hindu mythology", "bhagavata purana", "shorts"],
-        caption: `Vishnu Season · EP ${String(n).padStart(2, "0")} — ${name} 🙏\n#sanatandharma #vishnu #dashavatar #reels`,
+        title,
+        description: `${season.name} · EP ${ep}/${season.outline.length} — ${name}\nSanatan Dharma ki kahaniyaan, roz ek naya episode.\n\nSubscribe @EpicBharatSaga\n${season.hashtags} #hindumythology #shorts`,
+        tags: ["sanatan dharma", ...season.tags, name.toLowerCase(), "hindu mythology", "epic bharat saga", "shorts"],
+        caption: `${season.name} · EP ${ep} — ${nice} 🙏\n${season.hashtags} #reels`,
         language: "hi",
         categoryId: "27"
       };
