@@ -91,10 +91,8 @@ jobs:
         with: { node-version: "20", cache: "npm" }
       - run: npm ci
       - uses: actions/setup-python@v5
-        if: matrix.channel == 'epicbharatsaga'
         with: { python-version: "3.12" }
       - name: Narration tools (Edge TTS + ffmpeg)
-        if: matrix.channel == 'epicbharatsaga'
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           python -m pip install --quiet edge-tts
@@ -104,7 +102,7 @@ jobs:
           set -euo pipefail
           ARGS="--channel ${{ matrix.channel }}"
           if [ -n "${{ matrix.n || '' }}" ]; then ARGS="$ARGS --n ${{ matrix.n }}"; else ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi
-          if [ "${{ matrix.channel }}" = "epicbharatsaga" ]; then ARGS="$ARGS --auto-narrate"; fi
+          ARGS="$ARGS --auto-narrate"
           if [ "${{ matrix.channel }}" = "epicbharatsaga" ] && [ "${{ vars.EBS_ALLOW_SILENT }}" != "true" ]; then ARGS="$ARGS --require-narration"; fi
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.youtube }}" = "true" ]; then ARGS="$ARGS --youtube"; fi
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.meta }}" = "true" ]; then ARGS="$ARGS --meta"; fi

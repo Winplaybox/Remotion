@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
+import { VoiceCues } from "@visuals/VoiceCues";
 import { ELEMENT_RENDERERS } from "./elements";
 import type { OddOrbit } from "./model";
 
@@ -78,6 +79,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
 
   return (
     <AbsoluteFill style={{ background: `linear-gradient(180deg, ${pal.bgTop}, ${pal.bgBottom})`, overflow: "hidden" }}>
+      <VoiceCues cues={p.voice} />
       <AbsoluteFill style={{ background: `radial-gradient(ellipse 60% 38% at ${50 + glowDrift / 20}% ${55 + glowDrift / 40}%, ${pal.glow}aa, transparent 70%)` }} />
       <Stars seed={p.seed} frame={frame} />
 

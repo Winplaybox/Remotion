@@ -50,6 +50,10 @@ Variables: `AUTO_PUBLISH=true`. Add `EBS_ALLOW_SILENT=true` only if you want Epi
 
 If a channel's Meta secrets are missing, that channel skips Meta and still uploads to YouTube.
 
+## Puzzle voice (automatic)
+
+Chakra Puzzle and Kaali Peeli Chase get short Hinglish voice clips (Edge TTS, same voice): a hook at the start, a "3 seconds left" / "shuffle shuru" cue, the question and the answer. Lines live in `chakraVoiceLines` (engines/odd-orbit/src/model.ts) and `kaaliPeeliVoiceLines` (engines/track-vehicle/src/model.ts). If TTS fails the post still goes out, just silent.
+
 ## EpicBharatSaga narration (automatic)
 
 Narration is generated automatically in GitHub Actions, the same way daily-devotional-shorts does it: Edge TTS reads each scene's Devanagari `narration` with `hi-IN-MadhurNeural` (male) right before rendering. Nothing to run by hand. To change the voice set the repo variable `EDGE_TTS_VOICE` (e.g. `hi-IN-SwaraNeural` for female).

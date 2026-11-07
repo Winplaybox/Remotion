@@ -1,3 +1,4 @@
+import { random } from "remotion";
 import { z } from "zod";
 
 /** Every orbit element the engine can draw. Add a new renderer in elements.tsx and list it here. */
@@ -7,6 +8,8 @@ export const ODD_RULES = ["reverse", "faster", "slower", "tint"] as const;
 export const DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 
 export const OddOrbitSchema = z.object({
+  /** Narration clips (seconds from start). Filled by scripts/post.ts --auto-narrate. */
+  voice: z.array(z.object({ src: z.string(), at: z.number().min(0) })).default([]),
   brand: z.string(),
   handle: z.string(),
   puzzleNo: z.number().int().min(1),
@@ -82,6 +85,7 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
   const copy = RULE_COPY[oddRule];
   return {
     ...CHAKRA_BRAND,
+    voice: [],
     puzzleNo: d,
     difficulty: level.difficulty,
     title: copy.title,
@@ -115,4 +119,27 @@ export const ODD_ORBIT_VARIANTS: Record<string, Partial<OddOrbit>> = Object.from
 export const FPS = 30;
 export function oddOrbitDuration(p: OddOrbit): number {
   return Math.round((p.playSeconds + p.revealSeconds) * FPS);
+}
+
+/** Grid position of the odd element (same rule the composition uses). */
+export function oddCellOf(p: Pick<OddOrbit, "oddIndex" | "count" | "seed" | "cols">): { index: number; row: number; col: number } {
+  const index = p.oddIndex >= 0 && p.oddIndex < p.count ? p.oddIndex : Math.floor(random(`${p.seed}-odd`) * p.count);
+  return { index, row: Math.floor(index / p.cols) + 1, col: (index % p.cols) + 1 };
+}
+
+/** Hinglish voice lines (Devanagari so the Hindi TTS voice reads them naturally). */
+const RULE_VOICE: Record<OddOrbit["oddRule"], string> = {
+  reverse: "इनमें से एक उल्टा घूम रहा है। ढूँढो, कौन सा?",
+  faster: "इनमें से एक सबसे तेज़ घूम रहा है। ढूँढो, कौन सा?",
+  slower: "इनमें से एक सबसे धीरे घूम रहा है। ढूँढो, कौन सा?",
+  tint: "इनमें से एक का रंग थोड़ा अलग है। ढूँढो, कौन सा?"
+};
+
+export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at: number }[] {
+  const { row, col } = oddCellOf(p);
+  return [
+    { file: "hook.wav", at: 0.4, text: `${RULE_VOICE[p.oddRule]} टाइम शुरू!` },
+    { file: "hurry.wav", at: Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड! कमेंट में लिखो।" },
+    { file: "reveal.wav", at: p.playSeconds + 0.2, text: `जवाब: रो ${row}, नंबर ${col}!` }
+  ];
 }

@@ -5,6 +5,8 @@ export const VEHICLE_KINDS = ["kaalipeeli", "bestbus", "taxi", "police", "ambula
 export type VehicleKind = (typeof VEHICLE_KINDS)[number];
 
 export const TrackVehicleSchema = z.object({
+  /** Narration clips (seconds from start). Filled by scripts/post.ts --auto-narrate. */
+  voice: z.array(z.object({ src: z.string(), at: z.number().min(0) })).default([]),
   vehicle: z.enum(VEHICLE_KINDS),
   /** Word shown in the title accent, e.g. "TAXI" -> "TRACK THE TAXI". */
   label: z.string().min(1),
@@ -62,6 +64,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
   const long = v.vehicle === "bestbus" || v.vehicle === "truck" || v.vehicle === "ambulance";
   return {
     ...KPC_BRAND,
+    voice: [],
     vehicle: v.vehicle,
     label: v.label,
     titlePrefix: "TRACK THE",
@@ -95,4 +98,25 @@ export const PHASE = { intro: 20, show: 55, hide: 22 } as const;
 
 export function trackVehicleDuration(p: TrackVehicle): number {
   return Math.round(PHASE.intro + PHASE.show + PHASE.hide + (p.shuffleSeconds + p.questionSeconds + p.answerSeconds + (p.endCard.show ? p.endCard.seconds : 0)) * FPS);
+}
+
+const VEHICLE_VOICE: Record<string, string> = {
+  TAXI: "काली पीली टैक्सी", RICKSHAW: "ऑटो रिक्शा", "RED BUS": "लाल बस", POLICE: "पुलिस की गाड़ी",
+  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "RED CAR": "लाल कार"
+};
+
+/** Hinglish voice lines (Devanagari so the Hindi TTS voice reads them naturally). answer = 1-based slot number. */
+export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: string; text: string; at: number }[] {
+  const name = VEHICLE_VOICE[p.label] ?? p.label.toLowerCase();
+  const shuffleStart = (PHASE.intro + PHASE.show + PHASE.hide) / FPS;
+  const questionAt = shuffleStart + p.shuffleSeconds;
+  const answerAt = questionAt + p.questionSeconds;
+  const lines = [
+    { file: "hook.wav", at: 0.3, text: `${name} पर नज़र रखो। आँख मत हटाना!` },
+    { file: "go.wav", at: shuffleStart, text: "शफल शुरू!" },
+    { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
+  ];
+  if (p.answerSeconds > 0) lines.push({ file: "reveal.wav", at: answerAt + 0.1, text: `जवाब है, नंबर ${answer}!` });
+  if (p.endCard.show) lines.push({ file: "follow.wav", at: answerAt + p.answerSeconds + 0.2, text: `अगला लेवल कल! फॉलो करो।` });
+  return lines;
 }
