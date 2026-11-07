@@ -21,6 +21,8 @@ if (!env.GH_DISPATCH_TOKEN) console.warn("GH_DISPATCH_TOKEN missing: ideas/video
 const ctx = {
   allow: new Set((env.TG_ALLOWLIST || "").split(",").map((s) => s.trim()).filter(Boolean)),
   admin: env.TG_ADMIN_ID || "",
+  // Video-to-video (/style) is off until explicitly enabled.
+  styleEnabled: env.TG_STYLE_ENABLED === "true",
   usage: new Map(),
   get today() { return new Date().toISOString().slice(0, 10); }
 };
@@ -78,7 +80,7 @@ http.createServer((req, res) => {
     await tg("setMyCommands", { commands: [
       { command: "topic", description: "Topic se video: /topic dadi Holi kyun" },
       { command: "script", description: "Apni script se video" },
-      { command: "style", description: "Video ke caption mein: /style cartoon" },
+      ...(ctx.styleEnabled ? [{ command: "style", description: "Video ke caption mein: /style cartoon" }] : []),
       { command: "idea", description: "Video idea bhejo" },
       { command: "narrators", description: "Narrators ki list" },
       { command: "myid", description: "Aapka Telegram ID" },

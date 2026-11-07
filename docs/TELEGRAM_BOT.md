@@ -37,7 +37,10 @@ Non-admins: 5 videos/day.
 Add one: a new entry in `NARRATORS` (`engines/narrator-video/src/model.ts`) **and** in `apps/telegram-bot/commands.mjs`
 (the test checks they match).
 
-## Real video → cartoon (engines/toon-video)
+## Real video → cartoon (engines/toon-video) — switched OFF
+
+`/style` replies "abhi band hai" and is hidden from help/menu unless the Render env var `TG_STYLE_ENABLED=true` is set.
+
 
 Made only with Remotion: every frame goes through an SVG filter chain (smoothing, posterize, colour boost, edge lines,
 halftone / paper / watercolour displacement). No AI model, no extra cost, own code (safe for monetized channels).
