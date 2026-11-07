@@ -10,4 +10,4 @@ output/
 Thumbs.db
 .tmp/
 __pycache__/
-public/audio/*/day-*/
+

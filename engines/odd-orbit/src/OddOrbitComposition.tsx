@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { AbsoluteFill, interpolate, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { ELEMENT_RENDERERS } from "./elements";
 import type { OddOrbit } from "./model";

@@ -43,8 +43,8 @@ export const KPC_BRAND = { brand: "KAALI PEELI CHASE", handle: "@KaaliPeeliChase
 
 const ROTATION: { vehicle: VehicleKind; label: string; colors: TrackVehicle["colors"] }[] = [
   { vehicle: "kaalipeeli", label: "TAXI", colors: { target: "#FFC800", decoy: "#FFC800", trim: "#1A1A1A", accent: "#FFC800" } },
-  { vehicle: "auto", label: "AUTO", colors: { target: "#2BD24F", decoy: "#2BD24F", trim: "#FFD400", accent: "#FFD400" } },
-  { vehicle: "bestbus", label: "BEST BUS", colors: { target: "#D62828", decoy: "#7A7F88", trim: "#F4E3B5", accent: "#FF4D4D" } },
+  { vehicle: "auto", label: "RICKSHAW", colors: { target: "#2BD24F", decoy: "#2BD24F", trim: "#FFD400", accent: "#FFD400" } },
+  { vehicle: "bestbus", label: "RED BUS", colors: { target: "#D62828", decoy: "#7A7F88", trim: "#F4E3B5", accent: "#FF4D4D" } },
   { vehicle: "police", label: "POLICE", colors: { target: "#2F6BFF", decoy: "#6B6F78", trim: "#8FB4FF", accent: "#4D8BFF" } },
   { vehicle: "ambulance", label: "AMBULANCE", colors: { target: "#FFFFFF", decoy: "#6B6F78", trim: "#FF4D4D", accent: "#FF4D4D" } },
   { vehicle: "truck", label: "TRUCK", colors: { target: "#FF8A00", decoy: "#6B6F78", trim: "#FFD08A", accent: "#FF8A00" } },
@@ -64,12 +64,12 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     ...KPC_BRAND,
     vehicle: v.vehicle,
     label: v.label,
-    titlePrefix: "NAZAR RAKHO:",
-    questionPrefix: "",
-    questionSuffix: " KAHAN HAI?",
-    cta: "Comment mein number likho 👇",
-    answerLine: "JAWAB: #{n} — sahi pakda?",
-    rememberText: "▲ ISE YAAD RAKHO",
+    titlePrefix: "TRACK THE",
+    questionPrefix: "WHERE'S THE",
+    questionSuffix: "?",
+    cta: "Comment the number 👇  •  Follow for daily levels",
+    answerLine: "ANSWER: #{n} — did you get it?",
+    rememberText: "▲ REMEMBER THIS ONE",
     level: d,
     cols,
     rows: long ? Math.min(rows, 3) : rows,
@@ -80,7 +80,7 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     targetBias: 0.45,
     questionSeconds: 3,
     answerSeconds: 2.5,
-    endCard: { show: true, title: "Kaali Peeli Chase", line: "Roz naya level. Kitne level paar karoge?", button: "FOLLOW KARO", seconds: 2.5 },
+    endCard: { show: true, title: "Kaali Peeli Chase", line: "A new level every day. How far can you go?", button: "FOLLOW FOR LEVEL {next}", seconds: 2.5 },
     colors: v.colors
   };
 }

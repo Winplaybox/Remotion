@@ -156,7 +156,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           : null}
 
         {/* title */}
-        <div style={{ position: "absolute", top: 205, width: "100%", textAlign: "center", fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(96, 1800 / ((isQuestion ? p.questionPrefix + p.questionSuffix : p.titlePrefix).length + p.label.length + 2)), whiteSpace: "nowrap", letterSpacing: -2, color: "#fff", textShadow: "0 6px 30px rgba(0,0,0,.8)", transform: `translateY(${(1 - titleIn) * -40}px) scale(${isQuestion ? 0.9 + swapTitle * 0.1 : 1})`, opacity: titleIn }}>
+        <div style={{ position: "absolute", top: 205, width: "100%", textAlign: "center", fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(96, 1650 / ((isQuestion ? p.questionPrefix + p.questionSuffix : p.titlePrefix).length + p.label.length + 2)), whiteSpace: "nowrap", letterSpacing: -2, color: "#fff", textShadow: "0 6px 30px rgba(0,0,0,.8)", transform: `translateY(${(1 - titleIn) * -40}px) scale(${isQuestion ? 0.9 + swapTitle * 0.1 : 1})`, opacity: titleIn }}>
           {isQuestion ? p.questionPrefix : p.titlePrefix} <span style={{ color: accent }}>{p.label}</span>{isQuestion ? p.questionSuffix : ""}
         </div>
         <div style={{ position: "absolute", top: 340, left: 210, right: 210, display: "flex", alignItems: "center", gap: 22, opacity: timerVisible }}>
@@ -192,7 +192,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: endP, transform: `scale(${0.92 + endP * 0.08})` }}>
           <div style={{ fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(150, 1500 / p.endCard.title.length), color: accent, WebkitTextStroke: "6px #3A2500", textShadow: "0 10px 0 #3A2500, 0 20px 40px rgba(0,0,0,.6)", transform: "rotate(-4deg)" }}>{p.endCard.title}</div>
           <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 44, color: "#fff", textAlign: "center", maxWidth: 820, marginTop: 50, lineHeight: 1.25 }}>{p.endCard.line}</div>
-          <div style={{ marginTop: 50, fontFamily: FONT.ui, fontWeight: 900, fontSize: 40, color: "#111", background: accent, padding: "20px 48px", borderRadius: 99, border: "4px solid #3A2500", transform: `scale(${1 + Math.sin(frame / 6) * 0.03})` }}>{p.endCard.button}</div>
+          <div style={{ marginTop: 50, fontFamily: FONT.ui, fontWeight: 900, fontSize: 40, color: "#111", background: accent, padding: "20px 48px", borderRadius: 99, border: "4px solid #3A2500", transform: `scale(${1 + Math.sin(frame / 6) * 0.03})` }}>{p.endCard.button.replace("{next}", String(p.level + 1))}</div>
         </AbsoluteFill>
       ) : null}
     </AbsoluteFill>

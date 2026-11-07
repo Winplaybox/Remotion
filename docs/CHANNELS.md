@@ -1,42 +1,71 @@
-# Channels — daily production
+# Channels: daily auto-publishing
 
-Three separate channels, one repo. Each channel has a `startDate`, and every date maps to Day N, so every upload is new and in order.
+Three channels, one repo. Every slot has a fixed post number, so each upload is new and in order. This repo renders the videos, schedules them on YouTube, and posts Reels to Instagram and Facebook.
 
-| Channel | Composition | Engine | Narration | Config |
+| Channel | Composition | Language | Slots (IST) | Why these times |
 |---|---|---|---|---|
-| Chakra Puzzle | `ChakraPuzzle` | `engines/odd-orbit` | none (music + SFX later) | `chakraPuzzleForDay()` in `engines/odd-orbit/src/model.ts` |
-| Kaali Peeli Chase | `KaaliPeeliChase` | `engines/track-vehicle` | none | `kaaliPeeliForDay()` in `engines/track-vehicle/src/model.ts` |
-| EpicBharatSaga | `EpicBharatSaga` | `engines/story-diorama` | IndicF5 (own voice) | `content/epicbharatsaga/vishnu-season.ts` |
+| Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | English (global) | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
+| Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | English (global) | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
+| EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice | 18:30 | India evening |
 
-Start dates, post captions and hashtags are in `channels/channels.ts`.
+All slots, start dates, titles, descriptions, tags and captions are in `channels/channels.ts`.
 
-## Daily commands
+## How it runs
+
+`.github/workflows/publish-channels.yml` runs every hour:
+1. `scripts/due.ts` finds the slots that start 30–90 minutes from now.
+2. `scripts/post.ts` resolves post N, renders the MP4, uploads it to YouTube as private and scheduled for the exact slot time, then posts the Reel to Instagram and Facebook.
+3. The MP4 and metadata are kept as a workflow artifact for 7 days.
+
+Scheduled runs only fire from the **default branch** and only when the repo variable `AUTO_PUBLISH=true` is set.
+
+## One-time setup
+
+Add these in Settings → Secrets and variables → Actions:
+
+| Secret | What |
+|---|---|
+| `YT_CLIENT_SECRET_JSON` | Google Cloud OAuth client JSON (YouTube Data API v3 enabled) |
+| `YT_TOKEN_CHAKRA_PUZZLE` | output of `node scripts/publish/auth-youtube.mjs client_secret.json`. Pick **Chakra Puzzle** on the consent screen |
+| `YT_TOKEN_KAALI_PEELI_CHASE` | same command, pick **Kaali Peeli Chase** |
+| `YT_TOKEN_EPICBHARATSAGA` | same command, signed in as epicbharat.official, pick **EpicBharatSaga** |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | public bucket `meta-publishing`, where Meta pulls each Reel from (same values as daily-devotional-shorts) |
+| `META_CHAKRA_PAGE_ID` / `_IG_USER_ID` / `_PAGE_TOKEN` | Facebook Page + Instagram professional account for Chakra Puzzle |
+| `META_KPC_*`, `META_EBS_*` | same for the other two |
+
+Variables: `AUTO_PUBLISH=true`. Add `EBS_ALLOW_SILENT=true` only if you want EpicBharatSaga to go out with captions and no voice.
+
+**YouTube quota:** one upload costs 1,600 units, and a Google Cloud project gets 10,000 units/day. Six puzzle uploads a day = 9,600 units, so put EpicBharatSaga on a second Cloud project (its own client JSON), or keep puzzles at ≤ 3 slots per channel.
+
+If a channel's Meta secrets are missing, that channel skips Meta and still uploads to YouTube.
+
+## EpicBharatSaga narration (weekly batch)
+
+IndicF5 needs a GPU, so narration is made locally or on Colab once a week and committed:
 
 ```bash
-npm run daily -- --channel chakra-puzzle                 # today's puzzle (IST date)
-npm run daily -- --channel kaali-peeli-chase --day 5     # a specific day
-npm run daily -- --channel epicbharatsaga --date 2026-11-12 --dry   # props + narration script only
+python scripts/narration/narrate.py --channel epicbharatsaga --n 1-7 --ref ref.wav --ref-text "<exact words in ref.wav>"
+git add public/audio && git commit -m "EBS narration 1-7" && git push
 ```
 
-Outputs go to `output/<channel>/day-NNN.mp4`, plus `.json` (props) and `.txt` (post caption with hashtags).
+Every episode must be written in `content/epicbharatsaga/vishnu-season.ts` before its date. A missing episode **fails** instead of being made up.
 
-## How each day changes
+## Manual runs
 
-- **Chakra Puzzle**: the element rotates daily (chakra, ring, diya, atom, planet, clock, gear, comet, binary, spinner). The rule follows a weekly pattern (ulta, tez, dheema, alag rang). Difficulty goes from easy to expert across the week. The colour palette rotates. The seed is unique, so no two days have the same answer.
-- **Kaali Peeli Chase**: the vehicle rotates daily (kaali-peeli taxi, auto, BEST bus, police, ambulance, truck, red car, SUV). The grid grows from 3×3 to 4×4, and shuffle time and speed go up across the week. The level number equals the day number.
-- **EpicBharatSaga**: EP N goes out on day N. If an episode is not written yet, the render **fails** instead of making something up. EP01 (Matsya) is done. EP02–EP10 are listed in `VISHNU_SEASON.outline`.
+```bash
+npm run post -- --channel chakra-puzzle --n 4 --dry      # props + metadata only
+npm run post -- --channel kaali-peeli-chase --n 4        # render locally
+```
 
-## Narration (EpicBharatSaga)
+Or in GitHub: Actions → Publish Channels → Run workflow, with a channel and a post number.
 
-1. `npm run daily -- --channel epicbharatsaga --day 1 --dry` writes `output/epicbharatsaga/day-001.narration.json` (Devanagari text per scene).
-2. Run it on a GPU machine or Colab:
-   `pip install -r scripts/narration/requirements.txt`
-   `python scripts/narration/narrate.py --channel epicbharatsaga --day 1 --ref ref.wav --ref-text "<exact words in ref.wav>"`
-   This writes `public/audio/epicbharatsaga/day-001/scene-N.wav` (trimmed, -16 LUFS).
-3. `npm run daily -- --channel epicbharatsaga --day 1` renders with the voice. Each scene stretches to fit its narration, and the captions follow it.
+## 28-day plan to the monetization bar
 
-Use `--engine edge` for a quick Edge TTS fallback. Use `--only 3` to redo one scene.
+The bar is **per channel**: 1,000 subscribers + 10M Shorts views in 90 days (20M for new applicants from 1 Feb 2027). Views on one channel don't count for another.
 
-## Adding an EpicBharatSaga episode
+1. **Days 1–7:** 3 posts/day per puzzle channel, 1/day EBS. Every evening, check YouTube Studio → Shorts → "Viewed vs swiped away".
+2. **Days 8–14:** find the formats with the best viewed % and average view duration (element, vehicle, difficulty). Bias the rotation in `chakraPuzzleForDay` / `kaaliPeeliForDay` towards them.
+3. **Days 15–28:** put the most posts on the channel that is winning (a second Cloud project gives more quota). Reply to comments in the first hour; the answer-in-comments CTA exists for this.
+4. Every Reel also goes to Instagram and Facebook. Those views don't count for YouTube, but they bring followers back to YouTube.
 
-Copy the EP01 block in `vishnu-season.ts`. For each scene, write `narration` (Devanagari, for the voice), `caption` (Roman Hinglish, shown on screen), headlines, layers and labels. Then run `npm test`, which checks that every authored episode parses and has narration and captions. Fact-check every episode against the Purana before publishing.
+No tool can guarantee 10M views in 28 days. This plan maximises how often and how consistently each channel posts, and gives you the data to double down on what works.

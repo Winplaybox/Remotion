@@ -48,10 +48,10 @@ export type OddOrbit = z.infer<typeof OddOrbitSchema>;
 export const CHAKRA_BRAND = { brand: "CHAKRA PUZZLE", handle: "@ChakraPuzzle" } as const;
 
 export const RULE_COPY: Record<OddOrbit["oddRule"], { title: string; subtitle: string }> = {
-  reverse: { title: "ULTA GHOOMNE WALA DHUNDO", subtitle: "Sirf EK ulta ghoom raha hai 👀" },
-  faster: { title: "SABSE TEZ WALA DHUNDO", subtitle: "Ek baaki sab se tez bhaag raha hai ⚡" },
-  slower: { title: "SABSE DHEEMA WALA DHUNDO", subtitle: "Ek thoda aalsi hai 🐢" },
-  tint: { title: "ALAG RANG WALA DHUNDO", subtitle: "Dhyaan se dekho, farak chhota hai 🔍" }
+  reverse: { title: "FIND THE ONE SPINNING BACKWARDS", subtitle: "Only ONE moves the other way 👀" },
+  faster: { title: "FIND THE FASTEST ONE", subtitle: "One is spinning faster than the rest ⚡" },
+  slower: { title: "FIND THE SLOWEST ONE", subtitle: "One of them is a little lazy 🐢" },
+  tint: { title: "FIND THE ODD COLOR", subtitle: "Look closely — the difference is tiny 🔍" }
 };
 
 const PALETTES: OddOrbit["palette"][] = [
@@ -86,9 +86,9 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     difficulty: level.difficulty,
     title: copy.title,
     subtitle: copy.subtitle,
-    footer: "COMMENT KARO: ROW + NUMBER 👇",
-    revealFooter: "SAHI PAKDA? KAL NAYA PUZZLE 🔥",
-    answerPrefix: "JAWAB",
+    footer: "COMMENT THE ROW + NUMBER 👇",
+    revealFooter: "GOT IT? NEW PUZZLE EVERY DAY 🔥",
+    answerPrefix: "ANSWER",
     element,
     oddRule,
     cols: level.cols,
