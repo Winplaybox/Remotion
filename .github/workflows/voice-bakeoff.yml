@@ -3,6 +3,8 @@ name: Voice Bake-off
 # Same Hindi lines through VoiceStudio (OmniVoice, run from its Docker image inside this job), Edge TTS and,
 # if HF_TOKEN is set, IndicF5. Download the "voice-bakeoff" artifact, listen, pick the winner.
 on:
+  pull_request:
+    paths: [".github/workflows/voice-bakeoff.yml"]
   workflow_dispatch:
     inputs:
       voicestudio_model: { description: "VoiceStudio engine id", required: false, default: "omnivoice" }
@@ -38,7 +40,7 @@ jobs:
           mkdir -p out/voicestudio; i=0
           while IFS= read -r line; do
             [ -z "$line" ] && continue; i=$((i+1))
-            body=$(jq -n --arg t "$line" --arg m "${{ inputs.voicestudio_model }}" --arg v "${{ inputs.voicestudio_voice }}" '{model:$m, input:$t, voice:$v, language:"hi", response_format:"wav"}')
+            body=$(jq -n --arg t "$line" --arg m "${{ inputs.voicestudio_model || 'omnivoice' }}" --arg v "${{ inputs.voicestudio_voice || 'default' }}" '{model:$m, input:$t, voice:$v, language:"hi", response_format:"wav"}')
             start=$(date +%s)
             code=$(curl -s -o "out/voicestudio/line-$i.wav" -w "%{http_code}" -X POST http://127.0.0.1:3900/v1/audio/speech \
               -H "Authorization: Bearer $OMNIVOICE_API_KEY" -H "Content-Type: application/json" -d "$body" --max-time 900)
