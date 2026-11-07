@@ -1,10 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { handle, parseCommand, splitNarrator, NARRATORS, STYLES, DAILY_VIDEO_LIMIT, HELP, STYLE_OFF } from "./commands.mjs";
+import { handle, parseCommand, splitNarrator, NARRATORS, STYLES, DAILY_VIDEO_LIMIT, HELP, STYLE_OFF, MAIN_MENU } from "./commands.mjs";
+import { memoryStore } from "./store.mjs";
 
-const ctx = (over = {}) => ({ allow: new Set(["42"]), admin: "1", usage: new Map(), today: "2026-11-08", styleEnabled: true, ...over });
-const msg = (text, from = 42, extra = {}) => ({ message: { message_id: 7, chat: { id: from }, from: { id: from, first_name: "Ravi" }, text, ...extra } });
+const ADMIN = 1, CREATOR = 42, STRANGER = 99;
+const ctx = (over = {}) => ({ store: memoryStore(), allow: new Set([String(CREATOR)]), admin: String(ADMIN), styleEnabled: true, pending: new Map(), ...over });
+let uid = 1000;
+const msg = (text, from = CREATOR, extra = {}) => ({ update_id: ++uid, message: { message_id: uid, chat: { id: from }, from: { id: from, first_name: "Ravi", username: "ravi" }, text, ...extra } });
+const press = (data, from = ADMIN) => ({ update_id: ++uid, callback_query: { id: `q${uid}`, data, from: { id: from, first_name: "A" }, message: { message_id: 5, chat: { id: from } } } });
 
 test("parses commands with bot suffix and multi-line args", () => {
   assert.deepEqual(parseCommand("/topic@MyBot dadi Holi"), { cmd: "topic", args: "dadi Holi" });
@@ -12,77 +16,150 @@ test("parses commands with bot suffix and multi-line args", () => {
   assert.equal(parseCommand("hello"), null);
 });
 
-test("narrator is optional and defaults to dost", () => {
+test("narrator is optional and falls back to the user's default", () => {
   assert.deepEqual(splitNarrator("Dadi Holi kyun"), { narrator: "dadi", rest: "Holi kyun" });
-  assert.deepEqual(splitNarrator("Holi kyun"), { narrator: "dost", rest: "Holi kyun" });
+  assert.deepEqual(splitNarrator("Holi kyun", "teacher"), { narrator: "teacher", rest: "Holi kyun" });
 });
 
-test("narrator ids match the Remotion engine", () => {
-  const src = fs.readFileSync(new URL("../../engines/narrator-video/src/model.ts", import.meta.url), "utf8");
-  for (const id of Object.keys(NARRATORS)) assert.match(src, new RegExp(`\\n  ${id}: \\{`), `engine is missing narrator ${id}`);
+test("narrator and style ids match the Remotion engines", () => {
+  const n = fs.readFileSync(new URL("../../engines/narrator-video/src/model.ts", import.meta.url), "utf8");
+  for (const id of Object.keys(NARRATORS)) assert.match(n, new RegExp(`\\n  ${id}: \\{`), `engine is missing narrator ${id}`);
+  const t = fs.readFileSync(new URL("../../engines/toon-video/src/model.ts", import.meta.url), "utf8");
+  for (const id of STYLES) assert.match(t, new RegExp(`\\n  ${id}: \\{`), `engine is missing style ${id}`);
 });
 
-test("plain message, link or sample video becomes an idea with a confirmation", () => {
-  const r = handle(msg("Aisa video banao https://youtu.be/x"), ctx());
-  assert.match(r.replies[0], /future pipeline/);
-  assert.equal(r.dispatch.event, "tg-idea");
-  assert.equal(r.dispatch.payload.link, "https://youtu.be/x");
-  const v = handle({ message: { message_id: 1, chat: { id: 5 }, from: { id: 5 }, video: { file_id: "VID" } } }, ctx());
-  assert.equal(v.dispatch.payload.video, "VID");
-});
-
-test("allowed user gets a video job; stranger's topic is saved as an idea", () => {
-  const ok = handle(msg("/topic dadi Holi kyun manate hain"), ctx());
-  assert.equal(ok.dispatch.event, "tg-video");
-  assert.equal(ok.dispatch.payload.narrator, "dadi");
-  assert.equal(ok.dispatch.payload.kind, "topic");
-  const no = handle(msg("/topic dadi Holi", 99), ctx());
-  assert.equal(no.dispatch.event, "tg-idea");
-  assert.match(no.replies[0], /invited/);
-});
-
-test("daily limit for non-admins, none for admin", () => {
+test("idea: ID + pending status reply, admin gets buttons, never starts a job", async () => {
   const c = ctx();
-  for (let i = 0; i < DAILY_VIDEO_LIMIT; i++) assert.equal(handle(msg("/topic Holi"), c).dispatch.event, "tg-video");
-  assert.equal(handle(msg("/topic Holi"), c).dispatch, undefined);
-  for (let i = 0; i < DAILY_VIDEO_LIMIT + 2; i++) assert.equal(handle(msg("/topic Holi", 1), c).dispatch.event, "tg-video");
+  const r = await handle(msg("/idea How will AI change jobs in the next 10 years?", STRANGER), c);
+  assert.match(r.replies[0].text, /Idea ID: IDEA-00001/);
+  assert.match(r.replies[0].text, /Pending Admin Review/);
+  assert.equal(r.admin.length, 1);
+  assert.ok(r.admin[0].keyboard.flat().some((b) => b.data === "idea:approve:IDEA-00001"));
+  assert.notEqual(r.dispatch?.event, "tg-video");
+  assert.equal((await c.store.listJobs(null, null, 10)).length, 0);
 });
 
-test("short scripts are rejected, /ideas is admin-only", () => {
-  assert.equal(handle(msg("/script dadi bas"), ctx()).dispatch, undefined);
-  assert.equal(handle(msg("/ideas", 1), ctx()).listIdeas, true);
-  assert.equal(handle(msg("/ideas", 42), ctx()).listIdeas, undefined);
+test("plain message, link or sample video becomes an idea; duplicates are flagged", async () => {
+  const c = ctx();
+  await handle(msg("AI jobs ka future agle 10 saal mein kya hoga", STRANGER), c);
+  const d = await handle(msg("AI jobs ka future agle 10 saal mein kya hoga?? https://youtu.be/x", 77), c);
+  assert.match(d.replies[0].text, /IDEA-00002/);
+  assert.match(d.replies[0].text, /pehle se hai: IDEA-00001/);
+  const v = await handle({ update_id: ++uid, message: { message_id: 1, chat: { id: 5 }, from: { id: 5 }, video: { file_id: "VID" } } }, c);
+  assert.equal(v.copyToAdmin, true);
+  assert.equal((await c.store.getIdea("IDEA-00003")).media_file_id, "VID");
 });
 
-test("style ids match the Remotion toon engine", () => {
-  const src = fs.readFileSync(new URL("../../engines/toon-video/src/model.ts", import.meta.url), "utf8");
-  for (const id of STYLES) assert.match(src, new RegExp(`\\n  ${id}: \\{`), `engine is missing style ${id}`);
+test("admin approves, reprioritises and merges via buttons; owner is notified; non-admin cannot", async () => {
+  const c = ctx();
+  await handle(msg("Holi ke rang ka itihaas", STRANGER), c);
+  const denied = await handle(press("idea:approve:IDEA-00001", CREATOR), c);
+  assert.equal(denied.answer, "Sirf admin");
+  const ok = await handle(press("idea:approve:IDEA-00001"), c);
+  assert.equal((await c.store.getIdea("IDEA-00001")).status, "APPROVED");
+  assert.equal(ok.notify[0].chatId, STRANGER);
+  await handle(press("idea:p1:IDEA-00001"), c);
+  assert.equal((await c.store.getIdea("IDEA-00001")).priority, 1);
+  await handle(msg("Holi ke rang ka itihaas kya hai", 55), c);
+  await handle(press("idea:merge:IDEA-00002:IDEA-00001"), c);
+  assert.equal((await c.store.getIdea("IDEA-00002")).status, "MERGED");
 });
 
-test("/style as video caption or as a reply to a video", () => {
-  const cap = handle(msg(undefined, 42, { video: { file_id: "V1", file_size: 1000 }, caption: "/style comic Mera ghar" }), ctx());
+test("only APPROVED ideas enter production", async () => {
+  const c = ctx();
+  await handle(msg("Chandrayaan 3 ki kahani", STRANGER), c);
+  const no = await handle(msg("/produce IDEA-00001", ADMIN), c);
+  assert.match(no.replies[0].text, /Sirf APPROVED/);
+  await handle(msg("/approve IDEA-00001 accha hai", ADMIN), c);
+  const yes = await handle(msg("/produce IDEA-00001 dadi", ADMIN), c);
+  assert.equal(yes.dispatch.event, "tg-video");
+  assert.equal(yes.dispatch.payload.ideaCode, "IDEA-00001");
+  assert.equal(yes.dispatch.payload.narrator, "dadi");
+  assert.equal((await c.store.getIdea("IDEA-00001")).status, "IN_PRODUCTION");
+});
+
+test("allowed user gets a job with ID + cancel button; stranger's topic is saved as an idea", async () => {
+  const c = ctx();
+  const ok = await handle(msg("/topic dadi Holi kyun manate hain"), c);
+  assert.equal(ok.dispatch.event, "tg-video");
+  assert.equal(ok.dispatch.payload.jobCode, "JOB-00001");
+  assert.equal(ok.statusFor, "JOB-00001");
+  assert.equal(ok.replies[0].keyboard[0][0].data, "job:cancel:JOB-00001");
+  const no = await handle(msg("/topic dadi Holi", STRANGER), c);
+  assert.notEqual(no.dispatch?.event, "tg-video");
+  assert.match(no.replies[0].text, /invited/);
+  assert.equal((await c.store.listIdeas(null, STRANGER, 5)).length, 1);
+});
+
+test("the same Telegram update never creates two jobs", async () => {
+  const c = ctx();
+  const u = msg("/topic Holi kyun");
+  const a = await handle(u, c);
+  const b = await handle(u, c);
+  assert.equal(a.dispatch.payload.jobCode, "JOB-00001");
+  assert.equal(b.dispatch, undefined);
+  assert.equal((await c.store.listJobs(null, null, 10)).length, 1);
+});
+
+test("daily limit is persistent per user; admin unlimited; /allow grants access", async () => {
+  const c = ctx();
+  for (let i = 0; i < DAILY_VIDEO_LIMIT; i++) assert.equal((await handle(msg("/topic Holi"), c)).dispatch.event, "tg-video");
+  assert.match((await handle(msg("/topic Holi"), c)).replies[0].text, /limit/);
+  for (let i = 0; i < DAILY_VIDEO_LIMIT + 2; i++) assert.equal((await handle(msg("/topic Holi", ADMIN), c)).dispatch.event, "tg-video");
+  await handle(msg("/start", 300), c);
+  assert.match((await handle(msg("/topic Holi", 300), c)).replies[0].text, /invited/);
+  await handle(msg("/allow 300", ADMIN), c);
+  assert.equal((await handle(msg("/topic Holi", 300), c)).dispatch.event, "tg-video");
+});
+
+test("/status, /cancel (own jobs only), /history, retry after failure", async () => {
+  const c = ctx();
+  await handle(msg("/topic Holi kyun"), c);
+  assert.match((await handle(msg("/status"), c)).replies[0].text, /JOB-00001 · topic · ⏳/);
+  assert.match((await handle(msg("/cancel JOB-00001", 77), c)).replies[0].text, /nahi mili/);
+  assert.match((await handle(press("job:cancel:JOB-00001", CREATOR), c)).replies[0].text, /cancel kar di/);
+  assert.equal((await c.store.getJob("JOB-00001")).status, "CANCELLED");
+  await c.store.updateJob("JOB-00001", { status: "RENDERING" });
+  assert.equal((await c.store.getJob("JOB-00001")).status, "CANCELLED", "cancelled jobs stay cancelled");
+  await handle(msg("/topic Diwali"), c);
+  await c.store.updateJob("JOB-00002", { status: "FAILED", error: "Gemini busy" });
+  const r = await handle(press("job:retry:JOB-00002", CREATOR), c);
+  assert.equal(r.dispatch.payload.retryOf, "JOB-00002");
+  const h = await handle(msg("/history"), c);
+  assert.match(h.replies[0].text, /JOB-00003/);
+});
+
+test("menu buttons + pending input; settings are saved and used for the next job", async () => {
+  const c = ctx();
+  const m = await handle(msg("/menu"), c);
+  assert.deepEqual(m.replies[0].keyboard, MAIN_MENU);
+  await handle(press("pref:narrator:jasoos", CREATOR), c);
+  await handle(press("pref:seconds:30", CREATOR), c);
+  await handle(press("menu:topic", CREATOR), c);
+  const j = await handle(msg("Kohinoor heera kahan hai"), c);
+  assert.equal(j.dispatch.payload.narrator, "jasoos");
+  assert.equal(j.dispatch.payload.seconds, 30);
+  assert.equal(j.dispatch.payload.text, "Kohinoor heera kahan hai");
+  assert.equal((await handle(press("pref:narrator:hacker", CREATOR), c)).answer, "?");
+});
+
+test("/style: off by default, on with flag; caption or reply; size limit", async () => {
+  const off = await handle(msg(undefined, ADMIN, { video: { file_id: "V" }, caption: "/style cartoon" }), ctx({ styleEnabled: false }));
+  assert.equal(off.dispatch, undefined);
+  assert.equal(off.replies[0].text, STYLE_OFF);
+  assert.doesNotMatch(HELP, /\/style/);
+  const c = ctx();
+  const cap = await handle(msg(undefined, CREATOR, { video: { file_id: "V1", file_size: 1000 }, caption: "/style comic Mera ghar" }), c);
   assert.equal(cap.dispatch.event, "tg-style");
   assert.deepEqual([cap.dispatch.payload.style, cap.dispatch.payload.fileId, cap.dispatch.payload.title], ["comic", "V1", "Mera ghar"]);
-  const rep = handle(msg("/style anime", 42, { reply_to_message: { video: { file_id: "V2" } } }), ctx());
+  const rep = await handle(msg("/style anime", CREATOR, { reply_to_message: { video: { file_id: "V2" } } }), c);
   assert.equal(rep.dispatch.payload.fileId, "V2");
-  assert.equal(rep.dispatch.payload.style, "anime");
-  const def = handle(msg(undefined, 42, { video: { file_id: "V3" }, caption: "/style" }), ctx());
-  assert.equal(def.dispatch.payload.style, "cartoon");
+  const big = await handle(msg(undefined, CREATOR, { video: { file_id: "V", file_size: 25 * 1024 * 1024 }, caption: "/style" }), c);
+  assert.match(big.replies[0].text, /20 MB/);
 });
 
-test("/style without video, too big, or by a stranger", () => {
-  assert.equal(handle(msg("/style cartoon"), ctx()).dispatch, undefined);
-  const big = handle(msg(undefined, 42, { video: { file_id: "V", file_size: 25 * 1024 * 1024 }, caption: "/style" }), ctx());
-  assert.equal(big.dispatch, undefined);
-  assert.match(big.replies[0], /20 MB/);
-  const stranger = handle(msg(undefined, 99, { video: { file_id: "V" }, caption: "/style" }), ctx());
-  assert.equal(stranger.dispatch.event, "tg-idea");
-});
-
-test("video-to-video is off by default: no job, no /style in help", () => {
-  const off = handle(msg(undefined, 1, { video: { file_id: "V" }, caption: "/style cartoon" }), ctx({ styleEnabled: false }));
-  assert.equal(off.dispatch, undefined);
-  assert.equal(off.replies[0], STYLE_OFF);
-  assert.doesNotMatch(HELP, /\/style/);
-  assert.doesNotMatch(handle(msg("/help"), ctx({ styleEnabled: false })).replies[0], /\/style/);
+test("admin-only commands are hidden from users; /stats works for admin", async () => {
+  const c = ctx();
+  assert.match((await handle(msg("/stats", CREATOR), c)).replies[0].text, /Namaste/);
+  assert.match((await handle(msg("/stats", ADMIN), c)).replies[0].text, /Users/);
 });

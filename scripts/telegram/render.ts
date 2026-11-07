@@ -5,7 +5,7 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 
 /** scale < 1 renders smaller (e.g. 2/3 -> 720x1280): much faster for filter-heavy compositions. */
-export async function renderComposition(id: string, inputProps: Record<string, unknown>, out: string, crf = 24, scale = 1): Promise<string> {
+export async function renderComposition(id: string, inputProps: Record<string, unknown>, out: string, crf = 24, scale = 1, onProgress?: (p: number) => void): Promise<string> {
   const root = process.cwd();
   const alias = Object.fromEntries(["core", "motion", "audio", "visuals", "camera"].map((k) => [`@${k}`, path.join(root, "packages", k, "src")]));
   const serveUrl = await bundle({
@@ -16,6 +16,6 @@ export async function renderComposition(id: string, inputProps: Record<string, u
   const chrome = process.env.REMOTION_CHROME || undefined;
   const composition = await selectComposition({ serveUrl, id, inputProps, ...(chrome ? { browserExecutable: chrome } : {}) });
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  await renderMedia({ composition, serveUrl, codec: "h264", inputProps, outputLocation: out, crf, scale, ...(chrome ? { browserExecutable: chrome } : {}) });
+  await renderMedia({ composition, serveUrl, codec: "h264", inputProps, outputLocation: out, crf, scale, ...(onProgress ? { onProgress: ({ progress }: { progress: number }) => onProgress(progress) } : {}), ...(chrome ? { browserExecutable: chrome } : {}) });
   return out;
 }
