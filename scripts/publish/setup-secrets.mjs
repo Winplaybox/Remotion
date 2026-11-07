@@ -6,6 +6,8 @@
  *   node scripts/publish/setup-secrets.mjs \
  *     --client  C:/path/client_secret.json         # OAuth client for the puzzle channels (YouTube Data API v3 enabled)
  *     --ebs-dir C:/Users/sagar/Desktop/Project/daily-devotional-shorts   # reuses the existing EpicBharatSaga client_secret.json + token.json
+ *     [--ebs-client C:/path/client_secret.json]    # OR: fresh OAuth for EpicBharatSaga (sign in as epicbharat.official)
+ *     [--only-ebs]                                 # skip the puzzle channels
  *     [--ebs-silent]                               # let EpicBharatSaga post with captions until IndicF5 narration exists
  *
  * For each puzzle channel a browser opens: sign in as dailysnapdose@gmail.com and pick the channel it names.
@@ -33,7 +35,7 @@ async function channelName(auth) {
   return r.data.items?.[0]?.snippet?.title ?? "?";
 }
 
-function consent(clientJson, expected, port) {
+function consent(clientJson, expected, port, account = "dailysnapdose@gmail.com") {
   const c = clientOf(clientJson);
   const redirect = `http://localhost:${port}`;
   const auth = new google.auth.OAuth2(c.client_id, c.client_secret, redirect);
@@ -46,14 +48,14 @@ function consent(clientJson, expected, port) {
         const { tokens } = await auth.getToken(code);
         auth.setCredentials(tokens);
         const name = await channelName(auth);
-        if (name !== expected) { res.end(`You picked "${name}". Close this tab; the script will ask again for "${expected}".`); server.close(); resolve(null); return; }
+        if (!name.toLowerCase().startsWith(expected.toLowerCase())) { res.end(`You picked "${name}". Close this tab; the script will ask again for "${expected}".`); server.close(); resolve(null); return; }
         if (!tokens.refresh_token) throw new Error("Google returned no refresh_token (remove the app at myaccount.google.com/permissions and retry)");
         res.end(`Connected "${name}". You can close this tab.`);
         server.close();
         resolve(tokens);
       } catch (e) { res.end("Error, see terminal"); server.close(); reject(e); }
     }).listen(port, () => {
-      console.log(`\n→ Pick the channel "${expected}" in the browser window (dailysnapdose@gmail.com).`);
+      console.log(`\n→ Pick the channel "${expected}" in the browser window (${account}).`);
       exec(process.platform === "win32" ? `start "" "${url}"` : process.platform === "darwin" ? `open "${url}"` : `xdg-open "${url}"`);
     });
   });
@@ -61,17 +63,30 @@ function consent(clientJson, expected, port) {
 
 async function main() {
   gh(["auth", "status"]);
-  const clientPath = arg("client");
-  if (!clientPath) throw new Error("--client path/to/client_secret.json is required");
-  const clientJson = fs.readFileSync(clientPath, "utf8");
-  clientOf(clientJson);
-  setSecret("YT_CLIENT_SECRET_JSON", clientJson);
+  if (!flag("only-ebs")) {
+    const clientPath = arg("client");
+    if (!clientPath) throw new Error("--client path/to/client_secret.json is required");
+    const clientJson = fs.readFileSync(clientPath, "utf8");
+    clientOf(clientJson);
+    setSecret("YT_CLIENT_SECRET_JSON", clientJson);
 
-  for (const [secret, expected] of [["YT_TOKEN_CHAKRA_PUZZLE", "Chakra Puzzle"], ["YT_TOKEN_KAALI_PEELI_CHASE", "Kaali Peeli Chase"]]) {
+    for (const [secret, expected] of [["YT_TOKEN_CHAKRA_PUZZLE", "Chakra Puzzle"], ["YT_TOKEN_KAALI_PEELI_CHASE", "Kaali Peeli Chase"]]) {
+      let tokens = null;
+      for (let attempt = 0; attempt < 3 && !tokens; attempt++) tokens = await consent(clientJson, expected, 53682 + attempt);
+      if (!tokens) throw new Error(`Could not connect ${expected}`);
+      setSecret(secret, JSON.stringify(tokens));
+    }
+  }
+
+  const ebsClientPath = arg("ebs-client");
+  if (ebsClientPath) {
+    const ebsClient = fs.readFileSync(ebsClientPath, "utf8");
+    clientOf(ebsClient);
     let tokens = null;
-    for (let attempt = 0; attempt < 3 && !tokens; attempt++) tokens = await consent(clientJson, expected, 53682 + attempt);
-    if (!tokens) throw new Error(`Could not connect ${expected}`);
-    setSecret(secret, JSON.stringify(tokens));
+    for (let attempt = 0; attempt < 3 && !tokens; attempt++) tokens = await consent(ebsClient, "Epic Bharat", 53692 + attempt, "epicbharat.official@gmail.com");
+    if (!tokens) throw new Error("Could not connect Epic Bharat");
+    setSecret("YT_TOKEN_EPICBHARATSAGA", JSON.stringify(tokens));
+    setSecret("YT_TOKEN_EPICBHARATSAGA_CLIENT", ebsClient);
   }
 
   const ebsDir = arg("ebs-dir");
