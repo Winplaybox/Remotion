@@ -22,6 +22,8 @@ const days = Number(arg("days") ?? 3);
 const queue = path.resolve(arg("queue") ?? "queue");
 const only = arg("channel");
 const force = args.includes("--force");
+/** Also prepare channels that are not live yet (preview / first renders). */
+const includePaused = args.includes("--include-paused");
 const tagOf = (n: number) => `post-${String(n).padStart(3, "0")}`;
 
 interface Planned { channel: ChannelId; n: number; date: string; slot: number; tag: string }
@@ -33,7 +35,7 @@ function plan(): Planned[] {
     const date = todayIST(new Date(now + d * 86_400_000));
     for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
       if (only && only !== channel) continue;
-      if (!isLive(channel) || date < startDateOf(channel)) continue;
+      if ((!isLive(channel) && !includePaused) || date < startDateOf(channel)) continue;
       CHANNELS[channel].slots.forEach((_, slot) => {
         const n = postNumber(channel, date, slot);
         out.push({ channel, n, date, slot, tag: tagOf(n) });
