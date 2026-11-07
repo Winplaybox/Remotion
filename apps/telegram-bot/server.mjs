@@ -10,6 +10,7 @@ import crypto from "node:crypto";
 import http from "node:http";
 import { handle } from "./commands.mjs";
 import { createStore } from "./store.mjs";
+import { actionToCommand, dashboardPage, loginPage, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
 
 const env = process.env;
 const TOKEN = env.TELEGRAM_BOT_TOKEN;
@@ -27,6 +28,7 @@ const ctx = {
   allow: new Set((env.TG_ALLOWLIST || "").split(",").map((s) => s.trim()).filter(Boolean)),
   admin: env.TG_ADMIN_ID || "",
   styleEnabled: env.TG_STYLE_ENABLED === "true",
+  publicUrl: env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || "",
   pending: new Map()
 };
 
@@ -94,7 +96,46 @@ async function handleUpdate(update) {
   }
 }
 
+// ---------------- web admin (/admin) ----------------
+const SESSION_KEY = crypto.createHash("sha256").update(`session:${TOKEN}`).digest();
+let botUsername = env.TG_BOT_USERNAME || "";
+const html = (res, code, body, headers = {}) => res.writeHead(code, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-frame-options": "DENY", ...headers }).end(body);
+
+async function adminRoute(req, res, url) {
+  const me = readSession(req.headers.cookie, SESSION_KEY);
+  const isAdmin = !!me && !!ctx.admin && me === String(ctx.admin);
+  if (req.method === "GET" && url.pathname === "/admin/auth") {
+    const who = verifyTelegramLogin(Object.fromEntries(url.searchParams), TOKEN);
+    if (!who || who.id !== String(ctx.admin)) return html(res, 403, "Sirf admin login kar sakta hai.");
+    return html(res, 302, "", { location: "/admin", "set-cookie": `vb_admin=${encodeURIComponent(signSession(who.id, SESSION_KEY))}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=43200` });
+  }
+  if (req.method === "GET" && url.pathname === "/admin/logout") return html(res, 302, "", { location: "/admin", "set-cookie": "vb_admin=; Path=/admin; Max-Age=0" });
+  if (req.method === "GET" && url.pathname === "/admin") {
+    if (!isAdmin) return html(res, 200, loginPage(botUsername));
+    const [stats, ideas, jobs] = await Promise.all([store.stats(), store.listIdeas(null, null, 50), store.listJobs(null, null, 30)]);
+    return html(res, 200, dashboardPage({ stats, ideas, jobs, admin: me }));
+  }
+  if (req.method === "POST" && url.pathname === "/admin/api/action") {
+    if (!isAdmin) return html(res, 401, "login required");
+    // CSRF: browsers send Origin on POST; it must be this server.
+    const origin = req.headers.origin;
+    const allowed = new Set([`https://${req.headers.host}`, `http://${req.headers.host}`, ...(PUBLIC_URL ? [new URL(PUBLIC_URL).origin] : [])]);
+    if (origin && !allowed.has(origin)) return html(res, 403, "bad origin");
+    let body = "";
+    for await (const c of req) { body += c; if (body.length > 10_000) return html(res, 413, "too large"); }
+    let a; try { a = JSON.parse(body); } catch { return html(res, 400, "bad json"); }
+    const cmd = actionToCommand(a);
+    if (!cmd) return html(res, 400, "unknown action");
+    // Same pipeline as a Telegram message from the admin; replies land in the admin's chat as a log.
+    await handleUpdate({ update_id: `web:${Date.now()}:${Math.random()}`, message: { message_id: 0, chat: { id: Number(ctx.admin) }, from: { id: Number(ctx.admin), first_name: "Admin (web)" }, text: cmd } });
+    return html(res, 200, "ok");
+  }
+  return html(res, 404, "not found");
+}
+
 http.createServer((req, res) => {
+  const url = new URL(req.url, "http://local");
+  if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) { adminRoute(req, res, url).catch((e) => { console.error(e); html(res, 500, "error"); }); return; }
   if (req.method === "GET") { res.writeHead(200).end("ok"); return; }
   if (req.method !== "POST" || req.url !== `/tg/${SECRET}` || req.headers["x-telegram-bot-api-secret-token"] !== SECRET) { res.writeHead(404).end(); return; }
   let body = "";
@@ -106,6 +147,7 @@ http.createServer((req, res) => {
   });
 }).listen(Number(env.PORT || 10000), async () => {
   console.log(`telegram bot listening on ${env.PORT || 10000}`);
+  if (!botUsername) { const me = await tg("getMe", {}); if (me.ok) botUsername = me.result.username; }
   if (PUBLIC_URL) {
     const r = await tg("setWebhook", { url: `${PUBLIC_URL.replace(/\/$/, "")}/tg/${SECRET}`, secret_token: SECRET, allowed_updates: ["message", "callback_query"], drop_pending_updates: false });
     console.log("setWebhook:", r.ok ? "ok" : r.description);
@@ -123,6 +165,7 @@ http.createServer((req, res) => {
       { command: "settings", description: "Narrator, bhasha, length" },
       { command: "narrators", description: "Narrators" },
       { command: "myid", description: "Aapka Telegram ID" },
+      { command: "dashboard", description: "Admin: web dashboard link" },
       { command: "help", description: "Madad" }
     ] });
   }

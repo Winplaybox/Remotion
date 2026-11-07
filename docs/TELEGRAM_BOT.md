@@ -37,6 +37,13 @@ Limits: 5 videos per user per 24 h (stored in the database; admin unlimited). Te
 idea becomes IN_PRODUCTION → COMPLETED when delivered) · `/allow TG_ID` / `/disallow TG_ID` · `/jobs [STATUS]` · `/retry JOB`.
 Idea owners get a message when their idea is approved, rejected, in production or completed.
 
+### Web dashboard (`/admin` on the bot's Render URL, or `/dashboard` in Telegram)
+Stats (users, active users, ideas pending/approved, jobs active/done/failed), the 50 latest ideas with Approve / Reject /
+Produce / P1–P5, the 30 latest jobs with Cancel / Retry. Login with **Telegram Login** — only `TG_ADMIN_ID` gets in
+(hash verified with the bot token, 12 h signed HttpOnly cookie, same-origin POSTs). Every button runs the same bot command
+as in Telegram, so the rules are identical and each action is logged in the admin chat.
+One-time: in @BotFather → `/setdomain` → your bot → `telegram-video-bot-quth.onrender.com`.
+
 Every finished video comes with: the MP4 (9:16 or 16:9), a **thumbnail** (1280×720 or 1080×1920), and a message with
 **title, description, hashtags and sources**. Topic videos first run a research step (Gemini + Google Search grounding);
 the script may only use those facts, and the sources are listed. Without sources the message says "verify facts".

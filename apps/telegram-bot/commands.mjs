@@ -304,7 +304,7 @@ async function cancel(S, arg) {
 
 // ---------------- admin ----------------
 const ADMIN_HELP = `👑 Admin
-/stats · /ideas [STATUS] · /approve ID [note] · /reject ID [note]
+/dashboard (web) · /stats · /ideas [STATUS] · /approve ID [note] · /reject ID [note]
 /priority ID 1-5 · /channel ID name · /note ID text · /merge ID INTO_ID
 /produce ID [narrator] — approved idea → topic video
 /allow TG_ID · /disallow TG_ID · /jobs [STATUS] · /retry JOB`;
@@ -320,6 +320,10 @@ async function adminCommand(S, c) {
   };
   switch (c.cmd) {
     case "admin": return { replies: [{ text: ADMIN_HELP }] };
+    case "dashboard": {
+      const s2 = await ctx.store.stats();
+      return { replies: [{ text: `📊 ${s2.ideas_pending} ideas pending · ${s2.jobs_active} jobs active · ${s2.jobs_failed} failed\n🖥️ Web dashboard: ${ctx.publicUrl ? `${ctx.publicUrl.replace(/\/$/, "")}/admin` : "(PUBLIC_URL / RENDER_EXTERNAL_URL not set)"}` }] };
+    }
     case "stats": {
       const s = await ctx.store.stats();
       return { replies: [{ text: `📊 Users ${s.users} (7d active ${s.active_users_7d})\n💡 Ideas ${s.ideas} · pending ${s.ideas_pending} · approved ${s.ideas_approved}\n🎬 Jobs active ${s.jobs_active} · done ${s.jobs_completed} · failed ${s.jobs_failed}` }] };
