@@ -45,7 +45,7 @@ Add one: a new entry in `NARRATORS` (`engines/narrator-video/src/model.ts`) **an
 4. **GitHub token for Render**: github.com/settings/personal-access-tokens → fine-grained → only repo
    `Winplaybox/Remotion` → Repository permissions **Contents: Read and write** (needed for repository_dispatch and to read ideas).
 5. **Render.com** → New → **Blueprint** → this repo (uses `render.yaml`) → fill `TELEGRAM_BOT_TOKEN`, `GH_DISPATCH_TOKEN`
-   (step 4), `TG_ADMIN_ID`, `TG_ALLOWLIST` (comma-separated ids of invited users). `TG_WEBHOOK_SECRET` is generated.
+   (step 4), `TG_ADMIN_ID`, `TG_ALLOWLIST` (comma-separated ids of invited users). The webhook secret is derived from the bot token (or set `TG_WEBHOOK_SECRET`).
    On start the server registers its webhook and the command menu itself.
 6. Test: `/myid` → `/topic dadi Diwali pe diye kyun` → a video in ~5–8 min. Send any text → idea saved.
 
