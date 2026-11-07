@@ -48,7 +48,7 @@ jobs:
         env: { PYTHON: python }
       - run: npx ts-node scripts/post.ts --channel chakra-puzzle --n 1 --dry --auto-narrate && npx ts-node scripts/post.ts --channel kaali-peeli-chase --n 1 --dry --auto-narrate
         env: { PYTHON: python }
-      - run: test $(ls public/audio/chakra-puzzle/post-001/*.wav | wc -l) -eq 3 && test $(ls public/audio/kaali-peeli-chase/post-001/*.wav | wc -l) -ge 4
+      - run: test $(ls public/audio/chakra-puzzle/post-001/*.wav | wc -l) -ge 4 && test $(ls public/audio/kaali-peeli-chase/post-001/*.wav | wc -l) -ge 4
       - uses: actions/upload-artifact@v4
         with:
           name: narration-samples

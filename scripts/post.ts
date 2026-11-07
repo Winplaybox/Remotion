@@ -7,6 +7,7 @@
  *   ... --meta           publish to Instagram + Facebook now (needs a public video URL host)
  *   ... --dry            write props/metadata only, no render
  *   ... --auto-narrate   fill missing narration WAVs with Edge TTS before rendering
+ *   ... --no-queue       ignore pre-rendered videos on the render-queue branch (always render here)
  *
  * Files: output/<channel>/post-NNN.{json,mp4,meta.json}
  */
@@ -33,8 +34,24 @@ async function main() {
   const outDir = path.resolve("output", channel);
   fs.mkdirSync(outDir, { recursive: true });
 
+  // Videos rendered by Claude wait on the render-queue branch; use them instead of rendering here.
+  const video = path.join(outDir, `${tag}.mp4`);
+  let prerendered = false;
+  if (!flag("dry") && !flag("no-queue")) {
+    try {
+      execFileSync("git", ["fetch", "--quiet", "--depth", "1", "origin", "render-queue"], { stdio: "ignore" });
+      const buf = execFileSync("git", ["show", `FETCH_HEAD:video/${channel}/${tag}.mp4`], { maxBuffer: 512 * 1024 * 1024 });
+      fs.writeFileSync(video, buf);
+      prerendered = true;
+      console.log(`[queue] using Claude-rendered video/${channel}/${tag}.mp4 (${(buf.length / 1e6).toFixed(1)} MB)`);
+    } catch {
+      if (process.env.CI_RENDER_FALLBACK === "false") throw new Error(`[queue] video/${channel}/${tag}.mp4 not on render-queue and CI_RENDER_FALLBACK=false`);
+      console.warn(`[queue] no pre-rendered video for ${channel} ${tag}; rendering here as fallback`);
+    }
+  }
+
   const props = cfg.resolve(n) as Record<string, unknown>;
-  if (cfg.narrated) {
+  if (cfg.narrated && !prerendered) {
     const story = props as { scenes: { audio?: string; narration: string }[] };
     const audioDir = path.join("public", "audio", channel, tag);
     fs.writeFileSync(path.join(outDir, `${tag}.narration.json`), JSON.stringify(story.scenes.map((s, i) => ({ file: `scene-${i + 1}.wav`, text: s.narration })), null, 2));
@@ -57,7 +74,7 @@ async function main() {
   }
   let voiced = cfg.narrated;
   const voiceOf = (cfg as { voice?: (n: number) => VoiceLine[] }).voice;
-  if (voiceOf) {
+  if (voiceOf && !prerendered) {
     const lines = voiceOf(n);
     const audioDir = path.join("public", "audio", channel, tag);
     fs.writeFileSync(path.join(outDir, `${tag}.narration.json`), JSON.stringify(lines.map(({ file, text }) => ({ file, text })), null, 2));
@@ -81,10 +98,9 @@ async function main() {
   console.log(`[${cfg.name}] post #${n} (${date} slot ${slot} → ${publishAt})`);
   if (flag("dry")) return;
 
-  const video = path.join(outDir, `${tag}.mp4`);
-  if (!fs.existsSync(video) || flag("force")) {
+  if (!prerendered && (!fs.existsSync(video) || flag("force"))) {
     const extra = process.env.REMOTION_CHROME ? [`--browser-executable=${process.env.REMOTION_CHROME}`] : [];
-    execFileSync("npx", ["remotion", "render", "apps/studio/src/remotion/index.ts", cfg.composition, video, `--props=${propsFile}`, ...(voiced ? [] : ["--muted"]), ...extra], { stdio: "inherit", shell: process.platform === "win32" });
+    execFileSync("npx", ["remotion", "render", "apps/studio/src/remotion/index.ts", cfg.composition, video, `--props=${propsFile}`, ...(voiced ? [] : ["--muted"]), `--crf=${process.env.REMOTION_CRF || "23"}`, ...extra], { stdio: "inherit", shell: process.platform === "win32" });
   }
   console.log(`[${cfg.name}] video ${video}`);
 

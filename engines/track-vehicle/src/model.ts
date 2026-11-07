@@ -44,13 +44,13 @@ export type TrackVehicle = z.infer<typeof TrackVehicleSchema>;
 export const KPC_BRAND = { brand: "KAALI PEELI CHASE", handle: "@KaaliPeeliChase" } as const;
 
 const ROTATION: { vehicle: VehicleKind; label: string; colors: TrackVehicle["colors"] }[] = [
-  { vehicle: "kaalipeeli", label: "TAXI", colors: { target: "#FFC800", decoy: "#FFC800", trim: "#1A1A1A", accent: "#FFC800" } },
-  { vehicle: "auto", label: "RICKSHAW", colors: { target: "#2BD24F", decoy: "#2BD24F", trim: "#FFD400", accent: "#FFD400" } },
-  { vehicle: "bestbus", label: "RED BUS", colors: { target: "#D62828", decoy: "#7A7F88", trim: "#F4E3B5", accent: "#FF4D4D" } },
+  { vehicle: "kaalipeeli", label: "KAALI PEELI", colors: { target: "#FFC800", decoy: "#FFC800", trim: "#1A1A1A", accent: "#FFC800" } },
+  { vehicle: "auto", label: "AUTO", colors: { target: "#2BD24F", decoy: "#2BD24F", trim: "#FFD400", accent: "#FFD400" } },
+  { vehicle: "bestbus", label: "BEST BUS", colors: { target: "#D62828", decoy: "#7A7F88", trim: "#F4E3B5", accent: "#FF4D4D" } },
   { vehicle: "police", label: "POLICE", colors: { target: "#2F6BFF", decoy: "#6B6F78", trim: "#8FB4FF", accent: "#4D8BFF" } },
   { vehicle: "ambulance", label: "AMBULANCE", colors: { target: "#FFFFFF", decoy: "#6B6F78", trim: "#FF4D4D", accent: "#FF4D4D" } },
   { vehicle: "truck", label: "TRUCK", colors: { target: "#FF8A00", decoy: "#6B6F78", trim: "#FFD08A", accent: "#FF8A00" } },
-  { vehicle: "sports", label: "RED CAR", colors: { target: "#FF2D55", decoy: "#6B6F78", trim: "#FF8FA6", accent: "#FF2D55" } },
+  { vehicle: "sports", label: "LAAL CAR", colors: { target: "#FF2D55", decoy: "#6B6F78", trim: "#FF8FA6", accent: "#FF2D55" } },
   { vehicle: "suv", label: "SUV", colors: { target: "#00C2FF", decoy: "#6B6F78", trim: "#9BE7FF", accent: "#00C2FF" } }
 ];
 const GRIDS = [[3, 3], [3, 4], [3, 4], [4, 4]] as const;
@@ -67,23 +67,23 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     voice: [],
     vehicle: v.vehicle,
     label: v.label,
-    titlePrefix: "TRACK THE",
-    questionPrefix: "WHERE'S THE",
-    questionSuffix: "?",
-    cta: "Comment the number 👇  •  Follow for daily levels",
-    answerLine: "ANSWER: #{n} — did you get it?",
-    rememberText: "▲ REMEMBER THIS ONE",
+    titlePrefix: "NAZAR RAKHO:",
+    questionPrefix: "",
+    questionSuffix: " KAHAN HAI?",
+    cta: "Comment mein number likho 👇",
+    answerLine: "JAWAB: #{n} — sahi pakda?",
+    rememberText: "▲ ISE YAAD RAKHO",
     level: d,
     cols,
     rows: long ? Math.min(rows, 3) : rows,
     targetSlot: -1,
     seed: `kpc-${d}`,
-    shuffleSeconds: 14 + week,
+    shuffleSeconds: 8 + Math.round(week * 0.5),
     difficulty: Math.min(3, 1 + week * 0.34),
-    targetBias: 0.45,
-    questionSeconds: 3,
-    answerSeconds: 2.5,
-    endCard: { show: true, title: "Kaali Peeli Chase", line: "A new level every day. How far can you go?", button: "FOLLOW FOR LEVEL {next}", seconds: 2.5 },
+    targetBias: 0.9,
+    questionSeconds: 2.5,
+    answerSeconds: 2,
+    endCard: { show: true, title: "KAALI PEELI CHASE", line: "Main ek solo dev hoon — ek cozy Kaali Peeli Chase game bana raha hoon 🎮", button: "FOLLOW KARO, SABSE PEHLE KHELO", seconds: 5 },
     colors: v.colors
   };
 }
@@ -101,8 +101,8 @@ export function trackVehicleDuration(p: TrackVehicle): number {
 }
 
 const VEHICLE_VOICE: Record<string, string> = {
-  TAXI: "काली पीली टैक्सी", RICKSHAW: "ऑटो रिक्शा", "RED BUS": "लाल बस", POLICE: "पुलिस की गाड़ी",
-  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "RED CAR": "लाल कार"
+  "KAALI PEELI": "काली पीली टैक्सी", AUTO: "ऑटो रिक्शा", "BEST BUS": "बेस्ट बस", POLICE: "पुलिस की गाड़ी",
+  AMBULANCE: "एम्बुलेंस", TRUCK: "ट्रक", "LAAL CAR": "लाल कार", SUV: "एसयूवी"
 };
 
 /** Hinglish voice lines (Devanagari so the Hindi TTS voice reads them naturally). answer = 1-based slot number. */
@@ -117,6 +117,6 @@ export function kaaliPeeliVoiceLines(p: TrackVehicle, answer: number): { file: s
     { file: "question.wav", at: questionAt + 0.1, text: `बताओ, ${name} कहाँ है?` }
   ];
   if (p.answerSeconds > 0) lines.push({ file: "reveal.wav", at: answerAt + 0.1, text: `जवाब है, नंबर ${answer}!` });
-  if (p.endCard.show) lines.push({ file: "follow.wav", at: answerAt + p.answerSeconds + 0.2, text: `अगला लेवल कल! फॉलो करो।` });
+  if (p.endCard.show) lines.push({ file: "outro.wav", at: answerAt + p.answerSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ, और काली पीली चेज़ नाम का एक कोज़ी गेम बना रहा हूँ। फॉलो करो, सबसे पहले खेलो!" });
   return lines;
 }

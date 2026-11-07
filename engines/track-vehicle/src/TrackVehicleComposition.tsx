@@ -158,7 +158,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
           : null}
 
         {/* title */}
-        <div style={{ position: "absolute", top: 205, width: "100%", textAlign: "center", fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(96, 1650 / ((isQuestion ? p.questionPrefix + p.questionSuffix : p.titlePrefix).length + p.label.length + 2)), whiteSpace: "nowrap", letterSpacing: -2, color: "#fff", textShadow: "0 6px 30px rgba(0,0,0,.8)", transform: `translateY(${(1 - titleIn) * -40}px) scale(${isQuestion ? 0.9 + swapTitle * 0.1 : 1})`, opacity: titleIn }}>
+        <div style={{ position: "absolute", top: 205, width: "100%", textAlign: "center", fontFamily: FONT.punch, fontStyle: "italic", fontWeight: 900, fontSize: Math.min(96, 1450 / ((isQuestion ? p.questionPrefix + p.questionSuffix : p.titlePrefix).length + p.label.length + 2)), whiteSpace: "nowrap", letterSpacing: -2, color: "#fff", textShadow: "0 6px 30px rgba(0,0,0,.8)", transform: `translateY(${(1 - titleIn) * -40}px) scale(${isQuestion ? 0.9 + swapTitle * 0.1 : 1})`, opacity: titleIn }}>
           {isQuestion ? p.questionPrefix : p.titlePrefix} <span style={{ color: accent }}>{p.label}</span>{isQuestion ? p.questionSuffix : ""}
         </div>
         <div style={{ position: "absolute", top: 340, left: 210, right: 210, display: "flex", alignItems: "center", gap: 22, opacity: timerVisible }}>

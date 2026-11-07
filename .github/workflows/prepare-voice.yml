@@ -1,0 +1,49 @@
+name: Prepare Voice
+
+# Makes the Hinglish voice (Edge TTS) for the next 3 days of posts and puts it on the render-queue branch.
+# Claude then renders the videos with Remotion and pushes them to the same branch; publish-channels.yml uploads.
+on:
+  schedule:
+    - cron: "15 21 * * *"   # 02:45 IST, before Claude's 04:41 render run
+    - cron: "15 9 * * *"    # 14:45 IST, catches same-day changes
+  push:
+    branches: [main]
+    paths: ["content/**", "channels/**", "engines/**"]
+  workflow_dispatch:
+    inputs:
+      days: { description: "Days ahead", required: false, default: "3" }
+
+permissions:
+  contents: write
+
+concurrency:
+  group: render-queue
+  cancel-in-progress: false
+
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
+      START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
+      EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
+      PYTHON: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && python -m pip install --quiet edge-tts
+      - run: npm ci
+      - name: Voice for upcoming posts -> render-queue
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          scripts/queue-sync.sh pull
+          npx ts-node scripts/queue.ts prune --queue queue
+          npx ts-node scripts/queue.ts voice --days "${{ inputs.days || '3' }}" --queue queue
+          scripts/queue-sync.sh push "voice $(date -u +%FT%TZ)"

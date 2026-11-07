@@ -16,7 +16,7 @@ export function buildSchedule(p: TrackVehicle): Schedule {
   const carAt = Array.from({ length: slots }, (_, i) => i);
   const slotOf = Array.from({ length: slots }, (_, i) => i);
   const total = p.shuffleSeconds * FPS;
-  const slow = Math.round(34 - p.difficulty * 4);
+  const slow = Math.round(42 - p.difficulty * 4);
   const fast = Math.round(20 - p.difficulty * 3.5);
   const events: SwapEvent[] = [];
   const col = (s: number) => s % p.cols;

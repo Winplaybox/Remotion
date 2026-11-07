@@ -1,7 +1,9 @@
 name: Publish Channels
 
-# Hourly: find posts whose slot is 30-90 min away, render them, schedule on YouTube for the exact slot,
-# and post the Reel to Instagram + Facebook. Scheduled runs only fire from the default branch.
+# Hourly: find posts whose slot is 30-90 min away, take the video Claude rendered (render-queue branch),
+# schedule it on YouTube for the exact slot and post the Reel to Instagram + Facebook.
+# If Claude has not rendered a post, it is rendered here as a fallback (disable with CI_RENDER_FALLBACK=false).
+# Scheduled runs only fire from the default branch.
 on:
   schedule:
     - cron: "2 * * * *"
@@ -84,6 +86,7 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
+      CI_RENDER_FALLBACK: ${{ vars.CI_RENDER_FALLBACK }}
       PYTHON: python
     steps:
       - uses: actions/checkout@v4
@@ -113,3 +116,18 @@ jobs:
           name: ${{ matrix.channel }}-${{ matrix.date || 'manual' }}-${{ matrix.slot }}-${{ github.run_id }}
           path: output/${{ matrix.channel }}/
           retention-days: 7
+
+  answers:
+    # Answer comment on puzzle videos that just went public (pin it in YouTube Studio).
+    runs-on: ubuntu-latest
+    if: vars.AUTO_PUBLISH == 'true' || github.event_name == 'workflow_dispatch'
+    env:
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
+      YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+      - run: npx ts-node scripts/publish/answer-comments.ts --hours 3

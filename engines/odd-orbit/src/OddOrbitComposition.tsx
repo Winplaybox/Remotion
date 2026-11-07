@@ -3,7 +3,7 @@ import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "r
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { ELEMENT_RENDERERS } from "./elements";
-import type { OddOrbit } from "./model";
+import { rampedTime, type OddOrbit } from "./model";
 
 const W = 1080;
 const GRID_TOP = 590;
@@ -63,10 +63,13 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
   const oddCell = cells[odd];
   const pal = p.palette;
   const glowDrift = Math.sin(t * 0.4) * 40;
+  const spin = rampedTime(p, t);
+  const endStart = (p.playSeconds + p.revealSeconds) * fps;
+  const endP = p.endCard.show ? Math.min(1, Math.max(0, (frame - endStart) / 12)) : 0;
 
   const drawCell = (c: Cell, i: number, isOdd: boolean) => {
     const pop = spring({ frame: frame - c.delay, fps, config: { damping: 13, stiffness: 140 } });
-    const a = c.phase + c.dir * TAU * p.speed * c.mul * t;
+    const a = c.phase + c.dir * TAU * p.speed * c.mul * spin;
     const scale = pop * (isOdd ? 1 + reveal * 0.55 : 1);
     const opacity = isOdd ? 1 : 1 - reveal * 0.82;
     const tinted = isOdd && p.oddRule === "tint";
@@ -164,6 +167,14 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
         {reveal > 0.5 ? p.revealFooter : p.footer}
       </div>
       <div style={{ position: "absolute", top: 1760, width: "100%", textAlign: "center", fontFamily: FONT.mono, fontWeight: 700, fontSize: 26, color: pal.line, opacity: 0.75, letterSpacing: 2 }}>{p.handle}</div>
+      {endP > 0 ? (
+        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", background: `rgba(5,4,16,${0.88 * endP})`, opacity: endP }}>
+          <div style={{ fontFamily: FONT.display, fontSize: Math.min(150, 1700 / p.endCard.title.length), color: pal.accent, lineHeight: 1, textShadow: `0 0 40px ${pal.accent}88`, transform: `scale(${0.9 + endP * 0.1})` }}>{p.endCard.title}</div>
+          <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 46, color: "#fff", textAlign: "center", maxWidth: 860, marginTop: 50, lineHeight: 1.3 }}>{p.endCard.line}</div>
+          <div style={{ marginTop: 56, fontFamily: FONT.ui, fontWeight: 900, fontSize: 40, color: "#071018", background: pal.accent, padding: "22px 50px", borderRadius: 99, transform: `scale(${1 + Math.sin(frame / 6) * 0.03})` }}>{p.endCard.button}</div>
+          <div style={{ marginTop: 40, fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, color: pal.line, letterSpacing: 2 }}>{p.handle}</div>
+        </AbsoluteFill>
+      ) : null}
     </AbsoluteFill>
   );
 };
