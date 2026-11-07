@@ -1,0 +1,100 @@
+name: Publish Channels
+
+# Hourly: find posts whose slot is 30-90 min away, render them, schedule on YouTube for the exact slot,
+# and post the Reel to Instagram + Facebook. Scheduled runs only fire from the default branch.
+on:
+  schedule:
+    - cron: "2 * * * *"
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Channel id (chakra-puzzle, kaali-peeli-chase, epicbharatsaga). Empty = whatever is due."
+        required: false
+        type: string
+      n:
+        description: "Explicit post number (with channel). Empty = due slots."
+        required: false
+        type: string
+      youtube:
+        description: "Upload to YouTube"
+        type: boolean
+        default: true
+      meta:
+        description: "Post to Instagram + Facebook"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-channels
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    if: vars.AUTO_PUBLISH == 'true' || github.event_name == 'workflow_dispatch'
+    outputs:
+      matrix: ${{ steps.due.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+      - id: due
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.channel }}" ] && [ -n "${{ inputs.n }}" ]; then
+            echo "matrix={\"include\":[{\"channel\":\"${{ inputs.channel }}\",\"n\":\"${{ inputs.n }}\",\"date\":\"\",\"slot\":0}]}" >> "$GITHUB_OUTPUT"
+          else
+            m=$(npx ts-node scripts/due.ts ${{ inputs.channel && format('--channel {0}', inputs.channel) || '' }})
+            echo "matrix=$m" >> "$GITHUB_OUTPUT"
+          fi
+          cat "$GITHUB_OUTPUT"
+
+  post:
+    needs: plan
+    if: needs.plan.outputs.matrix != '{"include":[]}'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
+      YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+      YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}
+      META_CHAKRA_PAGE_ID: ${{ secrets.META_CHAKRA_PAGE_ID }}
+      META_CHAKRA_IG_USER_ID: ${{ secrets.META_CHAKRA_IG_USER_ID }}
+      META_CHAKRA_PAGE_TOKEN: ${{ secrets.META_CHAKRA_PAGE_TOKEN }}
+      META_KPC_PAGE_ID: ${{ secrets.META_KPC_PAGE_ID }}
+      META_KPC_IG_USER_ID: ${{ secrets.META_KPC_IG_USER_ID }}
+      META_KPC_PAGE_TOKEN: ${{ secrets.META_KPC_PAGE_TOKEN }}
+      META_EBS_PAGE_ID: ${{ secrets.META_EBS_PAGE_ID }}
+      META_EBS_IG_USER_ID: ${{ secrets.META_EBS_IG_USER_ID }}
+      META_EBS_PAGE_TOKEN: ${{ secrets.META_EBS_PAGE_TOKEN }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+      - name: Build, render and publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARGS="--channel ${{ matrix.channel }}"
+          if [ -n "${{ matrix.n || '' }}" ]; then ARGS="$ARGS --n ${{ matrix.n }}"; else ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi
+          if [ "${{ matrix.channel }}" = "epicbharatsaga" ] && [ "${{ vars.EBS_ALLOW_SILENT }}" != "true" ]; then ARGS="$ARGS --require-narration"; fi
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.youtube }}" = "true" ]; then ARGS="$ARGS --youtube"; fi
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.meta }}" = "true" ]; then ARGS="$ARGS --meta"; fi
+          npx ts-node scripts/post.ts $ARGS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.channel }}-${{ matrix.date || 'manual' }}-${{ matrix.slot }}-${{ github.run_id }}
+          path: output/${{ matrix.channel }}/
+          retention-days: 7

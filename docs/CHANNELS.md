@@ -1,0 +1,71 @@
+# Channels: daily auto-publishing
+
+Three channels, one repo. Every slot has a fixed post number, so each upload is new and in order. This repo renders the videos, schedules them on YouTube, and posts Reels to Instagram and Facebook.
+
+| Channel | Composition | Language | Slots (IST) | Why these times |
+|---|---|---|---|---|
+| Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | English (global) | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
+| Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | English (global) | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
+| EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice | 18:30 | India evening |
+
+All slots, start dates, titles, descriptions, tags and captions are in `channels/channels.ts`.
+
+## How it runs
+
+`.github/workflows/publish-channels.yml` runs every hour:
+1. `scripts/due.ts` finds the slots that start 30–90 minutes from now.
+2. `scripts/post.ts` resolves post N, renders the MP4, uploads it to YouTube as private and scheduled for the exact slot time, then posts the Reel to Instagram and Facebook.
+3. The MP4 and metadata are kept as a workflow artifact for 7 days.
+
+Scheduled runs only fire from the **default branch** and only when the repo variable `AUTO_PUBLISH=true` is set.
+
+## One-time setup
+
+Add these in Settings → Secrets and variables → Actions:
+
+| Secret | What |
+|---|---|
+| `YT_CLIENT_SECRET_JSON` | Google Cloud OAuth client JSON (YouTube Data API v3 enabled) |
+| `YT_TOKEN_CHAKRA_PUZZLE` | output of `node scripts/publish/auth-youtube.mjs client_secret.json`. Pick **Chakra Puzzle** on the consent screen |
+| `YT_TOKEN_KAALI_PEELI_CHASE` | same command, pick **Kaali Peeli Chase** |
+| `YT_TOKEN_EPICBHARATSAGA` | same command, signed in as epicbharat.official, pick **EpicBharatSaga** |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | public bucket `meta-publishing`, where Meta pulls each Reel from (same values as daily-devotional-shorts) |
+| `META_CHAKRA_PAGE_ID` / `_IG_USER_ID` / `_PAGE_TOKEN` | Facebook Page + Instagram professional account for Chakra Puzzle |
+| `META_KPC_*`, `META_EBS_*` | same for the other two |
+
+Variables: `AUTO_PUBLISH=true`. Add `EBS_ALLOW_SILENT=true` only if you want EpicBharatSaga to go out with captions and no voice.
+
+**YouTube quota:** one upload costs 1,600 units, and a Google Cloud project gets 10,000 units/day. Six puzzle uploads a day = 9,600 units, so put EpicBharatSaga on a second Cloud project (its own client JSON), or keep puzzles at ≤ 3 slots per channel.
+
+If a channel's Meta secrets are missing, that channel skips Meta and still uploads to YouTube.
+
+## EpicBharatSaga narration (weekly batch)
+
+IndicF5 needs a GPU, so narration is made locally or on Colab once a week and committed:
+
+```bash
+python scripts/narration/narrate.py --channel epicbharatsaga --n 1-7 --ref ref.wav --ref-text "<exact words in ref.wav>"
+git add public/audio && git commit -m "EBS narration 1-7" && git push
+```
+
+Every episode must be written in `content/epicbharatsaga/vishnu-season.ts` before its date. A missing episode **fails** instead of being made up.
+
+## Manual runs
+
+```bash
+npm run post -- --channel chakra-puzzle --n 4 --dry      # props + metadata only
+npm run post -- --channel kaali-peeli-chase --n 4        # render locally
+```
+
+Or in GitHub: Actions → Publish Channels → Run workflow, with a channel and a post number.
+
+## 28-day plan to the monetization bar
+
+The bar is **per channel**: 1,000 subscribers + 10M Shorts views in 90 days (20M for new applicants from 1 Feb 2027). Views on one channel don't count for another.
+
+1. **Days 1–7:** 3 posts/day per puzzle channel, 1/day EBS. Every evening, check YouTube Studio → Shorts → "Viewed vs swiped away".
+2. **Days 8–14:** find the formats with the best viewed % and average view duration (element, vehicle, difficulty). Bias the rotation in `chakraPuzzleForDay` / `kaaliPeeliForDay` towards them.
+3. **Days 15–28:** put the most posts on the channel that is winning (a second Cloud project gives more quota). Reply to comments in the first hour; the answer-in-comments CTA exists for this.
+4. Every Reel also goes to Instagram and Facebook. Those views don't count for YouTube, but they bring followers back to YouTube.
+
+No tool can guarantee 10M views in 28 days. This plan maximises how often and how consistently each channel posts, and gives you the data to double down on what works.

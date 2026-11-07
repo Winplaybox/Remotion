@@ -1,0 +1,9 @@
+# IndicF5 (own voice). GPU strongly recommended.
+torch
+transformers<4.50
+soundfile
+numpy
+accelerate
+git+https://github.com/ai4bharat/IndicF5.git
+# fallback
+edge-tts
