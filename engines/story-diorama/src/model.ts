@@ -4,7 +4,9 @@ import { z } from "zod";
 export const PROP_NAMES = [
   "moon", "moonPhases", "clouds", "hills", "doorway", "toran", "diya", "diyaRow", "rangoli", "rooftops",
   "lotus", "water", "tree", "temple", "sun", "noteCard", "festivalTracker", "progress", "monthCalendar",
-  "fish", "boat", "kamandalu", "growthSteps", "towing", "vedas"
+  "fish", "boat", "kamandalu", "growthSteps", "towing", "vedas",
+  "figure", "tortoise", "mountain", "churning", "kalash", "earth", "varaha", "pillar", "narasimha", "boonList",
+  "threeSteps", "greatBow", "setu", "feather", "horse"
 ] as const;
 export type PropName = (typeof PROP_NAMES)[number];
 

@@ -61,6 +61,8 @@ git add public/audio && git commit -m "EBS narration 1-7" && git push
 
 Every episode must be written in `content/epicbharatsaga/vishnu-season.ts` before its date. A missing episode **fails** instead of being made up.
 
+Episodes are numbered globally: channel day N = episode N. Seasons run back to back in `SEASONS` (Vishnu 1–10, then Shiv, Ganesh, Devi, Hanuman). The daily ops task keeps the next 7 episodes written and opens a PR; merge it and narrate each week.
+
 ## Manual runs
 
 ```bash

@@ -1,5 +1,6 @@
 import { StoryDioramaSchema, storyDioramaDuration } from "../engines/story-diorama/src/model";
-import { epicBharatSagaForDay, authoredEpisodes } from "../content/epicbharatsaga/vishnu-season";
+import { epicBharatSagaForDay, authoredEpisodes, episodeInfo, SEASONS } from "../content/epicbharatsaga/vishnu-season";
+import { CHANNELS } from "../channels/channels";
 import { ODD_ORBIT_VARIANTS, OddOrbitSchema, chakraPuzzleForDay } from "../engines/odd-orbit/src/model";
 import { TrackVehicleSchema, kaaliPeeliForDay } from "../engines/track-vehicle/src/model";
 
@@ -10,6 +11,16 @@ describe("daily channel content", () => {
       expect(() => StoryDioramaSchema.parse(p)).not.toThrow();
       expect(storyDioramaDuration(p)).toBeGreaterThan(30 * 30);
       for (const s of p.scenes) { expect(s.narration.length).toBeGreaterThan(10); expect(s.caption.length).toBeGreaterThan(10); }
+    }
+  });
+  it("whole Dashavatar season is written and seasons chain globally", () => {
+    for (let n = 1; n <= 10; n++) expect(authoredEpisodes()).toContain(n);
+    expect(episodeInfo(10)).toMatchObject({ local: 10, name: "KALKI" });
+    expect(episodeInfo(11)).toMatchObject({ local: 1, season: SEASONS[1] });
+    for (let n = 1; n <= 10; n++) {
+      const m = CHANNELS.epicbharatsaga.meta(n);
+      expect(m.title.length).toBeLessThanOrEqual(100);
+      expect(m.title).toContain(`EP ${String(n).padStart(2, "0")}`);
     }
   });
   it("unwritten episodes fail closed", () => {
