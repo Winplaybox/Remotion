@@ -26,6 +26,11 @@ export interface EngineEntry {
   seconds: [number, number];
   /** Which post numbers exist (stories are authored; puzzles are infinite). */
   days: () => number[];
+  /**
+   * Puzzle engines: first post that ends with the shared AskOutro (engines/ask-outro.ts) instead of revealing the answer.
+   * Required whenever `answer` is set. Earlier posts were published with the old ending and stay locked.
+   */
+  askFrom?: number;
   /** Not a real channel (template/demo): skipped by publishing checks. */
   demo?: boolean;
 }
@@ -37,14 +42,14 @@ export const ENGINE_CATALOG: EngineEntry[] = [
     slug: "odd-orbit", compositionId: "ChakraPuzzle", schema: OddOrbitSchema, forDay: chakraPuzzleForDay,
     durationFrames: oddOrbitDuration as (p: never) => number, voiceLines: chakraVoiceLines as (p: never) => VoiceLine[],
     answer: (n) => { const c = oddCellOf(chakraPuzzleForDay(n)); return `ROW ${c.row} · #${c.col}`; },
-    seconds: [15, 30], days: () => range(30)
+    seconds: [15, 30], days: () => range(30), askFrom: 4
   },
   {
     slug: "track-vehicle", compositionId: "KaaliPeeliChase", schema: TrackVehicleSchema, forDay: kaaliPeeliForDay,
     durationFrames: trackVehicleDuration as (p: never) => number,
     voiceLines: ((p: ReturnType<typeof kaaliPeeliForDay>) => kaaliPeeliVoiceLines(p, buildSchedule(p).answerSlot + 1)) as (p: never) => VoiceLine[],
     answer: (n) => `#${buildSchedule(kaaliPeeliForDay(n)).answerSlot + 1}`,
-    seconds: [15, 30], days: () => range(30)
+    seconds: [15, 30], days: () => range(30), askFrom: 4
   },
   {
     slug: "story-diorama", compositionId: "EpicBharatSaga", schema: StoryDioramaSchema, forDay: epicBharatSagaForDay,
@@ -53,7 +58,7 @@ export const ENGINE_CATALOG: EngineEntry[] = [
   {
     slug: "_template", compositionId: "EngineTemplate", schema: TemplateSchema, forDay: templateForDay,
     durationFrames: templateDuration as (p: never) => number, voiceLines: templateVoiceLines as (p: never) => VoiceLine[],
-    answer: (n) => templateAnswerComment(templateForDay(n)), seconds: [15, 30], days: () => range(30), demo: true
+    answer: (n) => templateAnswerComment(templateForDay(n)), seconds: [15, 30], days: () => range(30), askFrom: 1, demo: true
   },
   // @engine-builder:catalog
 ];

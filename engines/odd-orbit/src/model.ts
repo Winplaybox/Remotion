@@ -1,5 +1,6 @@
 import { random } from "remotion";
 import { z } from "zod";
+import { AskOutroSchema, askOutro, askOutroSeconds, askOutroVoice } from "../../ask-outro";
 
 /** Every orbit element the engine can draw. Add a new renderer in elements.tsx and list it here. */
 export const ORBIT_ELEMENTS = ["chakra", "diya", "ring", "planet", "atom", "binary", "comet", "clock", "spinner", "gear", "glyph"] as const;
@@ -24,6 +25,8 @@ export const OddOrbitSchema = z.object({
   element: z.enum(ORBIT_ELEMENTS),
   /** "Answer in the next video" format: no reveal, ask viewers to comment, show the previous post's answer first. */
   askMode: z.boolean().default(false),
+  /** Shared ask ending (engines/ask-outro.ts). Present in ask mode; replaces the reveal. */
+  askOutro: AskOutroSchema.optional(),
   /** Seconds of the opening "PICHHLE PUZZLE KA JAWAB" card (0 = none). */
   introSeconds: z.number().min(0).default(0),
   /** Previous post's answer text, e.g. "ROW 5 · #4". */
@@ -149,20 +152,28 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     askLine: "COMMENT MEIN BATAIYE 👇",
     askSub: "Dekhte hain kitne log sahi jawab de paate hain!"
   };
-  return d >= ASK_FROM ? { ...base, ...askFields(d) } : base;
+  return d >= ASK_FROM ? { ...base, ...askFields(d, base) } : base;
 }
 
 /** From this post on, the answer is revealed in the NEXT video (more comments + follows). Earlier posts are already published. */
 export const ASK_FROM = 4;
-function askFields(d: number): Partial<OddOrbit> {
+function askFields(d: number, base: OddOrbit): Partial<OddOrbit> {
   const prev = chakraPuzzleForDay(d - 1);
   const { row, col } = oddCellOf(prev);
+  const rows = Math.ceil(base.count / base.cols);
+  const outro = askOutro({
+    question: base.element === "glyph" ? `${base.glyphs[1]} KAHAN CHHUPA HAI?` : "ALAG WALA KAHAN HAI?",
+    options: [`ROW 1-${rows}`, `NUMBER 1-${base.cols}`],
+    voiceQuestion: "आपका जवाब क्या है? रो और नंबर बताइए।",
+    handle: "@ChakraPuzzle"
+  });
   return {
     askMode: true,
+    askOutro: outro,
     introSeconds: 2.6,
     playSeconds: 11,
     prevAnswer: `ROW ${row} · #${col}`,
-    revealSeconds: 5.2,
+    revealSeconds: askOutroSeconds(outro),
     footer: "COMMENT MEIN BATAIYE: ROW + NUMBER 👇",
     endCard: { show: false, title: "", line: "", button: "", seconds: 0 }
   };
@@ -212,8 +223,7 @@ export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at:
       ...(o > 0 && p.prevAnswer ? [{ file: "prev.wav", at: 0.2, text: `पिछले पज़ल का जवाब: ${prev}।` }] : []),
       { file: "hook.wav", at: o + 0.3, text: hook },
       { file: "hurry.wav", at: o + Math.max(3, p.playSeconds - 3.2), text: "बस तीन सेकंड!" },
-      { file: "ask.wav", at: o + p.playSeconds + 0.15, text: "आपका जवाब क्या है? कमेंट में बताइए! देखते हैं कितने लोग सही जवाब दे पाते हैं।" },
-      ...(p.endCard.show ? [{ file: "outro.wav", at: o + p.playSeconds + p.revealSeconds + 0.2, text: "सही जवाब अगली वीडियो में बताएँगे। फॉलो करो!" }] : [])
+      ...(p.askOutro ? askOutroVoice(p.askOutro, o + p.playSeconds) : [])
     ];
   }
   return [

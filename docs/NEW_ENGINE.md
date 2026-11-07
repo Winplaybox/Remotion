@@ -43,6 +43,30 @@ This creates `engines/bubble-pop/src/{model.ts,BubblePopComposition.tsx}` from `
 | Channel | `channels/channels.ts` | `resolve`, `meta` (Hinglish title/description/tags/caption), `voice`, `answer`, slots, start date. |
 | Studio | `apps/studio/src/remotion/Root.tsx` | Register a `<Composition>` with `calculateMetadata` for the duration. |
 
+## 1b. The ending every puzzle engine uses — AskOutro (required, tested)
+
+Puzzles never reveal the answer in the same video and never have a separate end card. They end with the shared
+**AskOutro** (`engines/ask-outro.ts` + `packages/visuals/src/AskOutro.tsx`), modelled on what works on IG/YT Shorts:
+
+| Phase | Time | On screen (scene stays bright underneath) | Voice |
+|---|---|---|---|
+| Prev answer | `introSeconds` (2.6s, post 2+) | `PrevAnswerCard`: "PICHHLE PUZZLE KA JAWAB" | `prev.wav` |
+| Puzzle | `playSeconds` | your engine | hook / hurry |
+| Question | `questionSeconds` (4s) | top banner: question + answer-format chips (`#1 #2 #3…`, `ROW 1-8 · NUMBER 1-7`) | `ask_q.wav` |
+| CTA | `ctaSeconds` (5s) | yellow banner "APNA JAWAB COMMENT MEIN LIKHO! 👇 / Sahi jawab dekhne ke liye FOLLOW karo!" + red FOLLOW button a cursor taps -> ✓ FOLLOWING + handle | `ask_cta.wav` |
+
+How to use it in an engine:
+1. Schema: `askOutro: AskOutroSchema` (or `.optional()` if older posts were published without it).
+2. `<x>ForDay`: `askOutro: askOutro({ question, options, voiceQuestion, handle })`; add `askOutroSeconds(outro)` to the duration.
+3. Voice: `...askOutroVoice(p.askOutro, outroStartSeconds)` as the LAST lines.
+4. Sound: `...askOutroSfx(p.askOutro, outroStartSeconds)` in the SoundBed sfx.
+5. Composition: render `<AskOutro from={outroStartFrame} a={p.askOutro} accent={…} tapAt={followTapAt(p.askOutro)} />` as the last layer (before `PrevAnswerCard`).
+6. Catalog: `askFrom` (1 for a new channel). Channel: `answerInNextFrom` = same number, and use `ASK_META` in description/caption.
+
+`tests/engine-catalog.test.ts` fails if a puzzle engine has no `askFrom`, or if any post from `askFrom` on is missing the outro,
+still reveals the answer, shows an end card, or does not end on `ask_cta.wav`. The answer comment is posted on post n
+automatically once post n+1 is public (`scripts/publish/answer-comments.ts`); pin it in YouTube Studio.
+
 ## 2. Visual style (what makes these videos look "ours")
 
 - **Canvas** 1080×1920, 30 fps, dark gradient background (puzzles) or warm paper-cutout diorama (stories).

@@ -2,6 +2,7 @@ import { chakraPuzzleForDay, chakraVoiceLines, oddCellOf } from "../engines/odd-
 import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle/src/model";
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
+import { ASK_META } from "../engines/ask-outro";
 // @engine-builder:imports
 
 export interface PostMeta { title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string }
@@ -60,9 +61,11 @@ export const CHANNELS = {
       const p = chakraPuzzleForDay(n);
       return {
         title: `${p.title.charAt(0)}${p.title.slice(1).toLowerCase()} 👀 Puzzle #${n} (${p.difficulty}) #shorts`,
-        description: `${p.subtitle}\nPuzzle #${n} · ${p.difficulty.toUpperCase()} · jawab end mein.\nReveal se pehle ROW + NUMBER comment karo!\n\nRoz naya puzzle — subscribe @ChakraPuzzle\n#puzzle #brainteaser #oddoneout #iqtest #dimaagkapuzzle #shorts`,
+        description: n >= 4
+          ? `${p.subtitle}\nPuzzle #${n} · ${p.difficulty.toUpperCase()} · ROW + NUMBER\n${ASK_META.description}\n\nRoz naya puzzle — subscribe @ChakraPuzzle\n#puzzle #brainteaser #oddoneout #iqtest #dimaagkapuzzle #shorts`
+          : `${p.subtitle}\nPuzzle #${n} · ${p.difficulty.toUpperCase()} · jawab end mein.\nReveal se pehle ROW + NUMBER comment karo!\n\nRoz naya puzzle — subscribe @ChakraPuzzle\n#puzzle #brainteaser #oddoneout #iqtest #dimaagkapuzzle #shorts`,
         tags: [...PUZZLE_TAGS, "find the odd one", "spinning puzzle", p.element],
-        caption: `Puzzle #${n} — ${p.subtitle} ROW + NUMBER comment karo 👇\n#puzzle #brainteaser #oddoneout #iqtest #reels`,
+        caption: n >= 4 ? `Puzzle #${n} — ${p.subtitle}\n${ASK_META.caption}\n#puzzle #brainteaser #oddoneout #iqtest #reels` : `Puzzle #${n} — ${p.subtitle} ROW + NUMBER comment karo 👇\n#puzzle #brainteaser #oddoneout #iqtest #reels`,
         language: "hi",
         categoryId: "20"
       };
@@ -85,9 +88,11 @@ export const CHANNELS = {
       const p = kaaliPeeliForDay(n);
       return {
         title: `${p.label.charAt(0)}${p.label.slice(1).toLowerCase()} kahan hai? 🚕 Level ${n} | Nazar rakho! #shorts`,
-        description: `${p.label} pe nazar rakho — sab shuffle honge!\nLevel ${n} · jawab end mein. Reveal se pehle number comment karo 👇\n\nRoz naya level — subscribe @KaaliPeeliChase\n#puzzle #trackthecar #shellgame #brainteaser #shorts`,
+        description: n >= 4
+          ? `${p.label} pe nazar rakho — sab shuffle honge!\nLevel ${n} · number batao\n${ASK_META.description}\n\nRoz naya level — subscribe @KaaliPeeliChase\n#puzzle #trackthecar #shellgame #brainteaser #shorts`
+          : `${p.label} pe nazar rakho — sab shuffle honge!\nLevel ${n} · jawab end mein. Reveal se pehle number comment karo 👇\n\nRoz naya level — subscribe @KaaliPeeliChase\n#puzzle #trackthecar #shellgame #brainteaser #shorts`,
         tags: [...PUZZLE_TAGS, "track the car", "shell game", "follow the taxi", "eye test", p.vehicle],
-        caption: `Level ${n}: ${p.label.toLowerCase()} kahan hai? Number comment karo 👇\n#puzzle #trackthecar #brainteaser #reels`,
+        caption: n >= 4 ? `Level ${n}: ${p.label.toLowerCase()} kahan hai?\n${ASK_META.caption}\n#puzzle #trackthecar #brainteaser #reels` : `Level ${n}: ${p.label.toLowerCase()} kahan hai? Number comment karo 👇\n#puzzle #trackthecar #brainteaser #reels`,
         language: "hi",
         categoryId: "20"
       };
