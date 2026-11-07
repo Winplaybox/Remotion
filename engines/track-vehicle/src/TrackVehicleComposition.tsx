@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, interpolateColors, random, spring, useCurrentFrame, useVideoConfig, Easing } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
+import { VoiceCues } from "@visuals/VoiceCues";
 import { FPS, PHASE, type TrackVehicle } from "./model";
 import { buildSchedule, carPose } from "./schedule";
 import { Vehicle, VehicleDefs, VEHICLE_SIZE } from "./vehicles";
@@ -123,6 +124,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
 
   return (
     <AbsoluteFill style={{ background: "#0B0C0F", overflow: "hidden" }}>
+      <VoiceCues cues={p.voice} />
       <AbsoluteFill style={{ filter: endP > 0 ? `blur(${endP * 14}px) brightness(${1 - endP * 0.45})` : undefined }}>
         <Road laneXs={g.laneXs} frame={frame} seed={p.seed} />
         <svg width={W} height={H} style={{ position: "absolute", inset: 0 }}>

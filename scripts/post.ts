@@ -13,7 +13,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId } from "../channels/channels";
+import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId, type VoiceLine } from "../channels/channels";
 import { uploadYouTube } from "./publish/youtube";
 import { publishMeta } from "./publish/meta";
 
@@ -55,6 +55,25 @@ async function main() {
     console.log(`[narration] ${have}/${story.scenes.length} WAVs in ${audioDir}`);
     if (flag("require-narration") && have < story.scenes.length) throw new Error(`Narration missing for ${tag}; run scripts/narration/narrate.py first`);
   }
+  let voiced = cfg.narrated;
+  const voiceOf = (cfg as { voice?: (n: number) => VoiceLine[] }).voice;
+  if (voiceOf) {
+    const lines = voiceOf(n);
+    const audioDir = path.join("public", "audio", channel, tag);
+    fs.writeFileSync(path.join(outDir, `${tag}.narration.json`), JSON.stringify(lines.map(({ file, text }) => ({ file, text })), null, 2));
+    if (flag("auto-narrate")) {
+      const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
+      try {
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+      } catch (e) {
+        console.warn(`[voice] Edge TTS failed, posting without voice: ${(e as Error).message}`);
+      }
+    }
+    const cues = lines.filter((l) => fs.existsSync(path.join(audioDir, l.file))).map((l) => ({ src: `audio/${channel}/${tag}/${l.file}`, at: l.at }));
+    (props as { voice?: unknown }).voice = cues;
+    voiced = cues.length > 0;
+    console.log(`[voice] ${cues.length}/${lines.length} clips`);
+  }
   const meta = cfg.meta(n);
   const propsFile = path.join(outDir, `${tag}.json`);
   fs.writeFileSync(propsFile, JSON.stringify(props, null, 2));
@@ -65,7 +84,7 @@ async function main() {
   const video = path.join(outDir, `${tag}.mp4`);
   if (!fs.existsSync(video) || flag("force")) {
     const extra = process.env.REMOTION_CHROME ? [`--browser-executable=${process.env.REMOTION_CHROME}`] : [];
-    execFileSync("npx", ["remotion", "render", "apps/studio/src/remotion/index.ts", cfg.composition, video, `--props=${propsFile}`, ...(cfg.narrated ? [] : ["--muted"]), ...extra], { stdio: "inherit", shell: process.platform === "win32" });
+    execFileSync("npx", ["remotion", "render", "apps/studio/src/remotion/index.ts", cfg.composition, video, `--props=${propsFile}`, ...(voiced ? [] : ["--muted"]), ...extra], { stdio: "inherit", shell: process.platform === "win32" });
   }
   console.log(`[${cfg.name}] video ${video}`);
 
