@@ -11,6 +11,7 @@ import crypto from "node:crypto";
 import http from "node:http";
 import { handle } from "./commands.mjs";
 import { createStore } from "./store.mjs";
+import { SOCIAL_CHANNELS, looksLike, metaAuthUrl, metaCheck, metaConnect, pinterestAccount, pinterestAuthUrl, pinterestBoards, pinterestCreateBoard, pinterestToken, readState, seal, signState, tokenKey, unseal, workerSig } from "./social-connect.mjs";
 import { DASHBOARD_CSP, actionToCommand, dashboardShell, detailCode, loginPage, parseListQuery, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
 
 const env = process.env;
@@ -117,6 +118,10 @@ async function adminRoute(req, res, url) {
     if (!isAdmin) return html(res, 200, loginPage(botUsername));
     return html(res, 200, dashboardShell(me), { "content-security-policy": DASHBOARD_CSP, "referrer-policy": "no-referrer" });
   }
+  if (url.pathname.startsWith("/admin/connect/") || url.pathname === "/admin/api/social") {
+    if (!isAdmin) return url.pathname.startsWith("/admin/api/") ? json(res, 401, { error: "login required" }) : html(res, 302, "", { location: "/admin" });
+    return socialRoute(req, res, url);
+  }
   if (req.method === "GET" && url.pathname.startsWith("/admin/api/")) {
     if (!isAdmin) return json(res, 401, { error: "login required" });
     const part = url.pathname.slice("/admin/api/".length).split("/");
@@ -163,9 +168,133 @@ async function adminRoute(req, res, url) {
   return html(res, 404, "not found");
 }
 
+// ---------------- social accounts (Connect buttons in the dashboard) ----------------
+const SOCIAL_KEY = tokenKey(env.SUPABASE_SERVICE_ROLE_KEY || `memory:${TOKEN}`);
+const STATE_KEY = crypto.createHash("sha256").update(`oauth-state:${TOKEN}`).digest();
+const baseUrl = (req) => (PUBLIC_URL || `https://${req.headers.host}`).replace(/\/$/, "");
+const redirectFor = (req, platform) => `${baseUrl(req)}/admin/connect/${platform}/callback`;
+const apps = { meta: { id: env.META_APP_ID, secret: env.META_APP_SECRET }, pinterest: { id: env.PINTEREST_APP_ID, secret: env.PINTEREST_APP_SECRET } };
+const chan = (id) => SOCIAL_CHANNELS.find((c) => c.id === id);
+const back = (res, msg) => html(res, 302, "", { location: `/admin#social?msg=${encodeURIComponent(msg)}` });
+
+async function saveMetaPage(channel, page) {
+  await store.socialSave(channel, "meta", { account_name: page.name, page_id: page.id, page_name: page.name, ig_user_id: page.ig_id, ig_username: page.ig_username, token_enc: seal(page.token, SOCIAL_KEY), expires_at: null, options: {} });
+}
+
+async function socialRoute(req, res, url) {
+  const m = /^\/admin\/connect\/(meta|pinterest)(\/callback)?$/.exec(url.pathname);
+  if (m && req.method === "GET") {
+    const platform = m[1], app = apps[platform];
+    if (!app.id || !app.secret) return back(res, `${platform === "meta" ? "META" : "PINTEREST"}_APP_ID / _APP_SECRET Render env mein nahi hai`);
+    if (!m[2]) { // start
+      const channel = chan(url.searchParams.get("channel"));
+      if (!channel) return back(res, "unknown channel");
+      const state = signState({ p: platform, c: channel.id, n: crypto.randomBytes(9).toString("base64url") }, STATE_KEY);
+      return html(res, 302, "", { location: (platform === "meta" ? metaAuthUrl : pinterestAuthUrl)({ appId: app.id, redirect: redirectFor(req, platform), state }) });
+    }
+    const st = readState(url.searchParams.get("state"), STATE_KEY);
+    if (!st || st.p !== platform) return back(res, "Login link expire ho gaya, dobara Connect dabao");
+    if (url.searchParams.get("error")) return back(res, `${platform}: ${url.searchParams.get("error_description") || url.searchParams.get("error")}`);
+    const code = url.searchParams.get("code");
+    const channel = chan(st.c);
+    try {
+      if (platform === "meta") {
+        const r = await metaConnect({ appId: app.id, appSecret: app.secret, redirect: redirectFor(req, "meta"), code });
+        if (!r.pages.length) return back(res, "Is Facebook login mein koi Page nahi mila (Page admin hona chahiye)");
+        await store.oauthPut(st.n, "meta", channel.id, seal(JSON.stringify(r.pages), SOCIAL_KEY));
+        const options = { nonce: st.n, user: r.user, pages: r.pages.map(({ token, ...p }) => p) };
+        // Auto-map every channel whose Page/Instagram matches its name (one login can cover all channels).
+        const mapped = [];
+        for (const c of SOCIAL_CHANNELS) {
+          const cur = await store.socialGet(c.id, "meta");
+          const page = r.pages.find((p) => looksLike(p.name, c.name) || looksLike(p.ig_username, c.handle));
+          if (page && (c.id === channel.id || !cur?.token_enc)) { await saveMetaPage(c.id, page); mapped.push(c.name); }
+        }
+        if (!mapped.includes(channel.name)) await store.socialSave(channel.id, "meta", { options });
+        return back(res, mapped.length ? `✓ Connected: ${mapped.join(", ")}${mapped.includes(channel.name) ? "" : ` · ${channel.name} ke liye Page chuno`}` : `${channel.name} ke liye Page chuno`);
+      }
+      const t = await pinterestToken({ appId: app.id, appSecret: app.secret, params: { grant_type: "authorization_code", code, redirect_uri: redirectFor(req, "pinterest") } });
+      const acct = await pinterestAccount(t.access);
+      const boards = await pinterestBoards(t.access);
+      const board = boards.find((b) => looksLike(b.name, channel.name)) ?? (boards.length === 1 ? boards[0] : null);
+      await store.socialSave(channel.id, "pinterest", { account_name: acct.username ?? "", token_enc: seal(t.access, SOCIAL_KEY), refresh_enc: seal(t.refresh, SOCIAL_KEY), expires_at: t.expiresAt,
+        board_id: board?.id ?? "", board_name: board?.name ?? "", options: { boards } });
+      return back(res, `✓ Pinterest @${acct.username ?? ""} connected${board ? ` · board "${board.name}"` : " · board chuno ya banao"}`);
+    } catch (e) {
+      console.error(`[social] ${platform} connect: ${e.message}`);
+      return back(res, `${platform} connect fail: ${e.message}`);
+    }
+  }
+  if (url.pathname === "/admin/api/social" && req.method === "GET") {
+    return json(res, 200, { channels: SOCIAL_CHANNELS, accounts: await store.socialList(), apps: { meta: !!(apps.meta.id && apps.meta.secret), pinterest: !!(apps.pinterest.id && apps.pinterest.secret) },
+      shared: !!env.SUPABASE_SERVICE_ROLE_KEY, redirects: { meta: redirectFor(req, "meta"), pinterest: redirectFor(req, "pinterest") } });
+  }
+  if (url.pathname === "/admin/api/social" && req.method === "POST") {
+    const origin = req.headers.origin;
+    if (origin && origin !== `https://${req.headers.host}` && origin !== `http://${req.headers.host}` && !(PUBLIC_URL && origin === new URL(PUBLIC_URL).origin)) return json(res, 403, { error: "bad origin" });
+    let body = ""; for await (const c of req) { body += c; if (body.length > 10_000) return json(res, 413, { error: "too large" }); }
+    let a; try { a = JSON.parse(body); } catch { return json(res, 400, { error: "bad json" }); }
+    const channel = chan(a.channel);
+    if (!channel) return json(res, 400, { error: "unknown channel" });
+    try {
+      if (a.op === "pick-page") {
+        const pend = await store.oauthGet(String(a.nonce || ""));
+        if (!pend) return json(res, 410, { error: "Page list expire ho gayi, dobara Connect dabao" });
+        const page = JSON.parse(unseal(pend.data_enc, SOCIAL_KEY)).find((p) => p.id === String(a.page_id));
+        if (!page) return json(res, 400, { error: "page not found" });
+        await saveMetaPage(channel.id, page);
+        return json(res, 200, { ok: true, msg: `✓ ${channel.name} → ${page.name}${page.ig_username ? ` + @${page.ig_username}` : " (Instagram linked nahi hai!)"}` });
+      }
+      if (a.op === "pick-board" || a.op === "create-board") {
+        const row = await store.socialGet(channel.id, "pinterest");
+        if (!row?.token_enc) return json(res, 400, { error: "Pehle Pinterest connect karo" });
+        let board = (row.options?.boards ?? []).find((b) => b.id === String(a.board_id));
+        if (a.op === "create-board") {
+          const b = await pinterestCreateBoard(unseal(row.token_enc, SOCIAL_KEY), `${channel.name} — Daily`, `Roz naya video ▶ YouTube ${channel.handle}`);
+          board = { id: b.id, name: b.name };
+        }
+        if (!board) return json(res, 400, { error: "board not found" });
+        await store.socialSave(channel.id, "pinterest", { board_id: board.id, board_name: board.name });
+        return json(res, 200, { ok: true, msg: `✓ Board "${board.name}"` });
+      }
+      if (a.op === "check") {
+        const row = await store.socialGet(channel.id, a.platform === "pinterest" ? "pinterest" : "meta");
+        if (!row?.token_enc) return json(res, 400, { error: "not connected" });
+        if (row.platform === "meta") { const p = await metaCheck(row.page_id, unseal(row.token_enc, SOCIAL_KEY)); return json(res, 200, { ok: true, msg: `✓ Facebook "${p.name}"${p.instagram_business_account?.username ? ` + Instagram @${p.instagram_business_account.username}` : " — Instagram linked nahi"}` }); }
+        const u = await pinterestAccount(unseal(row.token_enc, SOCIAL_KEY));
+        return json(res, 200, { ok: true, msg: `✓ Pinterest @${u.username}` });
+      }
+      if (a.op === "disconnect") {
+        await store.socialDelete(channel.id, a.platform === "pinterest" ? "pinterest" : "meta");
+        return json(res, 200, { ok: true, msg: "Disconnected" });
+      }
+    } catch (e) { return json(res, 502, { error: e.message }); }
+    return json(res, 400, { error: "unknown op" });
+  }
+  return html(res, 404, "not found");
+}
+
+/** Workers ask the server to refresh a channel's Pinterest token (only the server has the app secret). */
+async function internalRoute(req, res) {
+  let body = ""; for await (const c of req) { body += c; if (body.length > 2000) return json(res, 413, {}); }
+  let a; try { a = JSON.parse(body); } catch { return json(res, 400, {}); }
+  const sk = env.SUPABASE_SERVICE_ROLE_KEY, ts = Number(a.ts);
+  if (!sk || !chan(a.channel) || !(Math.abs(Date.now() - ts) < 5 * 60_000)) return json(res, 403, { error: "denied" });
+  const want = workerSig(sk, a.channel, ts);
+  if (typeof a.sig !== "string" || a.sig.length !== want.length || !crypto.timingSafeEqual(Buffer.from(a.sig), Buffer.from(want))) return json(res, 403, { error: "denied" });
+  const row = await store.socialGet(a.channel, "pinterest");
+  if (!row?.refresh_enc || !apps.pinterest.id) return json(res, 404, { error: "not connected" });
+  try {
+    const t = await pinterestToken({ appId: apps.pinterest.id, appSecret: apps.pinterest.secret, params: { grant_type: "refresh_token", refresh_token: unseal(row.refresh_enc, SOCIAL_KEY) } });
+    await store.socialSave(a.channel, "pinterest", { token_enc: seal(t.access, SOCIAL_KEY), expires_at: t.expiresAt, ...(t.refresh ? { refresh_enc: seal(t.refresh, SOCIAL_KEY) } : {}) });
+    return json(res, 200, { ok: true, expires_at: t.expiresAt });
+  } catch (e) { return json(res, 502, { error: e.message }); }
+}
+
 http.createServer((req, res) => {
   const url = new URL(req.url, "http://local");
   if (url.pathname === "/admin" || url.pathname.startsWith("/admin/")) { adminRoute(req, res, url).catch((e) => { console.error(e); html(res, 500, "error"); }); return; }
+  if (req.method === "POST" && url.pathname === "/internal/pinterest-refresh") { internalRoute(req, res).catch((e) => { console.error(e); json(res, 500, {}); }); return; }
   if (req.method === "GET") { res.writeHead(200).end("ok"); return; }
   if (req.method !== "POST" || req.url !== `/tg/${SECRET}` || req.headers["x-telegram-bot-api-secret-token"] !== SECRET) { res.writeHead(404).end(); return; }
   let body = "";

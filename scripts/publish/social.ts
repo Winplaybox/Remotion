@@ -13,6 +13,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { ChannelConfig, PostMeta } from "../../channels/channels";
 import { facebook, hostVideo, instagram } from "./meta";
+import { metaCreds, pinterestCreds } from "./social-accounts";
 
 export type Platform = "instagram" | "facebook" | "pinterest";
 export interface SocialResult { ok: boolean; id?: string; error?: string; at: string }
@@ -68,7 +69,7 @@ export function makePinImage(video: string, out: string): string {
   return out;
 }
 
-async function pinterestToken(prefix: string): Promise<string | null> {
+export async function pinterestToken(prefix: string): Promise<string | null> {
   const refresh = process.env[`${prefix}_REFRESH_TOKEN`], id = process.env.PINTEREST_APP_ID, secret = process.env.PINTEREST_APP_SECRET;
   if (!refresh || !id || !secret) return null;
   const r = await fetch("https://api.pinterest.com/v5/oauth/token", {
@@ -108,32 +109,34 @@ export interface FanoutArgs {
 /** Posts the platforms in order, each `gap` minutes after the previous (starting `gap` after YouTube goes public). */
 export async function fanout({ cfg, meta, video, youtubeId, publishAt, key, done, record, gapMinutes = Number(process.env.SOCIAL_GAP_MIN || 5) }: FanoutArgs): Promise<number> {
   const copy = socialCopy(cfg, meta, youtubeId);
-  const m = cfg.metaSecretPrefix, p = cfg.pinterestSecretPrefix;
-  const token = process.env[`${m}_PAGE_TOKEN`];
+  const channel = key.split("/")[0]!;
+  const m = await metaCreds(channel, cfg);
+  const pin = await pinterestCreds(channel, cfg, pinterestToken);
   const ready: Record<Platform, boolean> = {
-    instagram: !!(token && process.env[`${m}_IG_USER_ID`]),
-    facebook: !!(token && process.env[`${m}_PAGE_ID`]),
-    pinterest: !!(process.env[`${p}_REFRESH_TOKEN`] && process.env[`${p}_BOARD_ID`] && process.env.PINTEREST_APP_ID && process.env.PINTEREST_APP_SECRET)
+    instagram: !!(m.pageToken && m.igUserId),
+    facebook: !!(m.pageToken && m.pageId),
+    pinterest: !!(pin.accessToken && pin.boardId)
   };
+  console.log(`[social] accounts: Meta ${m.source}${m.igUserId ? " +IG" : ""}${m.pageId ? " +FB" : ""} · Pinterest ${pin.source}${pin.boardId ? "" : pin.accessToken ? " (no board)" : ""}`);
   const live = Math.max(Date.parse(publishAt), Date.now() - gapMinutes * 60_000);
   let failed = 0;
   let videoUrl: string | null = null;
   for (const [i, platform] of PLATFORM_ORDER.entries()) {
     if (done[platform]) { console.log(`[${platform}] already ${done[platform]!.ok ? "posted" : "FAILED earlier — check by hand"} for this slot, skipping`); continue; }
-    if (!ready[platform]) { console.log(`[${platform}] secrets not set for ${cfg.name} — skipped`); continue; }
+    if (!ready[platform]) { console.log(`[${platform}] not connected for ${cfg.name} (dashboard → Social) — skipped`); continue; }
     await sleepUntil(live + (i + 1) * gapMinutes * 60_000, platform);
     let result: SocialResult;
     try {
       let id: string;
       if (platform === "instagram") {
         videoUrl ??= await hostVideo(video, key);
-        id = await instagram(videoUrl, copy.instagram, token!, process.env[`${m}_IG_USER_ID`]!);
+        id = await instagram(videoUrl, copy.instagram, m.pageToken!, m.igUserId!);
       } else if (platform === "facebook") {
         const teaser = makeTeaser(video, path.join(path.dirname(video), `${path.basename(video, ".mp4")}.teaser.mp4`));
-        id = await facebook(await hostVideo(teaser, `${key}-teaser`), copy.facebook, token!, process.env[`${m}_PAGE_ID`]!);
+        id = await facebook(await hostVideo(teaser, `${key}-teaser`), copy.facebook, m.pageToken!, m.pageId!);
       } else {
         const img = makePinImage(video, path.join(path.dirname(video), `${path.basename(video, ".mp4")}.pin.jpg`));
-        id = await pinterestPin((await pinterestToken(p))!, process.env[`${p}_BOARD_ID`]!, img, copy.pinterest);
+        id = await pinterestPin(pin.accessToken!, pin.boardId!, img, copy.pinterest);
       }
       result = { ok: true, id, at: new Date().toISOString() };
       console.log(`[${platform}] published ${id}`);

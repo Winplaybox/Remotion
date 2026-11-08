@@ -16,7 +16,24 @@ back to YouTube to watch and subscribe.
 - Results per platform are stored in the ledger (`videobot.channel_posts.social`). A platform that succeeded **or failed**
   for a slot is never posted again automatically, so there are no duplicate Reels. A failure needs a manual check.
 
-## Secrets: one set per channel (each channel has its own accounts)
+## Recommended: connect from the dashboard (no token copy-paste)
+
+Dashboard → **Social** tab → per channel **Connect Instagram + Facebook** / **Connect Pinterest** → log in → Allow.
+Tokens are stored AES-256-GCM encrypted in `videobot.social_accounts` (key derived from the service-role key) and the
+publish job reads them from there. One Facebook login brings all Pages; a Page whose name matches a channel is mapped
+automatically, otherwise pick it from the list. Pinterest: one account per channel, so log in to pinterest.com with that
+channel's account before pressing Connect; then pick or create the board.
+
+One-time app setup (Render env, never GitHub):
+| Render env | Where |
+|---|---|
+| `META_APP_ID`, `META_APP_SECRET` | developers.facebook.com → app (Business) → Settings → Basic. Add product *Facebook Login for Business*; **Valid OAuth Redirect URI** = `https://<bot>/admin/connect/meta/callback`. In Development mode it works for app admins/testers without App Review. |
+| `PINTEREST_APP_ID`, `PINTEREST_APP_SECRET` | developers.pinterest.com → app → redirect URI `https://<bot>/admin/connect/pinterest/callback`; request **Standard access** |
+
+Pinterest access tokens (~30 days) are refreshed by the bot server when a publish job needs one (`/internal/pinterest-refresh`,
+HMAC-signed with the service-role key). The GitHub secrets below still work and take precedence (manual override).
+
+## Alternative: secrets per channel (each channel has its own accounts)
 
 | Channel | Instagram + Facebook (Meta) | Pinterest |
 |---|---|---|

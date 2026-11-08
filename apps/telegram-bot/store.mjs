@@ -43,6 +43,12 @@ export function supabaseStore(url, key) {
     adminIdea: (code) => rpc("videobot_admin_idea", { p_code: code }),
     adminOverview: () => rpc("videobot_admin_overview", {}),
     /** Short-lived link to a private file in the videobot bucket (dashboard previews). */
+    socialSave: (channel, platform, fields) => rpc("videobot_social_save", { p_channel: channel, p_platform: platform, p_fields: fields }),
+    socialGet: (channel, platform) => rpc("videobot_social_get", { p_channel: channel, p_platform: platform }),
+    socialList: () => rpc("videobot_social_list", {}),
+    socialDelete: (channel, platform) => rpc("videobot_social_delete", { p_channel: channel, p_platform: platform }),
+    oauthPut: (nonce, platform, channel, dataEnc) => rpc("videobot_oauth_put", { p_nonce: nonce, p_platform: platform, p_channel: channel, p_data_enc: dataEnc }),
+    oauthGet: (nonce) => rpc("videobot_oauth_get", { p_nonce: nonce }),
     async signedUrl(path, seconds = 600) {
       const base = url.replace(/\/$/, "");
       const res = await fetch(`${base}/storage/v1/object/sign/videobot/${path.split("/").map(encodeURIComponent).join("/")}`, {
@@ -66,7 +72,7 @@ function similarity(a, b) {
 }
 
 export function memoryStore() {
-  const updates = new Set(), users = new Map(), prefs = new Map(), ideas = [], jobs = [], pubs = [];
+  const updates = new Set(), users = new Map(), prefs = new Map(), ideas = [], jobs = [], pubs = [], social = new Map(), oauth = new Map();
   const OPEN = (p) => !["REJECTED", "CANCELLED", "FAILED"].includes(p.status);
   const pubJson = (p) => { const j = jobs.find((x) => x.id === p.job_id); return { ...p, job: j ? { code: j.code, kind: j.kind, tg_id: j.tg_id, chat_id: j.chat_id, output: j.output } : null }; };
   const now = () => new Date().toISOString();
@@ -183,6 +189,17 @@ export function memoryStore() {
     async adminIdea(code) { const i = findIdea(code); return i ? { ...ideaJson(i), events: i.events, jobs: jobs.filter((j) => j.input?.ideaCode === code).map((j) => ({ code: j.code, status: j.status, created_at: j.created_at })) } : null; },
     async adminOverview() { return { ...(await this.stats()), jobs_24h: await this.jobsLast24h(), completed_24h: 0, pubs_pending: pubs.filter((p) => p.status === "PENDING_APPROVAL").length, pubs_scheduled: pubs.filter((p) => p.status === "SCHEDULED").length, pubs_published: pubs.filter((p) => p.status === "PUBLISHED").length, avg_minutes: null, daily: [], by_kind: {}, top_errors: [] }; },
     async signedUrl() { return null; },
+    async socialSave(channel, platform, f) {
+      const k = `${channel}|${platform}`;
+      const cur = social.get(k) ?? { channel, platform, account_name: "", page_id: "", page_name: "", ig_user_id: "", ig_username: "", board_id: "", board_name: "", token_enc: "", refresh_enc: "", expires_at: null, options: {}, connected_at: now() };
+      social.set(k, { ...cur, ...f, ...(f.token_enc ? { connected_at: now() } : {}), updated_at: now() });
+      return { channel, platform };
+    },
+    async socialGet(channel, platform) { return social.get(`${channel}|${platform}`) ?? null; },
+    async socialList() { return [...social.values()].map(({ token_enc, refresh_enc, ...r }) => ({ ...r, has_token: !!token_enc })); },
+    async socialDelete(channel, platform) { return social.delete(`${channel}|${platform}`) ? 1 : 0; },
+    async oauthPut(nonce, platform, channel, data_enc) { oauth.set(nonce, { nonce, platform, channel, data_enc }); },
+    async oauthGet(nonce) { return oauth.get(nonce) ?? null; },
     async stats() {
       const active = jobs.filter((j) => !FINAL.has(j.status)).length;
       return { users: users.size, active_users_7d: users.size, ideas: ideas.length, ideas_pending: ideas.filter((i) => i.status === "PENDING_REVIEW").length, ideas_approved: ideas.filter((i) => i.status === "APPROVED").length, jobs_active: active, jobs_completed: jobs.filter((j) => j.status === "COMPLETED").length, jobs_failed: jobs.filter((j) => j.status === "FAILED").length };
