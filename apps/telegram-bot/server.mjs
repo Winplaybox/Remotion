@@ -171,7 +171,10 @@ async function adminRoute(req, res, url) {
 // ---------------- social accounts (Connect buttons in the dashboard) ----------------
 const SOCIAL_KEY = tokenKey(env.SUPABASE_SERVICE_ROLE_KEY || `memory:${TOKEN}`);
 const STATE_KEY = crypto.createHash("sha256").update(`oauth-state:${TOKEN}`).digest();
-const baseUrl = (req) => (PUBLIC_URL || `https://${req.headers.host}`).replace(/\/$/, "");
+// OAuth goes back to the host the admin is using (custom domain bot.winplaybox.in or the onrender.com one),
+// so the login cookie matches. Only known hosts are accepted; anything else falls back to PUBLIC_URL.
+const OAUTH_HOSTS = new Set(["bot.winplaybox.in", "telegram-video-bot-quth.onrender.com", ...(PUBLIC_URL ? [new URL(PUBLIC_URL).host] : []), ...String(env.EXTRA_HOSTS || "").split(",").map((h) => h.trim()).filter(Boolean)]);
+const baseUrl = (req) => (OAUTH_HOSTS.has(String(req.headers.host)) ? `https://${req.headers.host}` : PUBLIC_URL || `https://${req.headers.host}`).replace(/\/$/, "");
 const redirectFor = (req, platform) => `${baseUrl(req)}/admin/connect/${platform}/callback`;
 // "Channel publishing" login configuration of the WinPlayBox Publisher Meta app (not a secret).
 const apps = { meta: { id: env.META_APP_ID, secret: env.META_APP_SECRET, configId: env.META_LOGIN_CONFIG_ID ?? "2229571631237251" }, pinterest: { id: env.PINTEREST_APP_ID, secret: env.PINTEREST_APP_SECRET } };
