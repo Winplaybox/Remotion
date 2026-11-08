@@ -36,7 +36,8 @@ export function supabaseStore(url, key) {
     submitPublication: (jobCode, by, isAdmin) => rpc("videobot_submit_publication", { p_job_code: jobCode, p_by: by, p_is_admin: isAdmin }),
     reviewPublication: (code, by, p) => rpc("videobot_review_publication", { p_code: code, p_by: by, p }),
     listPublications: (status, limit) => rpc("videobot_list_publications", { p_status: status ?? null, p_limit: limit ?? 10 }),
-    getPublication: (code) => rpc("videobot_get_publication", { p_code: code })
+    getPublication: (code) => rpc("videobot_get_publication", { p_code: code }),
+    jobsLast24h: () => rpc("videobot_jobs_last_24h", {})
   };
 }
 
@@ -147,6 +148,7 @@ export function memoryStore() {
       return pubJson(p);
     },
     async listPublications(status, limit = 10) { return pubs.filter((p) => !status || p.status === status).slice(-Math.min(limit, 50)).reverse().map(pubJson); },
+    async jobsLast24h() { const since = Date.now() - 86_400_000; return jobs.filter((j) => Date.parse(j.created_at) > since && j.status !== "CANCELLED").length; },
     async getPublication(code) { const p = pubs.find((x) => x.code === code); return p ? pubJson(p) : null; },
     async stats() {
       const active = jobs.filter((j) => !FINAL.has(j.status)).length;

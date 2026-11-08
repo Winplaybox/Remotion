@@ -279,6 +279,10 @@ async function topicOrScript(S, kind, args, extra = {}) {
 async function startJob(S, kind, input, event) {
   const { ctx, user, isAdmin, base } = S;
   const idem = `u:${S.updateId ?? `${base.chatId}:${base.messageId}`}`;
+  // Global cap (all users) protects GitHub Actions minutes and AI quotas; the admin is never blocked.
+  if (!isAdmin && ctx.maxJobsPerDay > 0 && (await ctx.store.jobsLast24h()) >= ctx.maxJobsPerDay) {
+    return { replies: [{ text: "🚦 Aaj bahut saare videos ban chuke hain. Thodi der baad dobara try karo!" }], admin: [{ text: `🚦 Global limit (${ctx.maxJobsPerDay}/24h) hit — ${user.name} ka ${kind} request ruka.` }] };
+  }
   const j = await ctx.store.createJob(user.id, base.chatId, kind, input, idem, isAdmin ? 0 : DAILY_VIDEO_LIMIT);
   if (j.limited) return { replies: [{ text: `⏳ Aaj ki limit (${DAILY_VIDEO_LIMIT} videos / 24 ghante) poori ho gayi. Thodi der baad bhejo!` }] };
   if (j.duplicate) return { replies: [] };

@@ -15,6 +15,7 @@ import { renderComposition } from "./render";
 import { downloadFile, sendMessage, sendVideo } from "./telegram";
 import { JobCancelled, jobTracker } from "./jobs";
 import { storeFile } from "./storage";
+import { normalizeLoudness } from "./loudness";
 
 interface Job { fileId?: string; url?: string; chatId: string | number; messageId?: number; jobCode?: string; statusMessageId?: number; count?: number; seconds?: number; language?: string; user?: { name?: string } }
 
@@ -111,6 +112,7 @@ async function pickClips(segs: Segment[], duration: number): Promise<Clip[]> {
       if (!local) await track.step("RENDERING", 40 + Math.floor((i / clips.length) * 50), `short ${i + 1}/${clips.length}`);
       const props = ShortClipSchema.parse({ src: `tg/${jobId}/src.mp4`, start: c.start, end: c.end, width: w, height: h, framing: "fit", words: clipWords(tr.segments, c), hook: c.hook.toUpperCase(), handle: "" });
       const file = await renderComposition("ShortClip", props, path.join(root, "output", "tg", `${jobId}-${i + 1}.mp4`), 23);
+      normalizeLoudness(file);
       console.log(`[shorts] ${file}`);
       if (local) continue;
       await sendVideo(job.chatId, file, `✂️ Short ${i + 1}/${clips.length}: ${c.title}\n${c.hashtags.join(" ")}\n⏱ ${Math.round(c.start)}s–${Math.round(c.end)}s`, i === 0 ? job.messageId : undefined);
