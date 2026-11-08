@@ -170,7 +170,8 @@ const TABS = [
   { id: "ideas", label: "Ideas", badge: "ideas_pending" },
   { id: "jobs", label: "Jobs", badge: "jobs_active" },
   { id: "publications", label: "Publishing", badge: "pubs_pending" },
-  { id: "users", label: "Users" }
+  { id: "users", label: "Users" },
+  { id: "social", label: "Social" }
 ];
 const STATUSES = {
   ideas: ["PENDING_REVIEW", "APPROVED", "IN_PRODUCTION", "COMPLETED", "REJECTED", "MERGED"],
@@ -441,6 +442,52 @@ async function loadDrawer() {
   } catch (e) { if (drawerKey === key) body.innerHTML = `<div class="alert">${esc(e.message)}</div>`; }
 }
 
+// ---------- social accounts ----------
+async function social(op, body) {
+  const r = await fetch("/admin/api/social", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ op, ...body }) });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error || r.statusText);
+  return d.msg || "ok";
+}
+async function renderSocial() {
+  const v = $("#view"); v.dataset.view = "social";
+  const msg = new URLSearchParams(location.hash.split("?")[1] || "").get("msg");
+  const d = await api("/admin/api/social");
+  const acc = (c, p) => d.accounts.find((a) => a.channel === c && a.platform === p);
+  const appWarn = (p, name) => d.apps[p] ? "" : `<div class="alert small" style="margin-top:8px"><b>${name} app set nahi hai.</b> Render env mein <code>${p === "meta" ? "META" : "PINTEREST"}_APP_ID</code> aur <code>_APP_SECRET</code> daalo. App mein ye redirect URL add karo: <code>${esc(d.redirects[p])}</code></div>`;
+  const metaCell = (c) => {
+    const a = acc(c.id, "meta");
+    if (a?.has_token) return `<div><b>${esc(a.page_name)}</b> <span class="mute small">Facebook Page</span></div>
+      <div>${a.ig_username ? `@${esc(a.ig_username)} <span class="mute small">Instagram</span>` : `<span class="st r">Instagram linked nahi</span>`}</div>
+      <div class="mute small">${time(a.connected_at)}</div>
+      <div class="actions" style="margin-top:6px"><button class="btn sm" data-soc="check" data-ch="${c.id}" data-pf="meta">Test</button><a class="btn sm" href="/admin/connect/meta?channel=${c.id}">Reconnect</a><button class="btn sm bad" data-soc="disconnect" data-ch="${c.id}" data-pf="meta">Disconnect</button></div>`;
+    if (a?.options?.pages?.length) return `<div class="small" style="margin-bottom:6px">Login: ${esc(a.options.user)} — <b>${esc(c.name)}</b> ka Page chuno:</div>
+      <select data-pick-page="${c.id}" data-nonce="${esc(a.options.nonce)}"><option value="">— Page —</option>${a.options.pages.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.ig_username ? ` (@${esc(p.ig_username)})` : " (no Instagram)"}</option>`).join("")}</select>`;
+    return d.apps.meta ? `<a class="btn acc" href="/admin/connect/meta?channel=${c.id}">Connect Instagram + Facebook</a>` : `<span class="mute small">App set nahi</span>`;
+  };
+  const pinCell = (c) => {
+    const a = acc(c.id, "pinterest");
+    if (!a?.has_token) return d.apps.pinterest ? `<a class="btn acc" href="/admin/connect/pinterest?channel=${c.id}">Connect Pinterest</a>` : `<span class="mute small">App set nahi</span>`;
+    const boards = a.options?.boards ?? [];
+    return `<div><b>@${esc(a.account_name)}</b> <span class="mute small">Pinterest</span></div>
+      <div class="small">Board: ${a.board_id ? `<b>${esc(a.board_name)}</b>` : `<span class="st y">chuno</span>`}
+        <select data-pick-board="${c.id}" style="margin-left:6px"><option value="">${a.board_id ? "badlo…" : "— board —"}</option>${boards.map((b) => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join("")}</select>
+        <button class="btn sm" data-soc="create-board" data-ch="${c.id}">+ Naya board</button></div>
+      <div class="mute small">Token ${a.expires_at ? `valid till ${esc(fmt.format(when(a.expires_at)))} (apne aap refresh)` : ""}</div>
+      <div class="actions" style="margin-top:6px"><button class="btn sm" data-soc="check" data-ch="${c.id}" data-pf="pinterest">Test</button><a class="btn sm" href="/admin/connect/pinterest?channel=${c.id}">Reconnect</a><button class="btn sm bad" data-soc="disconnect" data-ch="${c.id}" data-pf="pinterest">Disconnect</button></div>`;
+  };
+  v.innerHTML = `${msg ? `<div class="card" style="margin-bottom:12px">${esc(msg)}</div>` : ""}
+    <div class="card" style="margin-bottom:12px"><h2>Har channel ke apne social accounts</h2>
+      <div class="small mute">Connect dabao → login karo → Allow. Token encrypted ho ke save hota hai; publish job wahi use karta hai.
+      Order: YouTube → Instagram +5 min → Facebook teaser +10 → Pinterest pin +15. Har jagah YouTube link + subscribe.</div>
+      ${d.shared ? "" : `<div class="alert small" style="margin-top:8px">Database connected nahi hai (memory mode) — connect kiye accounts GitHub jobs tak nahi pahunchenge.</div>`}
+      ${appWarn("meta", "Meta (Instagram/Facebook)")}${appWarn("pinterest", "Pinterest")}
+      <div class="small mute" style="margin-top:8px">Ek Facebook login se saare Pages aa jaate hain — jis Page ka naam channel jaisa hai wo apne aap jud jaata hai. Pinterest: har channel ka alag account, isliye Connect se pehle pinterest.com pe us channel ke account se login rakho.</div></div>
+    <div class="tablewrap"><table><thead><tr><th>Channel</th><th>Instagram + Facebook</th><th>Pinterest</th></tr></thead><tbody>
+    ${d.channels.map((c) => `<tr style="cursor:default"><td data-l="Channel"><b>${esc(c.name)}</b><div class="mute small">${esc(c.handle)}</div></td><td data-l="Instagram + Facebook">${metaCell(c)}</td><td data-l="Pinterest">${pinCell(c)}</td></tr>`).join("")}
+    </tbody></table></div>`;
+}
+
 // ---------- render loop ----------
 let busy = false;
 async function render() {
@@ -449,6 +496,7 @@ async function render() {
   if (s.tab !== "overview") $("#view").dataset.view !== s.tab && ($("#view").innerHTML = "");
   try {
     if (s.tab === "overview") { $("#view").dataset.view = "overview"; await renderOverview(); }
+    else if (s.tab === "social") { $("#bulk").classList.remove("on"); await renderSocial(); }
     else { $("#bulk").classList.remove("on"); await renderList(s); }
   } catch (e) { if (e.message !== "login") $("#view").innerHTML = `<div class="alert">Load nahi hua: ${esc(e.message)} <button class="btn sm" id="retry-load">Dobara</button></div>`; }
 }
@@ -470,6 +518,13 @@ document.addEventListener("click", async (e) => {
   const chip = t.closest("[data-status]"); if (chip) { setHash({ status: chip.dataset.status, page: 1 }); return; }
   const pg = t.closest("[data-page]"); if (pg && !pg.disabled) { setHash({ page: Number(pg.dataset.page) }); window.scrollTo({ top: 0 }); return; }
   if (t.closest("[data-close]")) { closeDrawer(); return; }
+  const soc = t.closest("[data-soc]");
+  if (soc) {
+    if (soc.dataset.soc === "disconnect" && !confirm(`${soc.dataset.pf} disconnect karein?`)) return;
+    soc.disabled = true;
+    try { toast(await social(soc.dataset.soc, { channel: soc.dataset.ch, platform: soc.dataset.pf })); } catch (err) { toast("✗ " + err.message); }
+    renderSocial(); return;
+  }
   if (t.id === "retry-load") { render(); return; }
   if (t.matches("input[data-sel]")) { const r = current.rows[Number(t.dataset.sel)]; t.checked ? selected.add(r.code) : selected.delete(r.code); renderBulk(); e.stopPropagation(); return; }
   if (t.id === "all") { for (const [i, r] of current.rows.entries()) { t.checked ? selected.add(r.code) : selected.delete(r.code); const cb = $(`input[data-sel="${i}"]`); if (cb) cb.checked = t.checked; } renderBulk(); return; }
@@ -499,6 +554,8 @@ document.addEventListener("click", async (e) => {
 document.addEventListener("change", async (e) => {
   if (e.target.id === "size") { localSet("size", e.target.value); setHash({ size: Number(e.target.value), page: 1 }); }
   if (e.target.matches("[data-prio]")) { try { await act("priority", e.target.dataset.prio, e.target.value); toast("✓ Priority " + e.target.value); } catch (err) { toast("✗ " + err.message); } refresh(true); }
+  if (e.target.matches("[data-pick-page]") && e.target.value) { try { toast(await social("pick-page", { channel: e.target.dataset.pickPage, nonce: e.target.dataset.nonce, page_id: e.target.value })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
+  if (e.target.matches("[data-pick-board]") && e.target.value) { try { toast(await social("pick-board", { channel: e.target.dataset.pickBoard, board_id: e.target.value })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
   if (e.target.id === "live") { localSet("live", e.target.checked ? "1" : ""); }
 });
 let qTimer;

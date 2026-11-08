@@ -16,8 +16,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId, type VoiceLine } from "../channels/channels";
 import { uploadYouTube } from "./publish/youtube";
-import { publishMeta } from "./publish/meta";
-import { ledgerEnabled, ledgerRecord } from "./ledger";
+import { fanout } from "./publish/social";
+import { ledgerEnabled, ledgerRecord, ledgerSocial, ledgerStatus } from "./ledger";
 
 const args = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -107,22 +107,20 @@ async function main() {
 
   // Ledger (catch-up after skipped cron runs): only for real slot publishes, i.e. an explicit --date and --youtube.
   const slotKey = arg("date") && flag("youtube") && ledgerEnabled() ? { channel, date, slot, n } : null;
-  let youtubeId = "";
+  const prev = slotKey ? (await ledgerStatus([slotKey]).catch(() => []))[0] : undefined;
+  let youtubeId = prev?.youtube_id ?? "";
   if (flag("youtube")) {
     youtubeId = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env[`${cfg.youtubeTokenSecret}_CLIENT`] || process.env.YT_CLIENT_SECRET_JSON });
     console.log(`[YouTube] https://youtube.com/shorts/${youtubeId} scheduled for ${publishAt}`);
+    if (slotKey) await ledgerRecord({ ...slotKey, status: "DONE", youtubeId, meta: flag("meta") ? "social" : "off" }).then(() => console.log(`[ledger] ${channel} ${date} slot ${slot} recorded`), (x: Error) => console.error(`[ledger] ${x.message}`));
   }
+  // --meta: social fan-out after YouTube is public — Instagram +5 min, Facebook teaser +10, Pinterest pin +15.
   if (flag("meta")) {
-    const p = cfg.metaSecretPrefix;
-    try {
-      await publishMeta({ video, caption: meta.caption, key: `${channel}/${tag}`, pageId: process.env[`${p}_PAGE_ID`], igUserId: process.env[`${p}_IG_USER_ID`], pageToken: process.env[`${p}_PAGE_TOKEN`] });
-    } catch (e) {
-      // Never auto-retried: a partial Meta post must be checked by hand before posting again.
-      if (slotKey) await ledgerRecord({ ...slotKey, status: "META_FAILED", youtubeId, meta: (e as Error).message.slice(0, 300) }).catch((x: Error) => console.error(`[ledger] ${x.message}`));
-      throw e;
-    }
+    if (!youtubeId) throw new Error("social posts need the YouTube video (run with --youtube)");
+    const failed = await fanout({ cfg, meta, video, youtubeId, publishAt, key: `${channel}/${tag}`, done: (prev?.social ?? {}) as Parameters<typeof fanout>[0]["done"],
+      record: async (platform, result) => { if (slotKey) await ledgerSocial(slotKey, platform, result); } });
+    if (failed) throw new Error(`${failed} social platform(s) failed — check them before posting again (they are not retried automatically)`);
   }
-  if (slotKey) await ledgerRecord({ ...slotKey, status: "DONE", youtubeId, meta: flag("meta") ? "ok" : "off" }).then(() => console.log(`[ledger] ${channel} ${date} slot ${slot} recorded`), (x: Error) => console.error(`[ledger] ${x.message}`));
 }
 
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exitCode = 1; });

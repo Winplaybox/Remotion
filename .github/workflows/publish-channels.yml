@@ -34,16 +34,15 @@ on:
         type: boolean
         default: true
       meta:
-        description: "Post to Instagram + Facebook"
+        description: "Social fan-out after YouTube: Instagram +5 min, Facebook teaser +10, Pinterest pin +15"
         type: boolean
         default: true
 
 permissions:
   contents: read
 
-concurrency:
-  group: publish-channels
-  cancel-in-progress: false
+# No workflow-wide lock: a post job waits up to ~2 h for its social fan-out, and must not block the next hour's run.
+# Each slot has its own lock instead (see the post job), so a double trigger never posts a slot twice.
 
 jobs:
   plan:
@@ -76,7 +75,11 @@ jobs:
     needs: plan
     if: needs.plan.outputs.matrix != '{"include":[]}'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Render/upload (~10 min) + waiting until YouTube is public (slot is 30-90 min after the run) + IG/FB/Pinterest at +5/+10/+15.
+    timeout-minutes: 170
+    concurrency:
+      group: publish-slot-${{ matrix.channel }}-${{ matrix.date || 'manual' }}-${{ matrix.slot }}-${{ matrix.n || 'auto' }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
@@ -99,6 +102,16 @@ jobs:
       START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PINTEREST_APP_ID: ${{ secrets.PINTEREST_APP_ID }}
+      PINTEREST_APP_SECRET: ${{ secrets.PINTEREST_APP_SECRET }}
+      PINTEREST_CHAKRA_REFRESH_TOKEN: ${{ secrets.PINTEREST_CHAKRA_REFRESH_TOKEN }}
+      PINTEREST_CHAKRA_BOARD_ID: ${{ secrets.PINTEREST_CHAKRA_BOARD_ID }}
+      PINTEREST_KPC_REFRESH_TOKEN: ${{ secrets.PINTEREST_KPC_REFRESH_TOKEN }}
+      PINTEREST_KPC_BOARD_ID: ${{ secrets.PINTEREST_KPC_BOARD_ID }}
+      PINTEREST_EBS_REFRESH_TOKEN: ${{ secrets.PINTEREST_EBS_REFRESH_TOKEN }}
+      PINTEREST_EBS_BOARD_ID: ${{ secrets.PINTEREST_EBS_BOARD_ID }}
+      SOCIAL_GAP_MIN: ${{ vars.SOCIAL_GAP_MIN }}
+      BOT_PUBLIC_URL: ${{ vars.BOT_PUBLIC_URL }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
       CI_RENDER_FALLBACK: ${{ vars.CI_RENDER_FALLBACK }}
       PYTHON: python
@@ -134,6 +147,7 @@ jobs:
   answers:
     # Answer comment on puzzle videos that just went public (pin it in YouTube Studio).
     runs-on: ubuntu-latest
+    concurrency: { group: publish-answers, cancel-in-progress: false }
     if: vars.AUTO_PUBLISH == 'true' || github.event_name == 'workflow_dispatch'
     env:
       YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
