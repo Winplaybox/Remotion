@@ -38,16 +38,20 @@ idea becomes IN_PRODUCTION → COMPLETED when delivered) · `/allow TG_ID` / `/d
 Idea owners get a message when their idea is approved, rejected, in production or completed.
 
 ### Web dashboard (`/admin` on the bot's Render URL, or `/dashboard` in Telegram)
-Stats (users, active users, ideas pending/approved, jobs active/done/failed), the 50 latest ideas with Approve / Reject /
-Produce / P1–P5, the 30 latest jobs with Cancel / Retry. Login with **Telegram Login** — only `TG_ADMIN_ID` gets in
-(hash verified with the bot token, 12 h signed HttpOnly cookie, same-origin POSTs). Every button runs the same bot command
-as in Telegram, so the rules are identical and each action is logged in the admin chat.
-One-time: in @BotFather → `/setdomain` → your bot → `telegram-video-bot-quth.onrender.com`.
 
-Every finished video comes with: the MP4 (9:16 or 16:9), a **thumbnail** (1280×720 or 1080×1920), and a message with
-**title, description, hashtags and sources**. Topic videos first run a research step (Gemini + Google Search grounding);
-the script may only use those facts, and the sources are listed. Without sources the message says "verify facts".
-Languages: Hinglish (Roman captions, Hindi voice), हिंदी (Devanagari captions; font bundled), English (Indian-English voices).
+Login with Telegram (only `TG_ADMIN_ID`). Tabs:
+- **Overview** — KPIs (pending ideas, active/failed jobs, success rate, avg time, publishing), 14-day chart, failure reasons,
+  and "needs attention" lists. KPI tiles open the filtered list.
+- **Ideas / Jobs / Publishing / Users** — status chips with counts, search (ID, text, user name, @username, Telegram id),
+  10/25/50/100 per page, pagination, bulk approve/reject (ideas) and retry/cancel (jobs).
+- Click a row → side panel: job timeline with the real error, input script, title/description/hashtags/sources,
+  thumbnail and ▶ video (short-lived signed link from the private bucket), publications; idea history + priority;
+  user access (allow / remove).
+- **Live** toggle refreshes every 15 s; filters live in the URL (shareable/bookmarkable); `/` focuses search, `R` refreshes.
+
+API (admin session cookie only): `GET /admin/api/overview`, `/admin/api/list?entity=ideas|jobs|publications|users&status=&q=&page=&size=`,
+`/admin/api/job/JOB-…`, `/admin/api/idea/IDEA-…`, `/admin/api/media/JOB-…/video|thumb|short-N`, `POST /admin/api/action`.
+Every action runs as the admin's own bot command, so it is also logged in the admin's Telegram chat.
 
 ## Long video → Shorts (engines/short-clip)
 

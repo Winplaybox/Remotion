@@ -37,7 +37,21 @@ export function supabaseStore(url, key) {
     reviewPublication: (code, by, p) => rpc("videobot_review_publication", { p_code: code, p_by: by, p }),
     listPublications: (status, limit) => rpc("videobot_list_publications", { p_status: status ?? null, p_limit: limit ?? 10 }),
     getPublication: (code) => rpc("videobot_get_publication", { p_code: code }),
-    jobsLast24h: () => rpc("videobot_jobs_last_24h", {})
+    jobsLast24h: () => rpc("videobot_jobs_last_24h", {}),
+    adminList: (entity, status, q, limit, offset) => rpc("videobot_admin_list", { p_entity: entity, p_status: status ?? null, p_q: q ?? null, p_limit: limit, p_offset: offset }),
+    adminJob: (code) => rpc("videobot_admin_job", { p_code: code }),
+    adminIdea: (code) => rpc("videobot_admin_idea", { p_code: code }),
+    adminOverview: () => rpc("videobot_admin_overview", {}),
+    /** Short-lived link to a private file in the videobot bucket (dashboard previews). */
+    async signedUrl(path, seconds = 600) {
+      const base = url.replace(/\/$/, "");
+      const res = await fetch(`${base}/storage/v1/object/sign/videobot/${path.split("/").map(encodeURIComponent).join("/")}`, {
+        method: "POST", headers: { apikey: key, authorization: `Bearer ${key}`, "content-type": "application/json" }, body: JSON.stringify({ expiresIn: seconds })
+      });
+      if (!res.ok) return null;
+      const j = await res.json();
+      return j.signedURL ? `${base}/storage/v1${j.signedURL}` : null;
+    }
   };
 }
 
@@ -65,7 +79,7 @@ export function memoryStore() {
     async touchUser(u, admin) {
       const cur = users.get(u.id);
       const role = admin ? "admin" : cur?.role === "admin" ? "user" : cur?.role ?? "user";
-      users.set(u.id, { tg_id: u.id, name: u.name ?? "", username: u.username ?? "", role, last_seen: now() });
+      users.set(u.id, { tg_id: u.id, name: u.name || cur?.name || "", username: u.name ? u.username ?? "" : cur?.username ?? "", role, created_at: cur?.created_at ?? now(), last_seen: now() });
       if (!prefs.has(u.id)) prefs.set(u.id, { narrator: "dost", language: "hinglish", aspect: "9:16", seconds: 50 });
       return { tg_id: u.id, role, prefs: prefs.get(u.id) };
     },
@@ -150,6 +164,25 @@ export function memoryStore() {
     async listPublications(status, limit = 10) { return pubs.filter((p) => !status || p.status === status).slice(-Math.min(limit, 50)).reverse().map(pubJson); },
     async jobsLast24h() { const since = Date.now() - 86_400_000; return jobs.filter((j) => Date.parse(j.created_at) > since && j.status !== "CANCELLED").length; },
     async getPublication(code) { const p = pubs.find((x) => x.code === code); return p ? pubJson(p) : null; },
+    async adminList(entity, status, q, limit = 25, offset = 0) {
+      const lim = Math.min(Math.max(limit, 1), 100), off = Math.max(offset, 0);
+      const needle = String(q ?? "").trim().toLowerCase();
+      const has = (...xs) => !needle || xs.some((x) => String(x ?? "").toLowerCase().includes(needle));
+      const page = (all, key) => {
+        const counts = {}; for (const r of all) counts[r[key]] = (counts[r[key]] ?? 0) + 1;
+        const filtered = all.filter((r) => !status || r[key] === (key === "role" ? String(status).toLowerCase() : status));
+        return { rows: filtered.slice(off, off + lim), total: filtered.length, counts, limit: lim, offset: off };
+      };
+      if (entity === "ideas") return page(ideas.map(ideaJson).reverse().filter((i) => has(i.code, i.title, i.description, i.category, i.user.name, i.user.username, i.tg_id)), "status");
+      if (entity === "jobs") return page(jobs.slice().reverse().filter((j) => has(j.code, j.kind, j.error, JSON.stringify(j.input), j.output?.title, users.get(j.tg_id)?.name, j.tg_id)).map((j) => ({ ...j, user: { name: users.get(j.tg_id)?.name ?? "", username: users.get(j.tg_id)?.username ?? "" } })), "status");
+      if (entity === "publications") return page(pubs.slice().reverse().map(pubJson).filter((p) => has(p.code, p.title, p.target, p.job?.code)), "status");
+      if (entity === "users") return page([...users.values()].filter((u) => has(u.name, u.username, u.tg_id)).map((u) => ({ ...u, jobs: jobs.filter((j) => j.tg_id === u.tg_id).length, jobs_completed: jobs.filter((j) => j.tg_id === u.tg_id && j.status === "COMPLETED").length, ideas: ideas.filter((i) => i.tg_id === u.tg_id).length })), "role");
+      return { error: "unknown entity" };
+    },
+    async adminJob(code) { const j = findJob(code); if (!j) return null; const u = users.get(j.tg_id); return { ...j, user: u ? { tg_id: u.tg_id, name: u.name, username: u.username, role: u.role } : null, events: [], publications: pubs.filter((p) => p.job_id === j.id).map(pubJson) }; },
+    async adminIdea(code) { const i = findIdea(code); return i ? { ...ideaJson(i), events: i.events, jobs: jobs.filter((j) => j.input?.ideaCode === code).map((j) => ({ code: j.code, status: j.status, created_at: j.created_at })) } : null; },
+    async adminOverview() { return { ...(await this.stats()), jobs_24h: await this.jobsLast24h(), completed_24h: 0, pubs_pending: pubs.filter((p) => p.status === "PENDING_APPROVAL").length, pubs_scheduled: pubs.filter((p) => p.status === "SCHEDULED").length, pubs_published: pubs.filter((p) => p.status === "PUBLISHED").length, avg_minutes: null, daily: [], by_kind: {}, top_errors: [] }; },
+    async signedUrl() { return null; },
     async stats() {
       const active = jobs.filter((j) => !FINAL.has(j.status)).length;
       return { users: users.size, active_users_7d: users.size, ideas: ideas.length, ideas_pending: ideas.filter((i) => i.status === "PENDING_REVIEW").length, ideas_approved: ideas.filter((i) => i.status === "APPROVED").length, jobs_active: active, jobs_completed: jobs.filter((j) => j.status === "COMPLETED").length, jobs_failed: jobs.filter((j) => j.status === "FAILED").length };
