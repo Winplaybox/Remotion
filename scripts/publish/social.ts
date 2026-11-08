@@ -141,6 +141,12 @@ export async function fanout({ cfg, meta, video, youtubeId, publishAt, key, done
       result = { ok: true, id, at: new Date().toISOString() };
       console.log(`[${platform}] published ${id}`);
     } catch (e) {
+      // Pinterest Trial apps can't create Pins in production: nothing was posted, so skip quietly (no ledger
+      // entry, no failure) — the slot posts normally once Standard access is approved.
+      if (platform === "pinterest" && /Trial access/i.test((e as Error).message)) {
+        console.log("[pinterest] app still has Trial access (needs Standard access) — skipped");
+        continue;
+      }
       failed++;
       result = { ok: false, error: (e as Error).message.slice(0, 300), at: new Date().toISOString() };
       console.error(`[${platform}] FAILED: ${result.error}`);
