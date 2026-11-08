@@ -25,7 +25,7 @@
     "engine:new": "node scripts/new-engine.mjs",
     "engine:qa": "ts-node scripts/engine-qa.ts",
     "engine:lock": "ts-node scripts/lock-published.ts",
-    "test:bot": "node --test apps/telegram-bot/commands.test.mjs",
+    "test:bot": "node --test apps/telegram-bot/commands.test.mjs apps/telegram-bot/admin.test.mjs",
     "bot:video": "ts-node scripts/telegram/make-video.ts"
   },
   "dependencies": {

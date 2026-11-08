@@ -2,6 +2,11 @@
   "name": "telegram-video-bot",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
-  "scripts": { "start": "node server.mjs", "test": "node --test commands.test.mjs" }
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test commands.test.mjs admin.test.mjs"
+  }
 }
