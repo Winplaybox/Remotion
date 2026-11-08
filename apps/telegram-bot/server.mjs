@@ -11,7 +11,7 @@ import crypto from "node:crypto";
 import http from "node:http";
 import { handle } from "./commands.mjs";
 import { createStore } from "./store.mjs";
-import { actionToCommand, dashboardPage, loginPage, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
+import { DASHBOARD_CSP, actionToCommand, dashboardShell, detailCode, loginPage, parseListQuery, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
 
 const env = process.env;
 const TOKEN = env.TELEGRAM_BOT_TOKEN;
@@ -101,6 +101,7 @@ async function handleUpdate(update) {
 // ---------------- web admin (/admin) ----------------
 const SESSION_KEY = crypto.createHash("sha256").update(`session:${TOKEN}`).digest();
 let botUsername = env.TG_BOT_USERNAME || "";
+const json = (res, code, body) => res.writeHead(code, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }).end(JSON.stringify(body));
 const html = (res, code, body, headers = {}) => res.writeHead(code, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-frame-options": "DENY", ...headers }).end(body);
 
 async function adminRoute(req, res, url) {
@@ -114,8 +115,35 @@ async function adminRoute(req, res, url) {
   if (req.method === "GET" && url.pathname === "/admin/logout") return html(res, 302, "", { location: "/admin", "set-cookie": "vb_admin=; Path=/admin; Max-Age=0" });
   if (req.method === "GET" && url.pathname === "/admin") {
     if (!isAdmin) return html(res, 200, loginPage(botUsername));
-    const [stats, ideas, jobs, pubs] = await Promise.all([store.stats(), store.listIdeas(null, null, 50), store.listJobs(null, null, 30), store.listPublications(null, 30)]);
-    return html(res, 200, dashboardPage({ stats, ideas, jobs, pubs, admin: me }));
+    return html(res, 200, dashboardShell(me), { "content-security-policy": DASHBOARD_CSP, "referrer-policy": "no-referrer" });
+  }
+  if (req.method === "GET" && url.pathname.startsWith("/admin/api/")) {
+    if (!isAdmin) return json(res, 401, { error: "login required" });
+    const part = url.pathname.slice("/admin/api/".length).split("/");
+    if (part[0] === "overview") return json(res, 200, await store.adminOverview());
+    if (part[0] === "list") {
+      const q = parseListQuery(url.searchParams);
+      if (!q) return json(res, 400, { error: "bad query" });
+      return json(res, 200, await store.adminList(q.entity, q.status, q.q, q.limit, q.offset));
+    }
+    if (part[0] === "job" || part[0] === "idea") {
+      const code = detailCode(part[0], decodeURIComponent(part[1] || "").toUpperCase());
+      if (!code) return json(res, 400, { error: "bad code" });
+      const row = part[0] === "job" ? await store.adminJob(code) : await store.adminIdea(code);
+      return row ? json(res, 200, row) : json(res, 404, { error: "not found" });
+    }
+    if (part[0] === "media") { // /admin/api/media/JOB-00001/video|thumb|short-1 -> short-lived signed link
+      const code = detailCode("job", String(part[1] || "").toUpperCase());
+      const what = String(part[2] || "");
+      if (!code || !/^(video|thumb|short-\d{1,2})$/.test(what)) return json(res, 400, { error: "bad media" });
+      const j = await store.getJob(code);
+      const out = j?.output ?? {};
+      if (out.file_deleted) return json(res, 410, { error: "deleted after retention period" });
+      const path = what === "video" ? out.file : what === "thumb" ? out.thumb : out.shorts?.[Number(what.slice(6)) - 1]?.file;
+      const link = path ? await store.signedUrl(path) : null;
+      return link ? html(res, 302, "", { location: link }) : json(res, 404, { error: "file not stored" });
+    }
+    return json(res, 404, { error: "not found" });
   }
   if (req.method === "POST" && url.pathname === "/admin/api/action") {
     if (!isAdmin) return html(res, 401, "login required");
@@ -129,7 +157,7 @@ async function adminRoute(req, res, url) {
     const cmd = actionToCommand(a);
     if (!cmd) return html(res, 400, "unknown action");
     // Same pipeline as a Telegram message from the admin; replies land in the admin's chat as a log.
-    await handleUpdate({ update_id: `web:${Date.now()}:${Math.random()}`, message: { message_id: 0, chat: { id: Number(ctx.admin) }, from: { id: Number(ctx.admin), first_name: "Admin (web)" }, text: cmd } });
+    await handleUpdate({ update_id: `web:${Date.now()}:${Math.random()}`, message: { message_id: 0, chat: { id: Number(ctx.admin) }, from: { id: Number(ctx.admin), is_web: true }, text: cmd } });
     return html(res, 200, "ok");
   }
   return html(res, 404, "not found");

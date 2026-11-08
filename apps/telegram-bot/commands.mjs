@@ -134,6 +134,7 @@ const settingsText = (p) => `⚙️ Settings\nNarrator: ${p.narrator} · Bhasha:
 
 function userOf(from, chatId) {
   const id = Number(from?.id ?? chatId);
+  if (from?.is_web) return { id, name: "", username: "" }; // web dashboard: keep the stored Telegram name
   return { id, name: [from?.first_name, from?.last_name].filter(Boolean).join(" ") || from?.username || String(id), username: from?.username || "" };
 }
 

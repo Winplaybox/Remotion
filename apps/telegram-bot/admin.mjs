@@ -2,6 +2,7 @@
 // Actions (approve, reject, produce, priority, cancel, retry) are run as the admin's own bot commands, so the web and
 // Telegram follow exactly the same rules. Pure helpers are exported for tests.
 import crypto from "node:crypto";
+import fs from "node:fs";
 
 const SESSION_HOURS = 12;
 
@@ -48,6 +49,8 @@ export function actionToCommand(a) {
     case "cancel": return isJob ? `/cancel ${code}` : null;
     case "retry": return isJob ? `/retry ${code}` : isPub ? `/pubretry ${code}` : null;
     case "unpublish": return isPub ? `/unpublish ${code}` : null;
+    case "allow": return /^\d{3,15}$/.test(String(a.code)) ? `/allow ${a.code}` : null;
+    case "disallow": return /^\d{3,15}$/.test(String(a.code)) ? `/disallow ${a.code}` : null;
     default: return null;
   }
 }
@@ -72,33 +75,29 @@ ${botUsername ? `<script async src="https://telegram.org/js/telegram-widget.js?2
 </main></body></html>`;
 }
 
-export function dashboardPage({ stats, ideas, jobs, admin, pubs = [] }) {
-  const ideaRows = ideas.map((i) => `<tr><td><b>${esc(i.code)}</b><div class="mute">${esc(new Date(i.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }))}</div></td>
-<td>${esc(i.title)}${i.description && i.description !== i.title ? `<div class="mute">${esc(i.description.slice(0, 240))}</div>` : ""}${i.link ? `<div><a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.link.slice(0, 60))}</a></div>` : ""}${i.duplicate_of ? `<div class="mute">≈ ${esc(i.duplicate_of)}</div>` : ""}</td>
-<td>${esc(i.user?.name || "")}<div class="mute">${i.user?.username ? "@" + esc(i.user.username) : ""}</div></td><td><span class="tag">${esc(i.status)}</span> <span class="tag">P${esc(i.priority)}</span></td>
-<td>${i.status === "PENDING_REVIEW" ? `<button class="ok" data-a="approve" data-c="${esc(i.code)}">Approve</button><button class="bad" data-a="reject" data-c="${esc(i.code)}">Reject</button>` : ""}${i.status === "APPROVED" ? `<button class="acc" data-a="produce" data-c="${esc(i.code)}">Produce</button>` : ""}
-${[1, 2, 3, 4, 5].map((p) => `<button data-a="priority" data-v="${p}" data-c="${esc(i.code)}">P${p}</button>`).join("")}</td></tr>`).join("");
-  const jobRows = jobs.map((j) => `<tr><td><b>${esc(j.code)}</b><div class="mute">${esc(new Date(j.created_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }))}</div></td><td>${esc(j.kind)}</td>
-<td><span class="tag">${esc(j.status)}</span> ${esc(j.progress)}%${j.error ? `<div class="mute">${esc(j.error.slice(0, 200))}</div>` : ""}</td><td>${esc(j.output?.title || j.input?.text?.slice(0, 80) || "")}</td>
-<td>${["COMPLETED", "FAILED", "CANCELLED"].includes(j.status) ? "" : `<button class="bad" data-a="cancel" data-c="${esc(j.code)}">Cancel</button>`}${j.status === "FAILED" ? `<button class="acc" data-a="retry" data-c="${esc(j.code)}">Retry</button>` : ""}</td></tr>`).join("");
-  const pubRows = pubs.map((p) => `<tr><td><b>${esc(p.code)}</b><div class="mute">${esc(p.job?.code ?? "")}</div></td><td>${esc(p.title)}</td><td>${esc(p.target)}<div class="mute">${esc((p.platforms || []).join(" + "))}</div></td>
-<td><span class="tag">${esc(p.status)}</span>${p.publish_at ? `<div class="mute">${esc(new Date(p.publish_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }))}</div>` : ""}${Object.entries(p.results || {}).map(([k, r]) => `<div class="mute">${r.ok ? "✓" : "✗"} ${esc(k)}${r.error ? `: ${esc(String(r.error).slice(0, 120))}` : ""}</div>`).join("")}</td>
-<td>${["PENDING_APPROVAL", "SCHEDULED"].includes(p.status) ? `<button class="bad" data-a="unpublish" data-c="${esc(p.code)}">Cancel</button>` : ""}${["FAILED", "PARTIAL"].includes(p.status) ? `<button class="acc" data-a="retry" data-c="${esc(p.code)}">Retry</button>` : ""}${p.status === "PENDING_APPROVAL" ? `<div class="mute">Approve: Telegram buttons</div>` : ""}</td></tr>`).join("");
-  const stat = (n, l) => `<div class="stat"><b>${esc(n)}</b><span>${l}</span></div>`;
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Video Bot Admin</title><style>${CSS}</style></head>
-<body><main><h1>Video Bot Admin <span class="mute">· ${esc(admin)}</span></h1>
-<div class="stats">${stat(stats.users, "Users")}${stat(stats.active_users_7d, "Active 7 days")}${stat(stats.ideas_pending, "Ideas pending")}${stat(stats.ideas_approved, "Ideas approved")}${stat(stats.ideas, "Ideas total")}${stat(stats.jobs_active, "Jobs active")}${stat(stats.jobs_completed, "Videos made")}${stat(stats.jobs_failed, "Jobs failed")}</div>
-<h2>Ideas</h2><div class="wrap"><table><tr><th>ID</th><th>Idea</th><th>From</th><th>Status</th><th>Actions</th></tr>${ideaRows || `<tr><td colspan="5" class="mute">Koi idea nahi</td></tr>`}</table></div>
-<h2>Jobs</h2><div class="wrap"><table><tr><th>ID</th><th>Type</th><th>Status</th><th>Title / input</th><th>Actions</th></tr>${jobRows || `<tr><td colspan="5" class="mute">Koi job nahi</td></tr>`}</table></div>
-<h2>Publishing</h2><div class="wrap"><table><tr><th>ID</th><th>Title</th><th>Channel</th><th>Status</th><th>Actions</th></tr>${pubRows || `<tr><td colspan="5" class="mute">Koi publication nahi</td></tr>`}</table></div>
-<p class="mute">Har action aapke Telegram chat mein bhi log hota hai.</p><div id="msg"></div></main>
-<script>
-document.addEventListener("click", async (e) => {
-  const b = e.target.closest("button[data-a]"); if (!b) return;
-  b.disabled = true;
-  const r = await fetch("/admin/api/action", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: b.dataset.a, code: b.dataset.c, value: b.dataset.v }) });
-  const m = document.getElementById("msg"); m.textContent = r.ok ? "✓ Done" : "✗ " + (await r.text()); m.style.display = "block";
-  setTimeout(() => location.reload(), 900);
-});
-</script></body></html>`;
+// ---------------- dashboard v2: JSON API + single page ----------------
+
+export const ENTITIES = ["ideas", "jobs", "publications", "users"];
+
+/** Validates /admin/api/list query params. Returns null for anything unexpected. */
+export function parseListQuery(params) {
+  const entity = params.get("entity") || "";
+  if (!ENTITIES.includes(entity)) return null;
+  const status = params.get("status") || null;
+  if (status && !/^[A-Za-z_]{2,24}$/.test(status)) return null;
+  const q = (params.get("q") || "").slice(0, 100);
+  const size = [10, 25, 50, 100].includes(Number(params.get("size"))) ? Number(params.get("size")) : 25;
+  const page = Math.min(Math.max(Math.floor(Number(params.get("page")) || 1), 1), 10_000);
+  return { entity, status, q, limit: size, offset: (page - 1) * size };
 }
+
+/** Codes accepted by the detail endpoints. */
+export const detailCode = (kind, code) => (kind === "job" ? /^JOB-\d{5,}$/ : /^IDEA-\d{5,}$/).test(String(code)) ? String(code) : null;
+
+let shell = null;
+export function dashboardShell(admin) {
+  shell ??= fs.readFileSync(new URL("./dashboard.html", import.meta.url), "utf8");
+  return shell.replace("__ADMIN__", esc(admin));
+}
+
+export const DASHBOARD_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
