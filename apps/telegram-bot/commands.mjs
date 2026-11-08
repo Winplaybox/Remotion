@@ -38,7 +38,8 @@ const helpText = (style) => `🙏 Namaste! Main video bot hoon. /menu se sab kuc
 
 🎬 Video banwao (invited users):
 /topic [narrator] <topic>   e.g. /topic dadi Holi kyun manate hain
-/script [narrator]  + agli lines mein apni script
+/preview [narrator] <topic> — pehle script dekho, phir ▶️ Render
+/script [narrator] [enhance] + agli lines mein apni script (ya .txt file, caption /script)
 ${style ? `🎨 Video ke caption mein: /style cartoon  (${STYLES.join(", ")})\n` : ""}
 📊 /status — job ka haal · /history — purane projects · /cancel — job roko
 ⚙️ /settings — narrator, bhasha, length, 9:16/16:9
@@ -143,6 +144,18 @@ export async function handle(update, ctx) {
     return startJob(S, "style", { style, fileId: vid.file_id, title }, "tg-style");
   }
 
+  // ---- script as a .txt/.md document (caption /script ... or reply /script to the document)
+  const docOf = (m) => (m?.document && (/^text\//.test(m.document.mime_type || "") || /\.(txt|md)$/i.test(m.document.file_name || "")) ? m.document : null);
+  const scriptDoc = capCmd?.cmd === "script" ? docOf(msg) : c?.cmd === "script" ? docOf(msg.reply_to_message) : null;
+  if (scriptDoc) {
+    const args = (capCmd?.cmd === "script" ? capCmd.args : c.args) || "";
+    if (!allowed) return addIdea(S, "[script file]", "🔒 Video banana abhi sirf invited users ke liye hai. Aapki script idea ke roop mein save ho gayi ✅");
+    if ((scriptDoc.file_size || 0) > 200_000) return { replies: [{ text: "📄 Script file 200 KB tak ki bhejo." }] };
+    const { narrator, rest } = splitNarrator(args, prefs.narrator);
+    const enhance = /^(enhance|improve)\b/i.test(rest);
+    return startJob(S, "script", { narrator, fileId: scriptDoc.file_id, enhance, language: prefs.language, aspect: prefs.aspect, seconds: prefs.seconds }, "tg-video");
+  }
+
   if (!c) {
     const pend = ctx.pending.get(user.id);
     if (pend && Date.now() - pend.at < PENDING_TTL_MS && msg.text) {
@@ -179,6 +192,9 @@ export async function handle(update, ctx) {
         return { replies: [{ text: c.cmd === "topic" ? `🎬 Topic likho (narrator: ${prefs.narrator}). e.g. Holi kyun manate hain` : `📝 Apni script bhejo (narrator: ${prefs.narrator}). Pehli line chhota title ho sakti hai.` }] };
       }
       return topicOrScript(S, c.cmd, c.args);
+    case "preview":
+      if (!c.args) return { replies: [{ text: "Use: /preview dadi Holi kyun manate hain — pehle script aayegi, phir ▶️ Render" }] };
+      return topicOrScript(S, "topic", c.args, { preview: true });
     case "status":
       return status(S, c.args);
     case "history":
@@ -213,13 +229,15 @@ async function addIdea(S, text, replyOverride) {
   return out;
 }
 
-async function topicOrScript(S, kind, args) {
-  const { narrator, rest } = splitNarrator(args, S.prefs.narrator);
+async function topicOrScript(S, kind, args, extra = {}) {
+  let { narrator, rest } = splitNarrator(args, S.prefs.narrator);
+  let enhance = false;
+  if (kind === "script" && /^(enhance|improve)\b/i.test(rest)) { enhance = true; rest = rest.replace(/^(enhance|improve)\b\s*/i, ""); }
   if (!rest) return { replies: [{ text: kind === "topic" ? "Topic likho: /topic dadi Holi kyun manate hain" : "Script likho: /script jasoos\n<apni script>" }] };
   if (!S.allowed) return addIdea(S, `[${kind}] ${rest}`, "🔒 Video banana abhi sirf invited users ke liye hai. Aapka topic idea ke roop mein save kar liya ✅ Admin review karega.");
   if (kind === "script" && rest.length < 40) return { replies: [{ text: "Script thodi lambi chahiye (kam se kam 2–3 lines)." }] };
   const { language, aspect, seconds } = S.prefs;
-  return startJob(S, kind, { narrator, text: rest.slice(0, 3500), language, aspect, seconds }, "tg-video");
+  return startJob(S, kind, { narrator, text: rest.slice(0, 8000), language, aspect, seconds, ...(enhance ? { enhance } : {}), ...extra }, "tg-video");
 }
 
 async function startJob(S, kind, input, event) {
@@ -345,6 +363,20 @@ async function retry(S, code) {
   return startJob({ ...S, updateId: `retry:${j.code}:${(j.retry_count ?? 0) + 1}` }, j.kind, { ...j.input, retryOf: j.code }, event);
 }
 
+/** ▶️ Render on a preview: continue the same job with the approved draft. */
+async function renderPreview(S, code) {
+  const { ctx, user, isAdmin } = S;
+  const j = await ctx.store.getJob(code);
+  if (!j || (!isAdmin && Number(j.tg_id) !== user.id)) return { replies: [{ text: "Job nahi mili." }] };
+  if (FINAL.has(j.status)) return { replies: [{ text: `${j.code} ${STATUS_HI[j.status]}.` }] };
+  if (!j.output?.draft || j.output.awaiting !== "approval") return { replies: [{ text: "Script abhi taiyaar nahi hai, thoda ruko." }] };
+  await ctx.store.updateJob(j.code, { status: "NARRATION", progress: 30, output: { awaiting: null }, message: "preview approved" });
+  return {
+    replies: [{ text: `▶️ ${j.code} render ho raha hai…`, keyboard: [[{ text: "🛑 Cancel", data: `job:cancel:${j.code}` }]] }],
+    dispatch: { event: "tg-video", payload: { ...j.input, kind: j.kind, chatId: j.chat_id, user: S.user, jobCode: j.code, draft: j.output.draft, sources: j.output.sources ?? [], preview: false, ...(j.status_message_id ? { statusMessageId: j.status_message_id } : {}) } }
+  };
+}
+
 // ---------------- buttons ----------------
 async function handleButton(q, ctx) {
   const chatId = q.message?.chat?.id ?? q.from.id;
@@ -353,7 +385,9 @@ async function handleButton(q, ctx) {
   const me = await ctx.store.touchUser(user, isAdmin);
   const prefs = me.prefs ?? { narrator: DEFAULT_NARRATOR, language: "hinglish", aspect: "9:16", seconds: 50 };
   const S = { ctx, msg: q.message ?? {}, user, isAdmin, allowed: isAdmin || ctx.allow.has(String(user.id)) || me.role === "creator", prefs, base: { chatId, messageId: q.message?.message_id, user }, updateId: `cb:${q.id}` };
-  const [kind, action, arg, arg2] = String(q.data || "").split(":");
+  const [kind, action, ...restParts] = String(q.data || "").split(":");
+  // pref values may contain ":" (e.g. 16:9); other buttons use arg / arg2
+  const [arg, arg2] = kind === "pref" ? [restParts.join(":"), undefined] : restParts;
 
   if (kind === "menu") {
     switch (action) {
@@ -376,6 +410,7 @@ async function handleButton(q, ctx) {
     return { answer: "✅ Saved", edit: action === "narrator" ? { text: `🎙️ Narrator: ${next.narrator}`, keyboard: narratorKeyboard(next.narrator) } : { text: settingsText(next), keyboard: settingsKeyboard(next) }, replies: [] };
   }
   if (kind === "job") {
+    if (action === "render") return { answer: "▶️", ...(await renderPreview(S, arg)) };
     if (action === "cancel") return { answer: "🛑", ...(await cancel(S, arg)) };
     if (action === "retry") return { answer: "🔁", ...(await retry(S, arg)) };
   }

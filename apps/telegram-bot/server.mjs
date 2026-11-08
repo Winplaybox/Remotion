@@ -112,7 +112,8 @@ http.createServer((req, res) => {
     await tg("setMyCommands", { commands: [
       { command: "menu", description: "Main menu" },
       { command: "topic", description: "Topic se video: /topic dadi Holi kyun" },
-      { command: "script", description: "Apni script se video" },
+      { command: "preview", description: "Pehle script dekho, phir render" },
+      { command: "script", description: "Apni script se video (text ya .txt)" },
       ...(ctx.styleEnabled ? [{ command: "style", description: "Video ke caption mein: /style cartoon" }] : []),
       { command: "idea", description: "Video idea bhejo" },
       { command: "status", description: "Job ka haal" },

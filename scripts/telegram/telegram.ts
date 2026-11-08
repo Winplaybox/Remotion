@@ -33,3 +33,25 @@ export async function sendVideo(chatId: string | number, file: string, caption: 
   form.append("video", new Blob([fs.readFileSync(file)], { type: "video/mp4" }), path.basename(file));
   return call("sendVideo", form);
 }
+
+export async function sendPhoto(chatId: string | number, file: string, caption: string) {
+  const form = new FormData();
+  form.append("chat_id", String(chatId));
+  form.append("caption", caption.slice(0, 1000));
+  form.append("photo", new Blob([fs.readFileSync(file)], { type: "image/jpeg" }), path.basename(file));
+  return call("sendPhoto", form);
+}
+
+export const sendKeyboard = (chatId: string | number, text: string, keyboard: { text: string; callback_data: string }[][]) =>
+  call("sendMessage", { chat_id: chatId, text: text.slice(0, 4096), reply_markup: { inline_keyboard: keyboard } });
+
+/** Download a Telegram file (bots: max 20 MB). */
+export async function downloadFile(fileId: string): Promise<Buffer> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("TELEGRAM_BOT_TOKEN is not set");
+  const info = (await (await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${encodeURIComponent(fileId)}`)).json()) as { ok: boolean; result?: { file_path: string }; description?: string };
+  if (!info.ok || !info.result) throw new Error(`File download nahi hui (${info.description ?? "?"})`);
+  const res = await fetch(`https://api.telegram.org/file/bot${token}/${info.result.file_path}`);
+  if (!res.ok) throw new Error(`File download nahi hui (${res.status})`);
+  return Buffer.from(await res.arrayBuffer());
+}

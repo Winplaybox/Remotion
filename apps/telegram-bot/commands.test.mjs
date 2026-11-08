@@ -163,3 +163,43 @@ test("admin-only commands are hidden from users; /stats works for admin", async 
   assert.match((await handle(msg("/stats", CREATOR), c)).replies[0].text, /Namaste/);
   assert.match((await handle(msg("/stats", ADMIN), c)).replies[0].text, /Users/);
 });
+
+test("/preview stops at the script; ▶️ Render continues the same job with the approved draft", async () => {
+  const c = ctx();
+  const r = await handle(msg("/preview dadi Diwali pe diye kyun"), c);
+  assert.equal(r.dispatch.payload.preview, true);
+  const code = r.dispatch.payload.jobCode;
+  assert.match((await handle(press(`job:render:${code}`, CREATOR), c)).replies[0].text, /taiyaar nahi/);
+  await c.store.updateJob(code, { output: { draft: { title: "T", beats: [] }, awaiting: "approval" } });
+  assert.match((await handle(press(`job:render:${code}`, 77), c)).replies[0].text, /nahi mili/);
+  const go = await handle(press(`job:render:${code}`, CREATOR), c);
+  assert.equal(go.dispatch.payload.jobCode, code);
+  assert.equal(go.dispatch.payload.preview, false);
+  assert.deepEqual(go.dispatch.payload.draft, { title: "T", beats: [] });
+  assert.equal((await c.store.getJob(code)).status, "NARRATION");
+});
+
+test("script as .txt document (caption or reply), enhance flag, size limit", async () => {
+  const c = ctx();
+  const doc = { file_id: "D1", file_name: "story.txt", mime_type: "text/plain", file_size: 3000 };
+  const cap = await handle(msg(undefined, CREATOR, { document: doc, caption: "/script jasoos enhance" }), c);
+  assert.equal(cap.dispatch.payload.fileId, "D1");
+  assert.equal(cap.dispatch.payload.narrator, "jasoos");
+  assert.equal(cap.dispatch.payload.enhance, true);
+  const rep = await handle(msg("/script", CREATOR, { reply_to_message: { document: doc } }), c);
+  assert.equal(rep.dispatch.payload.fileId, "D1");
+  const big = await handle(msg(undefined, CREATOR, { document: { ...doc, file_size: 500_000 }, caption: "/script" }), c);
+  assert.match(big.replies[0].text, /200 KB/);
+  const inline = await handle(msg("/script dadi improve\nEk gaon mein ek kisaan rehta tha. Wo roz khet jaata tha. Ek din usne kuch ajeeb dekha."), c);
+  assert.equal(inline.dispatch.payload.enhance, true);
+  assert.match(inline.dispatch.payload.text, /^Ek gaon/);
+});
+
+test("settings language/aspect/length flow into the job", async () => {
+  const c = ctx();
+  await handle(press("pref:language:english", CREATOR), c);
+  await handle(press("pref:aspect:16:9", CREATOR), c);
+  const j = await handle(msg("/topic How rainbows form"), c);
+  assert.equal(j.dispatch.payload.language, "english");
+  assert.equal(j.dispatch.payload.aspect, "16:9");
+});

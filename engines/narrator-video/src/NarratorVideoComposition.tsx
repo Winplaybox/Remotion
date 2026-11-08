@@ -5,11 +5,11 @@ import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { NARRATORS, OUTRO_SECONDS, TITLE_SECONDS, beatStarts, narratorVideoSeconds, type Narrator, type NarratorVideo } from "./model";
 
-const W = 1080, H = 1920;
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 /* ---------- background sets ---------- */
-const Backdrop: React.FC<{ n: Narrator; frame: number }> = ({ n, frame }) => {
+export const Backdrop: React.FC<{ n: Narrator; frame: number; W: number; H: number }> = ({ n, frame, W, H }) => {
+  const k = W / 1080;
   const p = n.palette;
   const base = <AbsoluteFill style={{ background: `linear-gradient(180deg, ${p.bgTop}, ${p.bgBottom})` }} />;
   if (n.set === "night") {
@@ -18,11 +18,11 @@ const Backdrop: React.FC<{ n: Narrator; frame: number }> = ({ n, frame }) => {
         {base}
         <svg width={W} height={H} style={{ position: "absolute" }}>
           {Array.from({ length: 80 }, (_, i) => (
-            <circle key={i} cx={random(`s${i}`) * W} cy={random(`t${i}`) * 1100} r={0.8 + random(`r${i}`) * 2} fill="#fff" opacity={0.25 + 0.5 * Math.abs(Math.sin(frame / 25 + i))} />
+            <circle key={i} cx={random(`s${i}`) * W} cy={random(`t${i}`) * H * 0.58} r={0.8 + random(`r${i}`) * 2} fill="#fff" opacity={0.25 + 0.5 * Math.abs(Math.sin(frame / 25 + i))} />
           ))}
-          <circle cx={860} cy={250} r={90} fill="#FFF1C1" opacity={0.95} />
-          <circle cx={830} cy={235} r={90} fill={p.bgTop} opacity={0.35} />
-          <path d={`M0 ${H - 520} Q 270 ${H - 600} 540 ${H - 540} T 1080 ${H - 560} V ${H} H 0 Z`} fill="#0A0B22" opacity={0.85} />
+          <circle cx={W - 220} cy={H > W ? 250 : 160} r={90} fill="#FFF1C1" opacity={0.95} />
+          <circle cx={W - 250} cy={H > W ? 235 : 145} r={90} fill={p.bgTop} opacity={0.35} />
+          <path d={`M0 ${H - 520 * Math.min(1, H / 1920 * 1.6)} Q ${270 * k} ${H - 600 * Math.min(1, H / 1920 * 1.6)} ${540 * k} ${H - 540 * Math.min(1, H / 1920 * 1.6)} T ${W} ${H - 560 * Math.min(1, H / 1920 * 1.6)} V ${H} H 0 Z`} fill="#0A0B22" opacity={0.85} />
         </svg>
       </>
     );
@@ -33,7 +33,7 @@ const Backdrop: React.FC<{ n: Narrator; frame: number }> = ({ n, frame }) => {
       <>
         {base}
         <svg width={W} height={H} style={{ position: "absolute" }}>
-          <path d={`M${540 + sweep - 60} 0 L ${540 + sweep + 60} 0 L ${900 + sweep} ${H} L ${180 + sweep} ${H} Z`} fill="#FFF7D6" opacity={0.07} />
+          <path d={`M${W / 2 + sweep - 60} 0 L ${W / 2 + sweep + 60} 0 L ${W / 2 + 360 + sweep} ${H} L ${W / 2 - 360 + sweep} ${H} Z`} fill="#FFF7D6" opacity={0.07} />
           {Array.from({ length: 60 }, (_, i) => {
             const x = random(`rx${i}`) * W, y = ((random(`ry${i}`) * H + frame * 28) % H);
             return <line key={i} x1={x} y1={y} x2={x - 8} y2={y + 46} stroke="#9FB3C8" strokeWidth={2} opacity={0.25} />;
@@ -47,7 +47,7 @@ const Backdrop: React.FC<{ n: Narrator; frame: number }> = ({ n, frame }) => {
       <>
         {base}
         <svg width={W} height={H} style={{ position: "absolute" }}>
-          <g transform={`translate(540 760) rotate(${frame * 0.15})`} opacity={0.18}>
+          <g transform={`translate(${W / 2} ${H * 0.4}) rotate(${frame * 0.15})`} opacity={0.18}>
             {Array.from({ length: 16 }, (_, i) => <ellipse key={i} rx={60} ry={300} transform={`rotate(${i * 22.5})`} fill="none" stroke={p.accent} strokeWidth={3} />)}
             <circle r={330} fill="none" stroke={p.accent} strokeWidth={4} />
           </g>
@@ -62,7 +62,7 @@ const Backdrop: React.FC<{ n: Narrator; frame: number }> = ({ n, frame }) => {
         {base}
         <AbsoluteFill style={{ border: "26px solid #6B4423", boxShadow: "inset 0 0 120px rgba(0,0,0,.45)" }} />
         <svg width={W} height={H} style={{ position: "absolute" }}>
-          {Array.from({ length: 14 }, (_, i) => <path key={i} d={`M${random(`bx${i}`) * W} ${random(`by${i}`) * 1200} q 40 -10 90 6`} stroke="#fff" strokeWidth={3} opacity={0.08} fill="none" />)}
+          {Array.from({ length: 14 }, (_, i) => <path key={i} d={`M${random(`bx${i}`) * W} ${random(`by${i}`) * H * 0.62} q 40 -10 90 6`} stroke="#fff" strokeWidth={3} opacity={0.08} fill="none" />)}
         </svg>
       </>
     );
@@ -82,13 +82,13 @@ const Backdrop: React.FC<{ n: Narrator; frame: number }> = ({ n, frame }) => {
 };
 
 /* ---------- narrator character (bust) ---------- */
-const NarratorBust: React.FC<{ n: Narrator; talk: number; frame: number }> = ({ n, talk, frame }) => {
+export const NarratorBust: React.FC<{ n: Narrator; talk: number; frame: number; left: number; top: number; scale?: number }> = ({ n, talk, frame, left, top, scale = 1 }) => {
   const { skin, hair, outfit, accessory, hairStyle } = n.look;
   const blink = frame % 110 < 4 ? 0.1 : 1;
   const bob = Math.sin(frame / 14) * 4;
   const mouth = 4 + talk * 22;
   return (
-    <svg width={520} height={560} viewBox="-260 -300 520 560" style={{ position: "absolute", left: W / 2 - 260, top: H - 560 + bob }}>
+    <svg width={520 * scale} height={560 * scale} viewBox="-260 -300 520 560" style={{ position: "absolute", left, top: top + bob }}>
       <path d="M-230 260 Q -220 90 -110 60 L 110 60 Q 220 90 230 260 Z" fill={outfit} />
       <path d="M-60 60 L 0 130 L 60 60" fill="none" stroke="rgba(0,0,0,.25)" strokeWidth={8} />
       <rect x={-34} y={20} width={68} height={60} fill={skin} />
@@ -114,13 +114,13 @@ const NarratorBust: React.FC<{ n: Narrator; talk: number; frame: number }> = ({ 
 };
 
 /* ---------- captions with karaoke highlight ---------- */
-const Caption: React.FC<{ text: string; progress: number; n: Narrator; inP: number }> = ({ text, progress, n, inP }) => {
+const Caption: React.FC<{ text: string; progress: number; n: Narrator; inP: number; box: React.CSSProperties }> = ({ text, progress, n, inP, box }) => {
   const words = text.split(/\s+/).filter(Boolean);
   const total = words.reduce((s, w) => s + w.length + 1, 0);
   let acc = 0;
   const size = text.length > 90 ? 52 : text.length > 55 ? 60 : 68;
   return (
-    <div style={{ position: "absolute", top: 1010, left: 60, right: 60, textAlign: "center", fontFamily: FONT.ui, fontWeight: 900, fontSize: size, lineHeight: 1.22, opacity: inP, transform: `translateY(${(1 - inP) * 30}px)` }}>
+    <div style={{ position: "absolute", ...box, fontFamily: FONT.ui, fontWeight: 900, fontSize: size, lineHeight: 1.22, opacity: inP, transform: `translateY(${(1 - inP) * 30}px)` }}>
       {words.map((w, i) => {
         const start = acc / total; acc += w.length + 1;
         const lit = progress >= start;
@@ -135,7 +135,8 @@ const Caption: React.FC<{ text: string; progress: number; n: Narrator; inP: numb
 export const NarratorVideoComposition: React.FC<NarratorVideo> = (p) => {
   useBundledFonts();
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const { fps, width: W, height: H } = useVideoConfig();
+  const land = W > H;
   const t = frame / fps;
   const n = NARRATORS[p.narrator];
   const pal = n.palette;
@@ -161,12 +162,12 @@ export const NarratorVideoComposition: React.FC<NarratorVideo> = (p) => {
   const cardBg = n.set === "paper" ? pal.card : `${pal.card}E6`;
   return (
     <AbsoluteFill style={{ overflow: "hidden" }}>
-      <Backdrop n={n} frame={frame} />
+      <Backdrop n={n} frame={frame} W={W} H={H} />
       <VoiceCues cues={voice} />
       {p.sound ? <SoundBed music={n.music} musicVolume={0.12} duck={duckFromCues(voice)} sfx={sfx} /> : null}
 
       {/* top bar: narrator label + progress */}
-      <div style={{ position: "absolute", top: 90, left: 60, right: 60, display: "flex", alignItems: "center", gap: 18 }}>
+      <div style={{ position: "absolute", top: land ? 50 : 90, left: 60, right: 60, display: "flex", alignItems: "center", gap: 18 }}>
         <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 30, letterSpacing: 4, color: n.set === "paper" ? pal.text : "#111", background: n.set === "paper" ? pal.card : pal.accent, padding: "8px 22px", borderRadius: 12, border: n.set === "paper" ? `3px solid ${pal.accent}` : "none" }}>{n.label}</div>
         <div style={{ flex: 1, display: "flex", gap: 8 }}>
           {p.beats.map((_, i) => <div key={i} style={{ flex: 1, height: 10, borderRadius: 6, background: i < idx || t >= outroAt ? pal.accent : i === idx ? `${pal.accent}AA` : "rgba(127,127,127,.35)" }} />)}
@@ -175,7 +176,7 @@ export const NarratorVideoComposition: React.FC<NarratorVideo> = (p) => {
 
       {/* title card */}
       {t < TITLE_SECONDS ? (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingBottom: 420, opacity: titleOut }}>
+        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingBottom: land ? 160 : 420, opacity: titleOut }}>
           <div style={{ fontFamily: FONT.display, fontSize: Math.min(140, 2000 / Math.max(8, p.title.length)), lineHeight: 1.02, color: pal.text, textAlign: "center", padding: "0 70px", transform: `scale(${0.7 + titleP * 0.3})`, textShadow: n.set === "paper" ? "none" : `0 8px 0 rgba(0,0,0,.35), 0 0 40px ${pal.accent}66` }}>{p.title}</div>
         </AbsoluteFill>
       ) : null}
@@ -183,25 +184,25 @@ export const NarratorVideoComposition: React.FC<NarratorVideo> = (p) => {
       {/* beat card */}
       {beat && t < outroAt ? (
         <>
-          <div style={{ position: "absolute", top: 300, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
-            <div style={{ width: 560, height: 560, borderRadius: 60, background: cardBg, border: `6px solid ${pal.accent}`, display: "flex", alignItems: "center", justifyContent: "center", transform: `scale(${0.6 + 0.4 * cardIn}) rotate(${(1 - cardIn) * -8 + Math.sin(frame / 30) * 1.5}deg)`, boxShadow: `0 20px 60px rgba(0,0,0,.35), 0 0 60px ${pal.accent}44` }}>
-              <div style={{ fontSize: 300, lineHeight: 1, fontFamily: "'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif" }}>{beat.icon || "✨"}</div>
+          <div style={{ position: "absolute", top: land ? 140 : 300, ...(land ? { left: 200, width: 460 } : { left: 0, right: 0 }), display: "flex", justifyContent: "center" }}>
+            <div style={{ width: land ? 440 : 560, height: land ? 440 : 560, borderRadius: 60, background: cardBg, border: `6px solid ${pal.accent}`, display: "flex", alignItems: "center", justifyContent: "center", transform: `scale(${0.6 + 0.4 * cardIn}) rotate(${(1 - cardIn) * -8 + Math.sin(frame / 30) * 1.5}deg)`, boxShadow: `0 20px 60px rgba(0,0,0,.35), 0 0 60px ${pal.accent}44` }}>
+              <div style={{ fontSize: land ? 240 : 300, lineHeight: 1, fontFamily: "'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif" }}>{beat.icon || "✨"}</div>
             </div>
           </div>
-          <Caption text={beat.caption} progress={interpolate(bt, [0.12, speakEnd], [0, 1], clamp)} n={n} inP={interpolate(bt, [0, 0.25], [0, 1], clamp)} />
+          <Caption text={beat.caption} progress={interpolate(bt, [0.12, speakEnd], [0, 1], clamp)} n={n} inP={interpolate(bt, [0, 0.25], [0, 1], clamp)} box={land ? { top: 300, left: 760, right: 90, textAlign: "left" } : { top: 1010, left: 60, right: 60, textAlign: "center" }} />
         </>
       ) : null}
 
       {/* outro */}
       {t >= outroAt ? (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingBottom: 520 }}>
+        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", paddingBottom: land ? 200 : 520 }}>
           <div style={{ fontFamily: FONT.display, fontSize: 96, color: pal.text, textAlign: "center", padding: "0 80px", lineHeight: 1.05, transform: `scale(${0.7 + outroP * 0.3})` }}>{p.outro}</div>
           {p.handle ? <div style={{ marginTop: 30, fontFamily: FONT.mono, fontWeight: 700, fontSize: 36, color: pal.accent }}>{p.handle}</div> : null}
         </AbsoluteFill>
       ) : null}
 
-      <NarratorBust n={n} talk={talk} frame={frame} />
-      <div style={{ position: "absolute", bottom: 40, left: 0, right: 0, display: "flex", justifyContent: "center" }}>
+      <NarratorBust n={n} talk={talk} frame={frame} left={land ? 170 : W / 2 - 260} top={land ? H - 470 : H - 560} scale={land ? 0.84 : 1} />
+      <div style={{ position: "absolute", bottom: 40, ...(land ? { left: 170, width: 437 } : { left: 0, right: 0 }), display: "flex", justifyContent: "center" }}>
         <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 28, letterSpacing: 3, color: "#111", background: pal.accent, padding: "6px 22px", borderRadius: 99 }}>{n.label}</div>
       </div>
     </AbsoluteFill>

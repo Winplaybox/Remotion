@@ -88,9 +88,23 @@ export const NarratorVideoSchema = z.object({
   /** Last card, e.g. "Pasand aaya? Follow karo!" */
   outro: z.string().default("Pasand aaya? FOLLOW karo! 🙏"),
   handle: z.string().default(""),
-  sound: z.boolean().default(true)
+  sound: z.boolean().default(true),
+  /** 9:16 (Shorts/Reels) or 16:9 (YouTube). */
+  aspect: z.enum(["9:16", "16:9"]).default("9:16")
 });
 export type NarratorVideo = z.infer<typeof NarratorVideoSchema>;
+
+export const sizeOf = (aspect: "9:16" | "16:9" = "9:16") => (aspect === "16:9" ? { width: 1920, height: 1080 } : { width: 1080, height: 1920 });
+
+/** Thumbnail still (YouTube 1280x720 for 16:9, 1080x1920 cover for Shorts). */
+export const NarratorThumbSchema = z.object({
+  narrator: z.enum(NARRATOR_IDS as [NarratorId, ...NarratorId[]]),
+  title: z.string().min(1).max(60),
+  icon: z.string().max(16).default("✨"),
+  aspect: z.enum(["9:16", "16:9"]).default("16:9")
+});
+export type NarratorThumb = z.infer<typeof NarratorThumbSchema>;
+export const thumbSizeOf = (aspect: "9:16" | "16:9" = "16:9") => (aspect === "16:9" ? { width: 1280, height: 720 } : { width: 1080, height: 1920 });
 
 export const beatStarts = (p: NarratorVideo) => {
   let t = TITLE_SECONDS;
@@ -111,5 +125,6 @@ export const NARRATOR_DEMO: NarratorVideo = {
   ],
   outro: "Pasand aaya? FOLLOW karo! 🙏",
   handle: "",
-  sound: true
+  sound: true,
+  aspect: "9:16"
 };

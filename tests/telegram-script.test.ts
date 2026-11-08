@@ -37,3 +37,31 @@ describe("telegram script pipeline", () => {
     }
   });
 });
+
+import { beatsFor, voiceFor, metaText, defaultMeta, previewText } from "../scripts/telegram/script";
+
+describe("phase 2 script options", () => {
+  it("beat count follows the requested length", () => {
+    expect(beatsFor(30)).toBe(5);
+    expect(beatsFor(50)).toBe(9);
+    expect(beatsFor(180)).toBe(16);
+    expect(beatsFor(5)).toBe(4);
+  });
+  it("language changes prompt rules and the voice", () => {
+    expect(topicPrompt("dadi", "Holi", { language: "hindi" })).toMatch(/Devanagari Hindi/);
+    expect(topicPrompt("dadi", "Holi", { language: "english", seconds: 30 })).toMatch(/Exactly 5 beats/);
+    expect(voiceFor("dadi", "english").voice).toBe("en-IN-NeerjaNeural");
+    expect(voiceFor("jasoos", "english").voice).toBe("en-IN-PrabhatNeural");
+    expect(voiceFor("dadi", "hinglish").voice).toBe("hi-IN-SwaraNeural");
+  });
+  it("research facts are passed and marked as the only source of claims", () => {
+    expect(topicPrompt("saga", "Rama Setu", { facts: "- Valmiki Ramayana describes..." })).toMatch(/Use ONLY these researched facts/);
+  });
+  it("parses metadata and normalises hashtags; fallback metadata and texts", () => {
+    const d = parseDraft('{"title":"x","beats":[{"caption":"a","voice":"a","icon":"🎨"},{"caption":"b","voice":"b"}],"meta":{"title":"T","description":"D","hashtags":["shorts","#holi festival"]}}');
+    expect(d.meta?.hashtags).toEqual(["#shorts", "#holifestival"]);
+    expect(metaText(d.meta!, [{ title: "Wiki", url: "https://w" }])).toMatch(/Sources:\n1\. Wiki — https:\/\/w/);
+    expect(metaText(defaultMeta(d), [])).toMatch(/verify facts/);
+    expect(previewText(d)).toMatch(/^📝 X\n\n1\. 🎨 a/);
+  });
+});

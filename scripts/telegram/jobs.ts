@@ -63,3 +63,9 @@ export async function completeIdea(code: string | undefined, jobCode: string | u
   if (!code) return;
   await rpc("videobot_update_idea", { p_code: code, p_by: null, p: { status: "COMPLETED", note: `video ${jobCode ?? ""} delivered`.trim() } });
 }
+
+/** Stores data on the job without changing its status (e.g. a preview draft awaiting approval). */
+export async function saveJobOutput(code: string | undefined, output: Record<string, unknown>) {
+  if (!code) return;
+  await rpc("videobot_update_job", { p_code: code, p: { output } });
+}
