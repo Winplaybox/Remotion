@@ -51,8 +51,10 @@ async function call(url, init = {}) {
 }
 
 // ---------- Meta ----------
-export const metaAuthUrl = ({ appId, redirect, state }) =>
-  `https://www.facebook.com/${process.env.META_GRAPH_API_VERSION || "v25.0"}/dialog/oauth?${new URLSearchParams({ client_id: appId, redirect_uri: redirect, state, scope: META_SCOPES.join(","), response_type: "code" })}`;
+/** Facebook Login for Business: with a login configuration (config_id) the permissions come from the configuration. */
+export const metaAuthUrl = ({ appId, redirect, state, configId }) =>
+  `https://www.facebook.com/${process.env.META_GRAPH_API_VERSION || "v25.0"}/dialog/oauth?${new URLSearchParams({ client_id: appId, redirect_uri: redirect, state, response_type: "code",
+    ...(configId ? { config_id: configId, override_default_response_type: "true" } : { scope: META_SCOPES.join(",") }) })}`;
 
 /** code -> long-lived user token -> Pages (each with its own long-lived Page token) + linked Instagram account. */
 export async function metaConnect({ appId, appSecret, redirect, code }) {

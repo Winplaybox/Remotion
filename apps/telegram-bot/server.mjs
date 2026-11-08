@@ -173,7 +173,8 @@ const SOCIAL_KEY = tokenKey(env.SUPABASE_SERVICE_ROLE_KEY || `memory:${TOKEN}`);
 const STATE_KEY = crypto.createHash("sha256").update(`oauth-state:${TOKEN}`).digest();
 const baseUrl = (req) => (PUBLIC_URL || `https://${req.headers.host}`).replace(/\/$/, "");
 const redirectFor = (req, platform) => `${baseUrl(req)}/admin/connect/${platform}/callback`;
-const apps = { meta: { id: env.META_APP_ID, secret: env.META_APP_SECRET }, pinterest: { id: env.PINTEREST_APP_ID, secret: env.PINTEREST_APP_SECRET } };
+// "Channel publishing" login configuration of the WinPlayBox Publisher Meta app (not a secret).
+const apps = { meta: { id: env.META_APP_ID, secret: env.META_APP_SECRET, configId: env.META_LOGIN_CONFIG_ID ?? "2229571631237251" }, pinterest: { id: env.PINTEREST_APP_ID, secret: env.PINTEREST_APP_SECRET } };
 const chan = (id) => SOCIAL_CHANNELS.find((c) => c.id === id);
 const back = (res, msg) => html(res, 302, "", { location: `/admin#social?msg=${encodeURIComponent(msg)}` });
 
@@ -190,7 +191,7 @@ async function socialRoute(req, res, url) {
       const channel = chan(url.searchParams.get("channel"));
       if (!channel) return back(res, "unknown channel");
       const state = signState({ p: platform, c: channel.id, n: crypto.randomBytes(9).toString("base64url") }, STATE_KEY);
-      return html(res, 302, "", { location: (platform === "meta" ? metaAuthUrl : pinterestAuthUrl)({ appId: app.id, redirect: redirectFor(req, platform), state }) });
+      return html(res, 302, "", { location: (platform === "meta" ? metaAuthUrl : pinterestAuthUrl)({ appId: app.id, redirect: redirectFor(req, platform), state, configId: app.configId }) });
     }
     const st = readState(url.searchParams.get("state"), STATE_KEY);
     if (!st || st.p !== platform) return back(res, "Login link expire ho gaya, dobara Connect dabao");

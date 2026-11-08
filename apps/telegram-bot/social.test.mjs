@@ -30,6 +30,9 @@ test("auth URLs carry the redirect, state and scopes", () => {
   const m = new URL(metaAuthUrl({ appId: "1", redirect: "https://bot/admin/connect/meta/callback", state: "S" }));
   assert.equal(m.searchParams.get("redirect_uri"), "https://bot/admin/connect/meta/callback");
   assert.match(m.searchParams.get("scope"), /instagram_content_publish/);
+  const c = new URL(metaAuthUrl({ appId: "1", redirect: "https://bot/cb", state: "S", configId: "99" }));
+  assert.equal(c.searchParams.get("config_id"), "99");
+  assert.equal(c.searchParams.get("scope"), null);
   const p = new URL(pinterestAuthUrl({ appId: "2", redirect: "https://bot/admin/connect/pinterest/callback", state: "S" }));
   assert.match(p.searchParams.get("scope"), /pins:write/);
   assert.equal(p.searchParams.get("state"), "S");
