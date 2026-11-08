@@ -64,4 +64,21 @@ describe("social fan-out", () => {
     expect(await n).toBe(1);
     expect(recorded).toEqual(["instagram:false:token expired", "facebook:true:"]);
   });
+
+  it("a Pinterest app on Trial access is skipped, not recorded as a failure", async () => {
+    Object.assign(process.env, { PINTEREST_APP_ID: "a", PINTEREST_APP_SECRET: "b", PINTEREST_CHAKRA_REFRESH_TOKEN: "r", PINTEREST_CHAKRA_BOARD_ID: "brd" });
+    const at = new Date().toISOString();
+    jest.requireActual<typeof import("node:fs")>("node:fs").writeFileSync("/tmp/v.pin.jpg", "x");
+    const realFetch = global.fetch;
+    global.fetch = jest.fn(async (url: string) => String(url).includes("/oauth/token")
+      ? new Response(JSON.stringify({ access_token: "tok" }), { status: 200 })
+      : new Response(JSON.stringify({ message: "Apps with Trial access may not create Pins in production" }), { status: 403 })) as unknown as typeof fetch;
+    const recorded: string[] = [];
+    const n = fanout({ cfg, meta: cfg.meta(3), video: "/tmp/v.mp4", youtubeId: "XYZ", publishAt: "2026-11-08T20:00:00Z", key: "k",
+      done: { instagram: { ok: true, at }, facebook: { ok: true, at } }, record: async (p) => { recorded.push(p); } });
+    await jest.advanceTimersByTimeAsync(20 * 60_000);
+    global.fetch = realFetch;
+    expect(await n).toBe(0);
+    expect(recorded).toEqual([]);
+  });
 });
