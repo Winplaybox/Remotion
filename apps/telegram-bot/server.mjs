@@ -12,7 +12,7 @@ import http from "node:http";
 import { handle } from "./commands.mjs";
 import { createStore } from "./store.mjs";
 import { SOCIAL_CHANNELS, looksLike, metaAuthUrl, metaCheck, metaConnect, pinterestAccount, pinterestAuthUrl, pinterestBoards, pinterestCreateBoard, pinterestToken, readState, seal, signState, tokenKey, unseal, workerSig } from "./social-connect.mjs";
-import { DASHBOARD_CSP, actionToCommand, dashboardShell, detailCode, loginPage, parseListQuery, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
+import { DASHBOARD_CSP, readMagic, signMagic, actionToCommand, dashboardShell, detailCode, loginPage, parseListQuery, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
 
 const env = process.env;
 const TOKEN = env.TELEGRAM_BOT_TOKEN;
@@ -31,6 +31,8 @@ const ctx = {
   admin: env.TG_ADMIN_ID || "",
   styleEnabled: env.TG_STYLE_ENABLED === "true",
   publicUrl: env.PUBLIC_URL || env.RENDER_EXTERNAL_URL || "",
+  dashboardUrl: (env.DASHBOARD_URL || "https://bot.winplaybox.in").replace(/\/$/, ""),
+  magicLink: (id) => `${(env.DASHBOARD_URL || "https://bot.winplaybox.in").replace(/\/$/, "")}/admin/magic?t=${encodeURIComponent(signMagic(id, SESSION_KEY))}`,
   maxJobsPerDay: Number(env.MAX_JOBS_PER_DAY || 40),
   pending: new Map()
 };
@@ -102,6 +104,7 @@ async function handleUpdate(update) {
 // ---------------- web admin (/admin) ----------------
 const SESSION_KEY = crypto.createHash("sha256").update(`session:${TOKEN}`).digest();
 let botUsername = env.TG_BOT_USERNAME || "";
+const usedMagic = new Set();
 const json = (res, code, body) => res.writeHead(code, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }).end(JSON.stringify(body));
 const html = (res, code, body, headers = {}) => res.writeHead(code, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "x-frame-options": "DENY", ...headers }).end(body);
 
@@ -112,6 +115,12 @@ async function adminRoute(req, res, url) {
     const who = verifyTelegramLogin(Object.fromEntries(url.searchParams), TOKEN);
     if (!who || who.id !== String(ctx.admin)) return html(res, 403, "Sirf admin login kar sakta hai.");
     return html(res, 302, "", { location: "/admin", "set-cookie": `vb_admin=${encodeURIComponent(signSession(who.id, SESSION_KEY))}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=43200` });
+  }
+  if (req.method === "GET" && url.pathname === "/admin/magic") { // one-time link from /dashboard in Telegram
+    const m = readMagic(url.searchParams.get("t"), SESSION_KEY);
+    if (!m || m.id !== String(ctx.admin) || usedMagic.has(m.nonce)) return html(res, 403, "Link expire ho gaya ya pehle use ho chuka hai. Telegram mein /dashboard dobara bhejo.");
+    usedMagic.add(m.nonce);
+    return html(res, 302, "", { location: "/admin", "referrer-policy": "no-referrer", "set-cookie": `vb_admin=${encodeURIComponent(signSession(m.id, SESSION_KEY))}; Path=/admin; HttpOnly; Secure; SameSite=Lax; Max-Age=43200` });
   }
   if (req.method === "GET" && url.pathname === "/admin/logout") return html(res, 302, "", { location: "/admin", "set-cookie": "vb_admin=; Path=/admin; Max-Age=0" });
   if (req.method === "GET" && url.pathname === "/admin") {

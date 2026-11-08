@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
-import { actionToCommand, dashboardShell, detailCode, parseListQuery, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
+import { readMagic, signMagic, actionToCommand, dashboardShell, detailCode, parseListQuery, readSession, signSession, verifyTelegramLogin } from "./admin.mjs";
 import { memoryStore } from "./store.mjs";
 
 const TOKEN = "123:ABC";
@@ -93,4 +93,15 @@ test("web dashboard actions keep the stored Telegram name", async () => {
   await s.touchUser({ id: 9, name: "Sagar", username: "sagar" }, true);
   await s.touchUser({ id: 9, name: "", username: "" }, true);
   assert.equal((await s.adminList("users", null, "", 10, 0)).rows[0].name, "Sagar");
+});
+
+test("one-time login links are signed, expire after 10 min and are bound to the key", () => {
+  const key = Buffer.alloc(32, 3);
+  const t = signMagic("816898456", key, 1_000_000_000);
+  assert.equal(readMagic(t, key, 1_000_000_000 + 60_000).id, "816898456");
+  assert.equal(readMagic(t, key, 1_000_000_000 + 11 * 60_000), null);
+  assert.equal(readMagic(t, Buffer.alloc(32, 4), 1_000_000_000), null);
+  assert.equal(readMagic(t.replace("816898456", "1"), key, 1_000_000_000), null);
+  assert.equal(readMagic("junk", key), null);
+  assert.notEqual(readMagic(signMagic("1", key), key).nonce, readMagic(signMagic("1", key), key).nonce);
 });

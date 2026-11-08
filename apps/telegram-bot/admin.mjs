@@ -101,3 +101,22 @@ export function dashboardShell(admin) {
 }
 
 export const DASHBOARD_CSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; media-src https:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+
+// ---------- one-time login link (sent by the bot to the admin's own Telegram chat) ----------
+const MAGIC_MINUTES = 10;
+export function signMagic(id, key, now = Date.now()) {
+  const exp = Math.floor(now / 1000) + MAGIC_MINUTES * 60;
+  const nonce = crypto.randomBytes(9).toString("base64url");
+  const body = `${id}.${exp}.${nonce}`;
+  return `${body}.${crypto.createHmac("sha256", Buffer.concat([Buffer.from("magic:"), Buffer.from(key)])).update(body).digest("hex")}`;
+}
+/** Returns { id, nonce } for a valid, unexpired link, else null. Single use is enforced by the caller (nonce). */
+export function readMagic(token, key, now = Date.now()) {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 4) return null;
+  const [id, exp, nonce, sig] = parts;
+  const want = crypto.createHmac("sha256", Buffer.concat([Buffer.from("magic:"), Buffer.from(key)])).update(`${id}.${exp}.${nonce}`).digest("hex");
+  if (sig.length !== want.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(want))) return null;
+  if (Number(exp) * 1000 < now) return null;
+  return { id, nonce };
+}
