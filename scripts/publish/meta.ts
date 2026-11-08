@@ -21,7 +21,7 @@ const post = (ep: string, params: Record<string, string>, token: string) =>
   json(`${BASE}/${ep}`, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ ...params, access_token: token }) });
 const get = (ep: string, params: Record<string, string>, token: string) => json(`${BASE}/${ep}?${new URLSearchParams({ ...params, access_token: token })}`);
 
-async function hostVideo(file: string, key: string): Promise<string> {
+export async function hostVideo(file: string, key: string): Promise<string> {
   const root = (process.env.SUPABASE_URL ?? "").replace(/\/+$/, "");
   const sk = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!root || !sk) throw new Error("Meta: SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY missing (needed to host the MP4)");
@@ -33,7 +33,7 @@ async function hostVideo(file: string, key: string): Promise<string> {
   return url;
 }
 
-async function instagram(url: string, caption: string, token: string, igId: string) {
+export async function instagram(url: string, caption: string, token: string, igId: string) {
   const c = await post(`${igId}/media`, { media_type: "REELS", video_url: url, caption, share_to_feed: "true" }, token);
   for (let i = 0; i < 36; i++) {
     const s = await get(c.id, { fields: "status_code,status" }, token);
@@ -44,7 +44,7 @@ async function instagram(url: string, caption: string, token: string, igId: stri
   throw new Error("Instagram processing timed out");
 }
 
-async function facebook(url: string, caption: string, token: string, pageId: string) {
+export async function facebook(url: string, caption: string, token: string, pageId: string) {
   const start = await post(`${pageId}/video_reels`, { upload_phase: "start" }, token);
   const up = await json(start.upload_url, { method: "POST", headers: { authorization: `OAuth ${token}`, file_url: url } });
   if (up.success !== true) throw new Error("Facebook upload failed");
