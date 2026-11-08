@@ -53,7 +53,7 @@ async function dispatch(event, payload) {
   const res = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
     method: "POST",
     headers: { authorization: `Bearer ${env.GH_DISPATCH_TOKEN}`, accept: "application/vnd.github+json", "user-agent": "telegram-video-bot" },
-    body: JSON.stringify({ event_type: event, client_payload: payload })
+    body: JSON.stringify({ event_type: event, client_payload: { job: payload } }) // GitHub allows max 10 top-level client_payload keys
   });
   if (res.status !== 204) throw new Error(`GitHub dispatch ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
