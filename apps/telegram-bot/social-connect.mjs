@@ -70,7 +70,7 @@ export async function metaConnect({ appId, appSecret, redirect, code }) {
   }
   return { user: me.name ?? "", pages };
 }
-export const metaCheck = (pageId, token) => call(`${GRAPH}/${pageId}?${new URLSearchParams({ fields: "name,instagram_business_account{username}", access_token: token })}`);
+export const metaCheck = (pageId, token) => call(`${GRAPH}/${pageId}?${new URLSearchParams({ fields: "name,instagram_business_account{id,username}", access_token: token })}`);
 
 // ---------- Pinterest ----------
 const PIN = "https://api.pinterest.com/v5";

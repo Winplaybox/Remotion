@@ -211,7 +211,14 @@ async function socialRoute(req, res, url) {
           const page = r.pages.find((p) => looksLike(p.name, c.name) || looksLike(p.ig_username, c.handle));
           if (page && (c.id === channel.id || !cur?.token_enc)) { await saveMetaPage(c.id, page); mapped.push(c.name); }
         }
-        if (!mapped.includes(channel.name)) await store.socialSave(channel.id, "meta", { options });
+        if (!mapped.includes(channel.name)) {
+          // Offer only Pages that are not another channel's (by name or already connected there).
+          const taken = new Set();
+          for (const c of SOCIAL_CHANNELS) if (c.id !== channel.id) { const r2 = await store.socialGet(c.id, "meta"); if (r2?.page_id) taken.add(r2.page_id); }
+          const free = options.pages.filter((p) => !taken.has(p.id) && !SOCIAL_CHANNELS.some((c) => c.id !== channel.id && (looksLike(p.name, c.name) || looksLike(p.ig_username, c.handle))));
+          await store.socialSave(channel.id, "meta", { options: { ...options, pages: free, missing: free.length === 0 } });
+          if (!free.length) return back(res, `${mapped.length ? `✓ Connected: ${mapped.join(", ")} · ` : ""}"${r.user}" ke Facebook login mein ${channel.name} ka Page nahi mila`);
+        }
         return back(res, mapped.length ? `✓ Connected: ${mapped.join(", ")}${mapped.includes(channel.name) ? "" : ` · ${channel.name} ke liye Page chuno`}` : `${channel.name} ke liye Page chuno`);
       }
       const t = await pinterestToken({ appId: app.id, appSecret: app.secret, params: { grant_type: "authorization_code", code, redirect_uri: redirectFor(req, "pinterest") } });
@@ -243,6 +250,7 @@ async function socialRoute(req, res, url) {
         if (!pend) return json(res, 410, { error: "Page list expire ho gayi, dobara Connect dabao" });
         const page = JSON.parse(unseal(pend.data_enc, SOCIAL_KEY)).find((p) => p.id === String(a.page_id));
         if (!page) return json(res, 400, { error: "page not found" });
+        for (const c of SOCIAL_CHANNELS) if (c.id !== channel.id && (await store.socialGet(c.id, "meta"))?.page_id === page.id) return json(res, 409, { error: `Ye Page pehle se ${c.name} ka hai` });
         await saveMetaPage(channel.id, page);
         return json(res, 200, { ok: true, msg: `✓ ${channel.name} → ${page.name}${page.ig_username ? ` + @${page.ig_username}` : " (Instagram linked nahi hai!)"}` });
       }
@@ -261,7 +269,13 @@ async function socialRoute(req, res, url) {
       if (a.op === "check") {
         const row = await store.socialGet(channel.id, a.platform === "pinterest" ? "pinterest" : "meta");
         if (!row?.token_enc) return json(res, 400, { error: "not connected" });
-        if (row.platform === "meta") { const p = await metaCheck(row.page_id, unseal(row.token_enc, SOCIAL_KEY)); return json(res, 200, { ok: true, msg: `✓ Facebook "${p.name}"${p.instagram_business_account?.username ? ` + Instagram @${p.instagram_business_account.username}` : " — Instagram linked nahi"}` }); }
+        if (row.platform === "meta") {
+          const p = await metaCheck(row.page_id, unseal(row.token_enc, SOCIAL_KEY));
+          const ig = p.instagram_business_account;
+          // Instagram linked after connecting? Pick it up without reconnecting.
+          if ((ig?.id ?? "") !== row.ig_user_id) await store.socialSave(channel.id, "meta", { ig_user_id: ig?.id ?? "", ig_username: ig?.username ?? "", page_name: p.name });
+          return json(res, 200, { ok: true, msg: `✓ Facebook "${p.name}"${ig?.username ? ` + Instagram @${ig.username}` : " — Instagram abhi bhi linked nahi"}` });
+        }
         const u = await pinterestAccount(unseal(row.token_enc, SOCIAL_KEY));
         return json(res, 200, { ok: true, msg: `✓ Pinterest @${u.username}` });
       }

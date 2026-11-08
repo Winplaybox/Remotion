@@ -458,9 +458,12 @@ async function renderSocial() {
   const metaCell = (c) => {
     const a = acc(c.id, "meta");
     if (a?.has_token) return `<div><b>${esc(a.page_name)}</b> <span class="mute small">Facebook Page</span></div>
-      <div>${a.ig_username ? `@${esc(a.ig_username)} <span class="mute small">Instagram</span>` : `<span class="st r">Instagram linked nahi</span>`}</div>
+      <div>${a.ig_username ? `@${esc(a.ig_username)} <span class="mute small">Instagram</span>` : `<span class="st r">Instagram linked nahi</span><div class="small mute" style="margin-top:4px;max-width:340px">Instagram app → Settings → Account type: <b>Professional</b>, phir Facebook Page "${esc(a.page_name)}" se link karo (Page settings → Linked accounts → Instagram). Uske baad <b>Test</b> dabao.</div>`}</div>
       <div class="mute small">${time(a.connected_at)}</div>
       <div class="actions" style="margin-top:6px"><button class="btn sm" data-soc="check" data-ch="${c.id}" data-pf="meta">Test</button><a class="btn sm" href="/admin/connect/meta?channel=${c.id}">Reconnect</a><button class="btn sm bad" data-soc="disconnect" data-ch="${c.id}" data-pf="meta">Disconnect</button></div>`;
+    if (a?.options?.missing) return `<div class="small"><span class="st y">Page nahi mila</span> "${esc(a.options.user)}" ke Facebook login mein <b>${esc(c.name)}</b> ka Page nahi hai.</div>
+      <div class="small mute" style="margin:6px 0;max-width:360px">Ya to us Page pe is account ko admin banao (Page → Settings → Page access), ya jis Facebook account ke paas ${esc(c.name)} ka Page hai usse login karo — wo account app mein Tester hona chahiye (warna "App not active" aata hai).</div>
+      <a class="btn sm acc" href="/admin/connect/meta?channel=${c.id}">Dobara Connect</a>`;
     if (a?.options?.pages?.length) return `<div class="small" style="margin-bottom:6px">Login: ${esc(a.options.user)} — <b>${esc(c.name)}</b> ka Page chuno:</div>
       <select data-pick-page="${c.id}" data-nonce="${esc(a.options.nonce)}"><option value="">— Page —</option>${a.options.pages.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.ig_username ? ` (@${esc(p.ig_username)})` : " (no Instagram)"}</option>`).join("")}</select>`;
     return d.apps.meta ? `<a class="btn acc" href="/admin/connect/meta?channel=${c.id}">Connect Instagram + Facebook</a>` : `<span class="mute small">App set nahi</span>`;
