@@ -4,7 +4,7 @@ name: Telegram Bot Jobs
 #   tg-video: topic/script -> Gemini beats -> Edge TTS -> Remotion NarratorVideo -> sent back to the chat
 #   tg-style: real video (Telegram file) -> Remotion ToonVideo (cartoon/anime/comic/sketch/watercolor) -> sent back
 #   tg-idea : idea appended to content/ideas/inbox.jsonl on branch bot-data, admin notified
-# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY.  Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
+# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (job progress; optional).  Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
 on:
   repository_dispatch:
     types: [tg-video, tg-style, tg-idea]
@@ -32,6 +32,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
           TG_ADMIN_ID: ${{ vars.TG_ADMIN_ID }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           PYTHON: python
         run: npx ts-node scripts/telegram/${{ github.event.action == 'tg-style' && 'make-toon.ts' || 'make-video.ts' }}
 

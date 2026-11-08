@@ -19,13 +19,16 @@ async function call(method: string, body: FormData | Record<string, unknown>) {
 export const sendMessage = (chatId: string | number, text: string, replyTo?: number) =>
   call("sendMessage", { chat_id: chatId, text, ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}) });
 
-export async function sendVideo(chatId: string | number, file: string, caption: string, replyTo?: number) {
+export const editMessage = (chatId: string | number, messageId: number, text: string, keyboard?: { text: string; callback_data: string }[][]) =>
+  call("editMessageText", { chat_id: chatId, message_id: messageId, text: text.slice(0, 4096), ...(keyboard ? { reply_markup: { inline_keyboard: keyboard } } : {}) });
+
+export async function sendVideo(chatId: string | number, file: string, caption: string, replyTo?: number, size: [number, number] = [1080, 1920]) {
   const form = new FormData();
   form.append("chat_id", String(chatId));
   form.append("caption", caption.slice(0, 1000));
   form.append("supports_streaming", "true");
-  form.append("width", "1080");
-  form.append("height", "1920");
+  form.append("width", String(size[0]));
+  form.append("height", String(size[1]));
   if (replyTo) form.append("reply_parameters", JSON.stringify({ message_id: replyTo, allow_sending_without_reply: true }));
   form.append("video", new Blob([fs.readFileSync(file)], { type: "video/mp4" }), path.basename(file));
   return call("sendVideo", form);

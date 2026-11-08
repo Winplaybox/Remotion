@@ -1,34 +1,49 @@
 // Telegram webhook server (Render.com web service, zero dependencies, Node >= 20).
-// Replies instantly; heavy work (video render, saving ideas) runs in GitHub Actions via repository_dispatch.
+// Replies at once; heavy work (video renders) runs in GitHub Actions via repository_dispatch.
 //
-// Env: TELEGRAM_BOT_TOKEN, TG_WEBHOOK_SECRET (optional, derived from the token), GH_DISPATCH_TOKEN (fine-grained PAT: Contents read + Actions/"repository dispatch" write
-//      on the repo), GITHUB_REPO (default Winplaybox/Remotion), TG_ADMIN_ID, TG_ALLOWLIST (comma-separated Telegram user ids),
+// Env: TELEGRAM_BOT_TOKEN (required) · TG_WEBHOOK_SECRET (optional, derived from the token) · TG_ADMIN_ID ·
+//      TG_ALLOWLIST (comma-separated user ids; admins can also /allow) · TG_STYLE_ENABLED=true to enable /style ·
+//      GH_DISPATCH_TOKEN (fine-grained PAT, Contents: read & write) · GITHUB_REPO (default Winplaybox/Remotion) ·
+//      SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (ideas/jobs/users; without them an in-memory store is used) ·
 //      RENDER_EXTERNAL_URL (set by Render) or PUBLIC_URL — the webhook is registered on boot.
 import crypto from "node:crypto";
 import http from "node:http";
 import { handle } from "./commands.mjs";
+import { createStore } from "./store.mjs";
 
 const env = process.env;
 const TOKEN = env.TELEGRAM_BOT_TOKEN;
 // Telegram allows only A-Z a-z 0-9 _ - in secret_token (Render's generated values are base64).
-// Without TG_WEBHOOK_SECRET it is derived from the bot token, so only the token has to be configured.
 const SECRET = (env.TG_WEBHOOK_SECRET || (TOKEN ? crypto.createHash("sha256").update(`webhook:${TOKEN}`).digest("hex").slice(0, 48) : "")).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 200);
 const REPO = env.GITHUB_REPO || "Winplaybox/Remotion";
 const PUBLIC_URL = env.PUBLIC_URL || env.RENDER_EXTERNAL_URL;
 if (!TOKEN) { console.error("TELEGRAM_BOT_TOKEN is required"); process.exit(1); }
-if (!env.GH_DISPATCH_TOKEN) console.warn("GH_DISPATCH_TOKEN missing: ideas/videos cannot be queued until it is set");
+if (!env.GH_DISPATCH_TOKEN) console.warn("GH_DISPATCH_TOKEN missing: videos cannot be queued until it is set");
 
+const store = createStore(env);
+console.log(`store: ${store.kind}`);
 const ctx = {
+  store,
   allow: new Set((env.TG_ALLOWLIST || "").split(",").map((s) => s.trim()).filter(Boolean)),
   admin: env.TG_ADMIN_ID || "",
-  // Video-to-video (/style) is off until explicitly enabled.
   styleEnabled: env.TG_STYLE_ENABLED === "true",
-  usage: new Map(),
-  get today() { return new Date().toISOString().slice(0, 10); }
+  pending: new Map()
 };
 
-const tg = (method, body) => fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }).then((r) => r.json());
-const reply = (chatId, text, replyTo) => tg("sendMessage", { chat_id: chatId, text, ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}) });
+// Each Telegram call is independent: one failed send never stops the remaining effects.
+const tg = async (method, body) => {
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${TOKEN}/${method}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!j.ok) console.warn(`telegram ${method}: ${j.description}`);
+    return j;
+  } catch (e) {
+    console.warn(`telegram ${method}: ${e.message}`);
+    return { ok: false, description: e.message };
+  }
+};
+const markup = (keyboard) => (keyboard ? { reply_markup: { inline_keyboard: keyboard.map((row) => row.map((b) => ({ text: b.text, callback_data: b.data }))) } } : {});
+const send = (chatId, m, replyTo) => tg("sendMessage", { chat_id: chatId, text: m.text.slice(0, 4096), ...markup(m.keyboard), ...(replyTo ? { reply_parameters: { message_id: replyTo, allow_sending_without_reply: true } } : {}) });
 
 async function dispatch(event, payload) {
   const res = await fetch(`https://api.github.com/repos/${REPO}/dispatches`, {
@@ -36,28 +51,45 @@ async function dispatch(event, payload) {
     headers: { authorization: `Bearer ${env.GH_DISPATCH_TOKEN}`, accept: "application/vnd.github+json", "user-agent": "telegram-video-bot" },
     body: JSON.stringify({ event_type: event, client_payload: payload })
   });
-  if (res.status !== 204) throw new Error(`GitHub dispatch ${res.status}: ${await res.text()}`);
-}
-
-async function listIdeas(chatId) {
-  const res = await fetch(`https://api.github.com/repos/${REPO}/contents/content/ideas/inbox.jsonl?ref=bot-data`, {
-    headers: { authorization: `Bearer ${env.GH_DISPATCH_TOKEN}`, accept: "application/vnd.github.raw+json", "user-agent": "telegram-video-bot" }
-  });
-  if (!res.ok) return reply(chatId, "Abhi koi idea nahi hai.");
-  const rows = (await res.text()).trim().split("\n").filter(Boolean).slice(-10).map((l) => JSON.parse(l));
-  const text = rows.map((r, i) => `${i + 1}. ${r.user?.name ?? "?"}: ${String(r.text).slice(0, 180)}${r.link ? `\n   ${r.link}` : ""}${r.video ? " 🎥" : ""}`).join("\n");
-  return reply(chatId, `📥 Latest ideas:\n${text || "(none)"}`);
+  if (res.status !== 204) throw new Error(`GitHub dispatch ${res.status}: ${(await res.text()).slice(0, 200)}`);
 }
 
 async function handleUpdate(update) {
-  const out = handle(update, ctx);
-  const msg = update.message;
-  for (const r of out.replies) await reply(msg.chat.id, r, msg.message_id);
-  if (out.listIdeas) await listIdeas(msg.chat.id);
+  if (typeof update.update_id === "number") {
+    const first = await store.claimUpdate(update.update_id).catch((e) => { console.warn(`claimUpdate: ${e.message}`); return true; });
+    if (!first) return; // Telegram retry of an update we already handled
+  }
+  const q = update.callback_query;
+  const chatId = update.message?.chat.id ?? q?.message?.chat.id ?? q?.from.id;
+  let out;
+  try { out = await handle(update, ctx); } catch (e) {
+    console.error("handle failed", e);
+    if (chatId) await send(chatId, { text: "⚠️ Abhi kuch gadbad hai, thodi der baad dobara try karo." });
+    if (q) await tg("answerCallbackQuery", { callback_query_id: q.id });
+    return;
+  }
+  const replyTo = update.message?.message_id;
+  if (q) await tg("answerCallbackQuery", { callback_query_id: q.id, ...(out.answer ? { text: out.answer.slice(0, 190) } : {}) });
+  if (q && out.edit && q.message) await tg("editMessageText", { chat_id: q.message.chat.id, message_id: q.message.message_id, text: out.edit.text.slice(0, 4096), ...markup(out.edit.keyboard) });
+
+  let statusMessageId = null;
+  for (const [i, m] of (out.replies ?? []).entries()) {
+    const r = await send(chatId, m, replyTo);
+    if (i === 0 && out.statusFor && r.ok) statusMessageId = r.result.message_id;
+  }
+  for (const m of out.notify ?? []) await send(m.chatId, m);
+  if (ctx.admin) {
+    if (out.copyToAdmin && update.message) await tg("copyMessage", { chat_id: ctx.admin, from_chat_id: chatId, message_id: update.message.message_id });
+    for (const m of out.admin ?? []) await send(ctx.admin, m);
+  }
+  if (out.statusFor && statusMessageId) await store.updateJob(out.statusFor, { status_message_id: statusMessageId }).catch((e) => console.warn(e.message));
   if (out.dispatch) {
-    try { await dispatch(out.dispatch.event, out.dispatch.payload); } catch (e) {
+    try {
+      await dispatch(out.dispatch.event, { ...out.dispatch.payload, ...(statusMessageId ? { statusMessageId } : {}) });
+    } catch (e) {
       console.error(e);
-      await reply(msg.chat.id, "⚠️ Abhi request queue nahi ho paayi, thodi der baad dobara bhejo.");
+      if (out.statusFor) await store.updateJob(out.statusFor, { status: "FAILED", error: "queue failed", message: e.message }).catch(() => undefined);
+      await send(chatId, { text: "⚠️ Abhi request queue nahi ho paayi, thodi der baad dobara bhejo." });
     }
   }
 }
@@ -75,14 +107,19 @@ http.createServer((req, res) => {
 }).listen(Number(env.PORT || 10000), async () => {
   console.log(`telegram bot listening on ${env.PORT || 10000}`);
   if (PUBLIC_URL) {
-    const r = await tg("setWebhook", { url: `${PUBLIC_URL.replace(/\/$/, "")}/tg/${SECRET}`, secret_token: SECRET, allowed_updates: ["message"], drop_pending_updates: false });
+    const r = await tg("setWebhook", { url: `${PUBLIC_URL.replace(/\/$/, "")}/tg/${SECRET}`, secret_token: SECRET, allowed_updates: ["message", "callback_query"], drop_pending_updates: false });
     console.log("setWebhook:", r.ok ? "ok" : r.description);
     await tg("setMyCommands", { commands: [
+      { command: "menu", description: "Main menu" },
       { command: "topic", description: "Topic se video: /topic dadi Holi kyun" },
       { command: "script", description: "Apni script se video" },
       ...(ctx.styleEnabled ? [{ command: "style", description: "Video ke caption mein: /style cartoon" }] : []),
       { command: "idea", description: "Video idea bhejo" },
-      { command: "narrators", description: "Narrators ki list" },
+      { command: "status", description: "Job ka haal" },
+      { command: "history", description: "Mere projects" },
+      { command: "cancel", description: "Chalti job roko" },
+      { command: "settings", description: "Narrator, bhasha, length" },
+      { command: "narrators", description: "Narrators" },
       { command: "myid", description: "Aapka Telegram ID" },
       { command: "help", description: "Madad" }
     ] });

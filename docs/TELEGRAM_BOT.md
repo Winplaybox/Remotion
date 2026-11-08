@@ -12,17 +12,36 @@ Telegram ──webhook──▶ Render.com (apps/telegram-bot/server.mjs)      i
 
 ## What users can do
 
-| Send | Who | Bot replies |
-|---|---|---|
-| Any message, link, photo or **sample video** (or `/idea <text>`) | everyone | "✅ Got it! Aapka idea future pipeline list mein add ho gaya hai. Admin isko review karega." — admin gets the idea (+ the video) |
-| `/topic <narrator> <topic>` e.g. `/topic dadi Holi kyun manate hain` | allowlist + admin | "🎬 Video ban raha hai…" then the finished MP4 |
-| `/script <narrator>` + script on the next lines | allowlist + admin | Same; keeps the user's words (AI only splits into beats, adds emoji + Hindi voice line) |
-| A video with caption `/style cartoon [title]` (or reply `/style anime` to a video) | allowlist + admin | Real → **cartoon / anime / comic / sketch / watercolor**, opens with a REAL→style swipe, original audio kept |
-| `/narrators`, `/myid`, `/help` | everyone | lists |
-| `/ideas` | admin | last 10 ideas |
+`/menu` (also `/start`) shows the main menu as buttons: 💡 Future Ideas · 🎬 Topic to Video · 📝 Script to Video ·
+🎨 Video to Video · ✂️ Shorts · 🖼️ Thumbnail · 🎙️ Narrator · 🌐 Translate · 📂 My Projects · 📊 Job Status · ⚙️ Settings · ❓ Help.
+Pressing Topic / Script / Idea asks for the text in the next message (10 min).
 
-Narrator is optional (default `dost`). Others sending `/topic` get "invited users only" and their topic is saved as an idea.
-Non-admins: 5 videos/day.
+| Send | Who | Result |
+|---|---|---|
+| Any message, link, photo or sample video, or `/idea <text>` | everyone | **Idea `IDEA-00001`, status Pending Admin Review**; likely duplicates flagged; admin gets Approve / Reject / P1–P5 / Merge / Produce buttons. Ideas never start a video by themselves |
+| `/topic [narrator] <topic>` | allowlist, `/allow`ed users, admin | job `JOB-00001` with a live status message (progress bar, 🛑 Cancel) → MP4 in the chat |
+| `/script [narrator]` + script on the next lines | same | keeps the user's words |
+| video with caption `/style cartoon` | same, only when `TG_STYLE_ENABLED=true` | off by default |
+| `/status [JOB]`, `/history`, `/cancel [JOB]` | everyone (own jobs) | progress, past videos + ideas, stop a job (the worker stops at its next step) |
+| `/settings`, `/narrators` | everyone | narrator, Hinglish/हिंदी/English, 9:16/16:9, ~30/50/90 s — used for the next video |
+| `/myid`, `/help` | everyone | |
+
+Limits: 5 videos per user per 24 h (stored in the database; admin unlimited). Telegram retries never create a second job
+(`update_id` is recorded; jobs are idempotent).
+
+### Admin (`TG_ADMIN_ID`)
+`/admin` lists: `/stats` · `/ideas [STATUS]` · `/approve ID [note]` · `/reject ID [note]` · `/priority ID 1-5` ·
+`/channel ID name` · `/note ID text` · `/merge ID INTO_ID` · `/produce ID [narrator]` (APPROVED ideas only → topic video,
+idea becomes IN_PRODUCTION → COMPLETED when delivered) · `/allow TG_ID` / `/disallow TG_ID` · `/jobs [STATUS]` · `/retry JOB`.
+Idea owners get a message when their idea is approved, rejected, in production or completed.
+
+## Data (Supabase)
+
+Schema `videobot` in the **winplayboxsite** project (`https://xatbfyiytcnogfbtfsym.supabase.co`), migration
+`supabase/migrations/20261108000100_videobot_foundation.sql`: `users`, `ideas` (+ `idea_events` history), `jobs`
+(+ `job_events`), `processed_updates`, `user_preferences`. Tables are not exposed to the public API; the bot and the
+workers call `public.videobot_*` functions with the **service-role key** only (anon/authenticated cannot execute them).
+Without `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` the bot falls back to memory + the old `bot-data` branch for ideas.
 
 ## Narrators (engines/narrator-video)
 
@@ -57,10 +76,13 @@ It is a filter look, not AI re-drawing — faces/hands keep their real shapes. A
    - Variables: `TG_ADMIN_ID` (your Telegram id — send `/myid` to the bot after step 5), optional `GEMINI_MODEL`
 4. **GitHub token for Render**: github.com/settings/personal-access-tokens → fine-grained → only repo
    `Winplaybox/Remotion` → Repository permissions **Contents: Read and write** (needed for repository_dispatch and to read ideas).
-5. **Render.com** → New → **Blueprint** → this repo (uses `render.yaml`) → fill `TELEGRAM_BOT_TOKEN`, `GH_DISPATCH_TOKEN`
+5. **Supabase** (winplayboxsite project → Settings → API): copy the **service_role** key. Add `SUPABASE_URL` =
+   `https://xatbfyiytcnogfbtfsym.supabase.co` and `SUPABASE_SERVICE_ROLE_KEY` to **Render env** and to **GitHub secrets**
+   (workers update job progress). Never put this key anywhere else.
+6. **Render.com** → New → **Blueprint** → this repo (uses `render.yaml`) → fill `TELEGRAM_BOT_TOKEN`, `GH_DISPATCH_TOKEN`
    (step 4), `TG_ADMIN_ID`, `TG_ALLOWLIST` (comma-separated ids of invited users). The webhook secret is derived from the bot token (or set `TG_WEBHOOK_SECRET`).
    On start the server registers its webhook and the command menu itself.
-6. Test: `/myid` → `/topic dadi Diwali pe diye kyun` → a video in ~5–8 min. Send any text → idea saved.
+7. Test: `/myid` → `/topic dadi Diwali pe diye kyun` → a video in ~5–8 min. Send any text → idea saved.
 
 Free Render plan sleeps after 15 min idle: the first message after a pause takes ~30–60 s to answer.
 

@@ -15,8 +15,9 @@ import { NARRATORS, NARRATOR_DEMO, NarratorVideoSchema, type NarratorId, type Na
 import { parseDraft, scriptPrompt, splitScript, topicPrompt, type Draft } from "./script";
 import { sendMessage, sendVideo } from "./telegram";
 import { renderComposition } from "./render";
+import { JobCancelled, completeIdea, jobTracker } from "./jobs";
 
-interface Job { kind: "topic" | "script"; narrator: string; text: string; chatId: string | number; messageId?: number; user?: { id?: number; name?: string } }
+interface Job { kind: "topic" | "script"; narrator: string; text: string; chatId: string | number; messageId?: number; jobCode?: string; statusMessageId?: number; ideaCode?: string; user?: { id?: number; name?: string } }
 
 const root = process.cwd();
 const dry = process.argv.includes("--dry");
@@ -73,22 +74,38 @@ function voiceBeats(d: Draft): NarratorVideo["beats"] {
   });
 }
 
-const render = (props: NarratorVideo) => renderComposition("NarratorVideo", props, path.join(root, "output", "tg", `${jobId}.mp4`));
+const render = (props: NarratorVideo, onProgress?: (p: number) => void) => renderComposition("NarratorVideo", props, path.join(root, "output", "tg", `${jobId}.mp4`), 24, 1, onProgress);
 
 (async () => {
   if (!dry && (!job.kind || !job.text || !job.chatId)) throw new Error("PAYLOAD needs kind, text, chatId");
+  const track = jobTracker({ code: job.jobCode, chatId: job.chatId, statusMessageId: job.statusMessageId });
   try {
+    if (!dry) await track.step("SCRIPT_GENERATION", 10);
     const d = await draft();
-    const props = NarratorVideoSchema.parse({ narrator, title: d.title, beats: voiceBeats(d), outro: "Pasand aaya? FOLLOW karo! 🙏", handle: "", sound: true });
-    const file = await render(props);
+    if (!dry) await track.step("NARRATION", 30, d.title);
+    const beats = voiceBeats(d);
+    if (!dry) await track.step("RENDERING", 45);
+    const props = NarratorVideoSchema.parse({ narrator, title: d.title, beats, outro: "Pasand aaya? FOLLOW karo! 🙏", handle: "", sound: true });
+    let lastPct = 45;
+    const file = await render(props, (p) => {
+      const pct = 45 + Math.floor(p * 45);
+      if (!dry && pct - lastPct >= 10) { lastPct = pct; track.step("RENDERING", pct).catch(() => undefined); }
+    });
     console.log(`[render] ${file} (${props.beats.length} beats)`);
     if (dry) return;
-    await sendVideo(job.chatId, file, `🎬 ${d.title}\nNarrator: ${NARRATORS[narrator].label}`, job.messageId);
+    await track.step("UPLOADING", 92);
+    await sendVideo(job.chatId, file, `🎬 ${d.title}\nNarrator: ${NARRATORS[narrator].label}${job.jobCode ? `\n${job.jobCode}` : ""}`, job.messageId);
+    await completeIdea(job.ideaCode, job.jobCode);
+    await track.done({ title: d.title, beats: props.beats.length, seconds: Math.round(props.beats.reduce((s, b) => s + b.seconds, 0)), idea: job.ideaCode ?? null });
     const admin = process.env.TG_ADMIN_ID;
-    if (admin && String(admin) !== String(job.chatId)) await sendMessage(admin, `🎬 ${job.kind} video bana: "${d.title}" (${NARRATORS[narrator].label}) for ${job.user?.name ?? job.chatId}`).catch(() => undefined);
+    if (admin && String(admin) !== String(job.chatId)) await sendMessage(admin, `🎬 ${job.jobCode ?? job.kind} bana: "${d.title}" (${NARRATORS[narrator].label}) for ${job.user?.name ?? job.chatId}`).catch(() => undefined);
   } catch (e) {
+    if (e instanceof JobCancelled) { console.log(`[job] ${(e as Error).message}`); return; }
     console.error(e);
-    if (!dry) await sendMessage(job.chatId, `😔 Video nahi ban paaya: ${(e as Error).message}`, job.messageId).catch(() => undefined);
+    if (!dry) {
+      await track.fail((e as Error).message);
+      if (!job.statusMessageId) await sendMessage(job.chatId, `😔 Video nahi ban paaya: ${(e as Error).message}`, job.messageId).catch(() => undefined);
+    }
     process.exitCode = 1;
   } finally {
     fs.rmSync(path.join(root, "public", "tg", jobId), { recursive: true, force: true });

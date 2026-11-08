@@ -12,8 +12,9 @@ import path from "node:path";
 import { MAX_SECONDS, TOON_STYLES, ToonVideoSchema, type ToonStyle } from "../../engines/toon-video/src/model";
 import { renderComposition } from "./render";
 import { sendMessage, sendVideo } from "./telegram";
+import { JobCancelled, jobTracker } from "./jobs";
 
-interface Job { fileId: string; style: string; chatId: string | number; messageId?: number; title?: string; user?: { name?: string } }
+interface Job { fileId: string; style: string; chatId: string | number; messageId?: number; title?: string; jobCode?: string; statusMessageId?: number; user?: { name?: string } }
 
 const args = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -50,23 +51,36 @@ function normalize(input: string, output: string) {
 
 (async () => {
   fs.mkdirSync(dir, { recursive: true });
+  const track = jobTracker({ code: job.jobCode, chatId: job.chatId, statusMessageId: job.statusMessageId });
   try {
+    if (!local) await track.step("VALIDATING", 5);
     const raw = path.join(dir, "raw");
     if (local) fs.copyFileSync(local, raw); else await download(job.fileId, raw);
     const input = path.join(dir, "in.mp4");
     normalize(raw, input);
+    if (!local) await track.step("RENDERING", 20);
     const [w, h] = probe(input, "stream=width,height").split(",").map(Number);
     const seconds = Math.min(MAX_SECONDS, Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", input]).toString().trim()));
     const props = ToonVideoSchema.parse({ src: `tg/${jobId}/in.mp4`, style, seconds: Math.max(1, Math.floor(seconds * 30) / 30), width: w, height: h, title: (job.title ?? "").slice(0, 60), showBefore: true, handle: "" });
-    const out = await renderComposition("ToonVideo", props, path.join(root, "output", "tg", `${jobId}-${style}.mp4`), 23, 2 / 3);
+    let lastPct = 20;
+    const out = await renderComposition("ToonVideo", props, path.join(root, "output", "tg", `${jobId}-${style}.mp4`), 23, 2 / 3, (p) => {
+      const pct = 20 + Math.floor(p * 70);
+      if (!local && pct - lastPct >= 10) { lastPct = pct; track.step("RENDERING", pct).catch(() => undefined); }
+    });
     console.log(`[toon] ${out} (${style}, ${seconds.toFixed(1)}s, ${w}x${h})`);
     if (local) return;
-    await sendVideo(job.chatId, out, `🎨 ${TOON_STYLES[style].label} version`, job.messageId);
+    await track.step("UPLOADING", 92);
+    await sendVideo(job.chatId, out, `🎨 ${TOON_STYLES[style].label} version${job.jobCode ? `\n${job.jobCode}` : ""}`, job.messageId, [720, 1280]);
+    await track.done({ title: `${TOON_STYLES[style].label} version`, seconds: Math.round(seconds), style });
     const admin = process.env.TG_ADMIN_ID;
     if (admin && String(admin) !== String(job.chatId)) await sendMessage(admin, `🎨 /style ${style} video bana for ${job.user?.name ?? job.chatId}`).catch(() => undefined);
   } catch (e) {
+    if (e instanceof JobCancelled) { console.log(`[job] ${(e as Error).message}`); return; }
     console.error(e);
-    if (!local) await sendMessage(job.chatId, `😔 Video convert nahi ho paayi: ${(e as Error).message}`, job.messageId).catch(() => undefined);
+    if (!local) {
+      await track.fail((e as Error).message);
+      if (!job.statusMessageId) await sendMessage(job.chatId, `😔 Video convert nahi ho paayi: ${(e as Error).message}`, job.messageId).catch(() => undefined);
+    }
     process.exitCode = 1;
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
