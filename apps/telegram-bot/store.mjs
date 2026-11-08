@@ -32,7 +32,11 @@ export function supabaseStore(url, key) {
     updateJob: (code, p) => rpc("videobot_update_job", { p_code: code, p }),
     getJob: (code) => rpc("videobot_get_job", { p_code: code }),
     listJobs: (tgId, status, limit) => rpc("videobot_list_jobs", { p_tg_id: tgId ?? null, p_status: status ?? null, p_limit: limit ?? 10 }),
-    stats: () => rpc("videobot_stats", {})
+    stats: () => rpc("videobot_stats", {}),
+    submitPublication: (jobCode, by, isAdmin) => rpc("videobot_submit_publication", { p_job_code: jobCode, p_by: by, p_is_admin: isAdmin }),
+    reviewPublication: (code, by, p) => rpc("videobot_review_publication", { p_code: code, p_by: by, p }),
+    listPublications: (status, limit) => rpc("videobot_list_publications", { p_status: status ?? null, p_limit: limit ?? 10 }),
+    getPublication: (code) => rpc("videobot_get_publication", { p_code: code })
   };
 }
 
@@ -47,7 +51,9 @@ function similarity(a, b) {
 }
 
 export function memoryStore() {
-  const updates = new Set(), users = new Map(), prefs = new Map(), ideas = [], jobs = [];
+  const updates = new Set(), users = new Map(), prefs = new Map(), ideas = [], jobs = [], pubs = [];
+  const OPEN = (p) => !["REJECTED", "CANCELLED", "FAILED"].includes(p.status);
+  const pubJson = (p) => { const j = jobs.find((x) => x.id === p.job_id); return { ...p, job: j ? { code: j.code, kind: j.kind, tg_id: j.tg_id, chat_id: j.chat_id, output: j.output } : null }; };
   const now = () => new Date().toISOString();
   const ideaJson = (i) => ({ ...i, duplicate_of: i.duplicate_of ? ideas[i.duplicate_of - 1].code : null, user: { name: users.get(i.tg_id)?.name ?? "", username: users.get(i.tg_id)?.username ?? "" } });
   const findIdea = (code) => ideas.find((i) => i.code === code);
@@ -116,6 +122,32 @@ export function memoryStore() {
     async listJobs(tgId, status, limit = 10) {
       return jobs.filter((j) => (!tgId || j.tg_id === tgId) && (!status || j.status === status)).sort((a, b) => b.id - a.id).slice(0, Math.min(limit, 50)).map((j) => ({ ...j }));
     },
+    async submitPublication(jobCode, by, isAdmin) {
+      const j = findJob(jobCode);
+      if (!j) return { error: "job not found" };
+      if (j.tg_id !== by && !isAdmin) return { error: "not your job" };
+      if (j.status !== "COMPLETED" || !j.output?.file) return { error: "video not stored" };
+      const open = pubs.find((p) => p.job_id === j.id && OPEN(p));
+      if (open) return { ...pubJson(open), existing: true };
+      const id = pubs.length + 1;
+      const p = { id, code: `PUB-${String(id).padStart(5, "0")}`, job_id: j.id, requested_by: by, status: "PENDING_APPROVAL", target: "", platforms: [], publish_at: null, title: (j.output.title ?? "").slice(0, 100), description: j.output.description ?? "", hashtags: j.output.hashtags ?? [], results: {}, attempts: 0, approved_by: null, created_at: now() };
+      pubs.push(p);
+      return pubJson(p);
+    },
+    async reviewPublication(code, by, q) {
+      const p = pubs.find((x) => x.code === code);
+      const retry = q.decision === "retry" && ["FAILED", "PARTIAL"].includes(p?.status);
+      if (!p || (!["PENDING_APPROVAL", "SCHEDULED"].includes(p.status) && !retry)) return { error: "not found or already final" };
+      p.status = { reject: "REJECTED", approve: "SCHEDULED", cancel: "CANCELLED", retry: retry ? "SCHEDULED" : p.status }[q.decision] ?? p.status;
+      if (q.target) p.target = q.target;
+      if (q.platforms) p.platforms = q.platforms;
+      p.publish_at = q.publish_at ?? p.publish_at ?? now();
+      if (q.title) p.title = q.title;
+      if (q.decision === "approve") p.approved_by = by;
+      return pubJson(p);
+    },
+    async listPublications(status, limit = 10) { return pubs.filter((p) => !status || p.status === status).slice(-Math.min(limit, 50)).reverse().map(pubJson); },
+    async getPublication(code) { const p = pubs.find((x) => x.code === code); return p ? pubJson(p) : null; },
     async stats() {
       const active = jobs.filter((j) => !FINAL.has(j.status)).length;
       return { users: users.size, active_users_7d: users.size, ideas: ideas.length, ideas_pending: ideas.filter((i) => i.status === "PENDING_REVIEW").length, ideas_approved: ideas.filter((i) => i.status === "APPROVED").length, jobs_active: active, jobs_completed: jobs.filter((j) => j.status === "COMPLETED").length, jobs_failed: jobs.filter((j) => j.status === "FAILED").length };

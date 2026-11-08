@@ -38,6 +38,9 @@ test("web actions map only to known, validated bot commands", () => {
   assert.equal(actionToCommand({ action: "cancel", code: "IDEA-00001" }), null);
   assert.equal(actionToCommand({ action: "priority", code: "IDEA-00001", value: "9" }), null);
   assert.equal(actionToCommand({ action: "allow", code: "5" }), null);
+  assert.equal(actionToCommand({ action: "retry", code: "PUB-00001" }), "/pubretry PUB-00001");
+  assert.equal(actionToCommand({ action: "unpublish", code: "PUB-00001" }), "/unpublish PUB-00001");
+  assert.equal(actionToCommand({ action: "unpublish", code: "JOB-00001" }), null);
 });
 
 test("dashboard escapes user content", () => {

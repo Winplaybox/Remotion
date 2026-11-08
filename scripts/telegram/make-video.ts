@@ -17,6 +17,7 @@ import { DraftSchema, LANGUAGES, defaultMeta, metaText, parseDraft, previewText,
 import { downloadFile, sendKeyboard, sendMessage, sendPhoto, sendVideo } from "./telegram";
 import { renderComposition, renderStillComposition } from "./render";
 import { JobCancelled, completeIdea, jobTracker, saveJobOutput } from "./jobs";
+import { storeFile } from "./storage";
 
 interface Job {
   kind: "topic" | "script"; narrator: string; text?: string; fileId?: string; chatId: string | number; messageId?: number;
@@ -157,8 +158,12 @@ function voiceBeats(d: Draft): NarratorVideo["beats"] {
     await sendVideo(job.chatId, file, `🎬 ${meta.title}\nNarrator: ${NARRATORS[narrator].label}${job.jobCode ? ` · ${job.jobCode}` : ""}`, job.messageId, [size.width, size.height]);
     if (thumb) await sendPhoto(job.chatId, thumb, "🖼️ Thumbnail").catch((e: Error) => console.warn(`[thumb] ${e.message}`));
     await sendMessage(job.chatId, metaText(meta, sources)).catch((e: Error) => console.warn(`[meta] ${e.message}`));
+    const key = `jobs/${job.jobCode ?? jobId}`;
+    const stored = await storeFile(file, `${key}/video.mp4`);
+    const storedThumb = thumb ? await storeFile(thumb, `${key}/thumb.jpg`, "image/jpeg") : "";
     await completeIdea(job.ideaCode, job.jobCode);
-    await track.done({ title: meta.title, video_title: d.title, description: meta.description, hashtags: meta.hashtags, sources, beats: props.beats.length, seconds: Math.round(props.beats.reduce((s, b) => s + b.seconds, 0)), aspect, language, narrator, idea: job.ideaCode ?? null });
+    await track.done({ file: stored, thumb: storedThumb, title: meta.title, video_title: d.title, description: meta.description, hashtags: meta.hashtags, sources, beats: props.beats.length, seconds: Math.round(props.beats.reduce((s, b) => s + b.seconds, 0)), aspect, language, narrator, idea: job.ideaCode ?? null });
+    if (stored && job.jobCode) await sendKeyboard(job.chatId, "📤 Is video ko channel pe publish karna hai? Admin approve karega.", [[{ text: "📤 Publish ke liye bhejo", callback_data: `pub:submit:${job.jobCode}` }]]).catch(() => undefined);
     const admin = process.env.TG_ADMIN_ID;
     if (admin && String(admin) !== String(job.chatId)) await sendMessage(admin, `🎬 ${job.jobCode ?? job.kind} bana: "${d.title}" (${NARRATORS[narrator].label}) for ${job.user?.name ?? job.chatId}`).catch(() => undefined);
   } catch (e) {

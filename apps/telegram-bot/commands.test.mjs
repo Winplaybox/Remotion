@@ -216,3 +216,42 @@ test("/shorts from a video caption, a reply, or a link; limits and defaults", as
   assert.match((await handle(msg("/shorts", CREATOR), c)).replies[0].text, /Lambi video/);
   assert.notEqual((await handle(msg("/shorts https://x.y/v.mp4", STRANGER), c)).dispatch?.event, "tg-shorts");
 });
+
+import { whenToIso, PUBLISH_TARGETS } from "./commands.mjs";
+
+test("schedule times are IST and never in the past", () => {
+  const now = Date.parse("2026-11-08T10:00:00Z"); // 15:30 IST
+  assert.equal(whenToIso("now", now), "2026-11-08T10:00:00.000Z");
+  assert.equal(whenToIso("t1930", now), "2026-11-08T14:00:00.000Z");
+  assert.equal(whenToIso("k0900", now), "2026-11-09T03:30:00.000Z");
+  const late = Date.parse("2026-11-08T15:00:00Z"); // 20:30 IST -> today 7:30 PM has passed
+  assert.equal(whenToIso("t1930", late), "2026-11-09T14:00:00.000Z");
+  assert.equal(whenToIso("bogus", now), null);
+});
+
+test("publishing: owner submits, admin picks channel -> platforms -> time, owner notified; strangers blocked", async () => {
+  const c = ctx();
+  const j = await handle(msg("/topic Holi kyun"), c);
+  const code = j.dispatch.payload.jobCode;
+  assert.match((await handle(press(`pub:submit:${code}`, CREATOR), c)).replies[0].text, /file save nahi/);
+  await c.store.updateJob(code, { status: "COMPLETED", output: { file: `jobs/${code}/video.mp4`, title: "Holi kyun?", hashtags: ["#shorts"] } });
+  assert.match((await handle(press(`pub:submit:${code}`, 77), c)).replies[0].text, /aapka video nahi/);
+  const sub = await handle(press(`pub:submit:${code}`, CREATOR), c);
+  assert.match(sub.replies[0].text, /PUB-00001 admin ko bheja/);
+  assert.equal(sub.admin[0].keyboard[0][0].data, `pub:t:PUB-00001:${PUBLISH_TARGETS[0].id}`);
+  assert.match((await handle(press(`pub:submit:${code}`, CREATOR), c)).replies[0].text, /pehle se PENDING_APPROVAL/);
+  assert.equal((await handle(press("pub:t:PUB-00001:chakra-puzzle", CREATOR), c)).answer, "Sirf admin");
+  const t = await handle(press("pub:t:PUB-00001:chakra-puzzle"), c);
+  assert.equal(t.edit.keyboard[0][1].data, "pub:p:PUB-00001:chakra-puzzle:yif");
+  const p = await handle(press("pub:p:PUB-00001:chakra-puzzle:yif"), c);
+  assert.equal(p.edit.keyboard[0][0].data, "pub:a:PUB-00001:chakra-puzzle:yif:now");
+  const a = await handle(press("pub:a:PUB-00001:chakra-puzzle:yif:now"), c);
+  assert.equal(a.dispatch.event, "tg-publish");
+  assert.equal(a.notify[0].chatId, CREATOR);
+  const pub = await c.store.getPublication("PUB-00001");
+  assert.deepEqual([pub.status, pub.target, pub.platforms], ["SCHEDULED", "chakra-puzzle", ["youtube", "instagram", "facebook"]]);
+  assert.equal((await handle(press("pub:a:PUB-00001:hacked:yif:now"), c)).answer, "?");
+  const x = await handle(press("pub:x:PUB-00001"), c);
+  assert.equal((await c.store.getPublication("PUB-00001")).status, "CANCELLED");
+  assert.match(x.edit.text, /CANCELLED/);
+});
