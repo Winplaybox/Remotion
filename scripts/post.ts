@@ -17,6 +17,7 @@ import path from "node:path";
 import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId, type VoiceLine } from "../channels/channels";
 import { uploadYouTube } from "./publish/youtube";
 import { publishMeta } from "./publish/meta";
+import { ledgerEnabled, ledgerRecord } from "./ledger";
 
 const args = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -104,14 +105,24 @@ async function main() {
   }
   console.log(`[${cfg.name}] video ${video}`);
 
+  // Ledger (catch-up after skipped cron runs): only for real slot publishes, i.e. an explicit --date and --youtube.
+  const slotKey = arg("date") && flag("youtube") && ledgerEnabled() ? { channel, date, slot, n } : null;
+  let youtubeId = "";
   if (flag("youtube")) {
-    const id = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env[`${cfg.youtubeTokenSecret}_CLIENT`] || process.env.YT_CLIENT_SECRET_JSON });
-    console.log(`[YouTube] https://youtube.com/shorts/${id} scheduled for ${publishAt}`);
+    youtubeId = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env[`${cfg.youtubeTokenSecret}_CLIENT`] || process.env.YT_CLIENT_SECRET_JSON });
+    console.log(`[YouTube] https://youtube.com/shorts/${youtubeId} scheduled for ${publishAt}`);
   }
   if (flag("meta")) {
     const p = cfg.metaSecretPrefix;
-    await publishMeta({ video, caption: meta.caption, key: `${channel}/${tag}`, pageId: process.env[`${p}_PAGE_ID`], igUserId: process.env[`${p}_IG_USER_ID`], pageToken: process.env[`${p}_PAGE_TOKEN`] });
+    try {
+      await publishMeta({ video, caption: meta.caption, key: `${channel}/${tag}`, pageId: process.env[`${p}_PAGE_ID`], igUserId: process.env[`${p}_IG_USER_ID`], pageToken: process.env[`${p}_PAGE_TOKEN`] });
+    } catch (e) {
+      // Never auto-retried: a partial Meta post must be checked by hand before posting again.
+      if (slotKey) await ledgerRecord({ ...slotKey, status: "META_FAILED", youtubeId, meta: (e as Error).message.slice(0, 300) }).catch((x: Error) => console.error(`[ledger] ${x.message}`));
+      throw e;
+    }
   }
+  if (slotKey) await ledgerRecord({ ...slotKey, status: "DONE", youtubeId, meta: flag("meta") ? "ok" : "off" }).then(() => console.log(`[ledger] ${channel} ${date} slot ${slot} recorded`), (x: Error) => console.error(`[ledger] ${x.message}`));
 }
 
 main().catch((e) => { console.error(e instanceof Error ? e.message : e); process.exitCode = 1; });

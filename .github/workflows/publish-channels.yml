@@ -7,6 +7,10 @@ name: Publish Channels
 on:
   schedule:
     - cron: "2 * * * *"
+  # Backup hourly tick from Supabase pg_cron (videobot.github_tick) — GitHub sometimes skips scheduled runs for hours.
+  # Same behaviour as the schedule; the publishing ledger + concurrency group make a double trigger harmless.
+  repository_dispatch:
+    types: [publish-tick]
   workflow_dispatch:
     inputs:
       channel:
@@ -57,6 +61,8 @@ jobs:
         env:
           LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
           START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           if [ -n "${{ inputs.channel }}" ] && [ -n "${{ inputs.n }}" ]; then
             echo "matrix={\"include\":[{\"channel\":\"${{ inputs.channel }}\",\"n\":\"${{ inputs.n }}\",\"date\":\"${{ inputs.date }}\",\"slot\":\"${{ inputs.slot || '0' }}\"}]}" >> "$GITHUB_OUTPUT"
@@ -115,8 +121,8 @@ jobs:
           if [ -n "${{ matrix.n || '' }}" ]; then ARGS="$ARGS --n ${{ matrix.n }}"; if [ -n "${{ matrix.date }}" ]; then ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi; else ARGS="$ARGS --date ${{ matrix.date }} --slot ${{ matrix.slot }}"; fi
           ARGS="$ARGS --auto-narrate"
           if [ "${{ matrix.channel }}" = "epicbharatsaga" ] && [ "${{ vars.EBS_ALLOW_SILENT }}" != "true" ]; then ARGS="$ARGS --require-narration"; fi
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.youtube }}" = "true" ]; then ARGS="$ARGS --youtube"; fi
-          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.meta }}" = "true" ]; then ARGS="$ARGS --meta"; fi
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.youtube }}" = "true" ]; then ARGS="$ARGS --youtube"; fi
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ] || [ "${{ inputs.meta }}" = "true" ]; then ARGS="$ARGS --meta"; fi
           npx ts-node scripts/post.ts $ARGS
       - uses: actions/upload-artifact@v4
         if: always()
