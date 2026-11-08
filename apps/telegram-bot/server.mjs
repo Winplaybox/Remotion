@@ -115,6 +115,7 @@ http.createServer((req, res) => {
       { command: "preview", description: "Pehle script dekho, phir render" },
       { command: "script", description: "Apni script se video (text ya .txt)" },
       ...(ctx.styleEnabled ? [{ command: "style", description: "Video ke caption mein: /style cartoon" }] : []),
+      { command: "shorts", description: "Lambi video/link se Shorts" },
       { command: "idea", description: "Video idea bhejo" },
       { command: "status", description: "Job ka haal" },
       { command: "history", description: "Mere projects" },

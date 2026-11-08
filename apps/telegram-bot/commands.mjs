@@ -41,6 +41,7 @@ const helpText = (style) => `🙏 Namaste! Main video bot hoon. /menu se sab kuc
 /preview [narrator] <topic> — pehle script dekho, phir ▶️ Render
 /script [narrator] [enhance] + agli lines mein apni script (ya .txt file, caption /script)
 ${style ? `🎨 Video ke caption mein: /style cartoon  (${STYLES.join(", ")})\n` : ""}
+✂️ /shorts — lambi video (caption) ya link se 3 Shorts
 📊 /status — job ka haal · /history — purane projects · /cancel — job roko
 ⚙️ /settings — narrator, bhasha, length, 9:16/16:9
 🎙️ /narrators · 🆔 /myid`;
@@ -52,7 +53,7 @@ export const SOON = "🚧 Ye feature jaldi aa raha hai!";
 export const MAIN_MENU = [
   [{ text: "💡 Future Ideas", data: "menu:idea" }, { text: "🎬 Topic to Video", data: "menu:topic" }],
   [{ text: "📝 Script to Video", data: "menu:script" }, { text: "🎨 Video to Video", data: "menu:style" }],
-  [{ text: "✂️ Long Video to Shorts", data: "menu:soon" }, { text: "🖼️ Thumbnail", data: "menu:soon" }],
+  [{ text: "✂️ Long Video to Shorts", data: "menu:shorts" }, { text: "🖼️ Thumbnail", data: "menu:soon" }],
   [{ text: "🎙️ Narrator", data: "menu:narrator" }, { text: "🌐 Translate", data: "menu:soon" }],
   [{ text: "📂 My Projects", data: "menu:history" }, { text: "📊 Job Status", data: "menu:status" }],
   [{ text: "⚙️ Settings", data: "menu:settings" }, { text: "❓ Help", data: "menu:help" }]
@@ -144,6 +145,20 @@ export async function handle(update, ctx) {
     return startJob(S, "style", { style, fileId: vid.file_id, title }, "tg-style");
   }
 
+  // ---- /shorts: long video (caption or reply) or a link -> several Shorts
+  const shortsCmd = capCmd?.cmd === "shorts" ? capCmd : c?.cmd === "shorts" ? c : null;
+  if (shortsCmd) {
+    const vid = videoOf(msg) || videoOf(msg.reply_to_message);
+    const url = (shortsCmd.args.match(/https?:\/\/\S+/) || [""])[0];
+    const nums = shortsCmd.args.replace(url, "").match(/\d+/g)?.map(Number) ?? [];
+    const count = Math.max(1, Math.min(5, nums.find((n) => n <= 5) ?? 3));
+    const seconds = Math.max(20, Math.min(60, nums.find((n) => n >= 15) ?? 45));
+    if (!vid && !url) return { replies: [{ text: "✂️ Lambi video bhejo (caption: /shorts 3) ya link: /shorts https://… 3\n3 = kitne Shorts, 45 = har Short ke second." }] };
+    if (!allowed) return addIdea(S, `[shorts] ${url || "video"}`, "🔒 Shorts banana abhi sirf invited users ke liye hai. Aapka request idea ke roop mein save ho gaya ✅");
+    if (vid && (vid.file_size || 0) > MAX_VIDEO_MB * 1024 * 1024) return { replies: [{ text: `📦 Telegram bot sirf ${MAX_VIDEO_MB} MB tak ki video le sakta hai. Badi video ke liye link bhejo: /shorts https://… 3` }] };
+    return startJob(S, "shorts", { ...(vid ? { fileId: vid.file_id } : { url }), count, seconds, language: prefs.language }, "tg-shorts");
+  }
+
   // ---- script as a .txt/.md document (caption /script ... or reply /script to the document)
   const docOf = (m) => (m?.document && (/^text\//.test(m.document.mime_type || "") || /\.(txt|md)$/i.test(m.document.file_name || "")) ? m.document : null);
   const scriptDoc = capCmd?.cmd === "script" ? docOf(msg) : c?.cmd === "script" ? docOf(msg.reply_to_message) : null;
@@ -201,7 +216,6 @@ export async function handle(update, ctx) {
       return history(S);
     case "cancel":
       return cancel(S, c.args);
-    case "shorts":
     case "thumbnail":
     case "translate":
     case "video":
@@ -359,7 +373,7 @@ async function retry(S, code) {
   const j = await ctx.store.getJob(code);
   if (!j || (!isAdmin && Number(j.tg_id) !== user.id)) return { replies: [{ text: "Job nahi mili." }] };
   if (j.status !== "FAILED") return { replies: [{ text: `${j.code} fail nahi hui (${j.status}).` }] };
-  const event = j.kind === "style" ? "tg-style" : "tg-video";
+  const event = j.kind === "style" ? "tg-style" : j.kind === "shorts" ? "tg-shorts" : "tg-video";
   return startJob({ ...S, updateId: `retry:${j.code}:${(j.retry_count ?? 0) + 1}` }, j.kind, { ...j.input, retryOf: j.code }, event);
 }
 
@@ -394,6 +408,7 @@ async function handleButton(q, ctx) {
       case "idea": ctx.pending.set(user.id, { action: "idea", at: Date.now() }); return { answer: "", replies: [{ text: "💡 Apna video idea likho (ek message mein):" }] };
       case "topic": ctx.pending.set(user.id, { action: "topic", at: Date.now() }); return { answer: "", replies: [{ text: `🎬 Topic likho (narrator: ${prefs.narrator}):` }] };
       case "script": ctx.pending.set(user.id, { action: "script", at: Date.now() }); return { answer: "", replies: [{ text: `📝 Apni script bhejo (narrator: ${prefs.narrator}):` }] };
+      case "shorts": return { answer: "", replies: [{ text: "✂️ Lambi video bhejo, caption mein: /shorts 3 (ya link: /shorts https://… 3)" }] };
       case "style": return { answer: "", replies: [{ text: ctx.styleEnabled ? `🎨 Video bhejo, caption mein: /style cartoon\nStyles: ${STYLES.join(", ")}` : STYLE_OFF }] };
       case "narrator": return { answer: "", replies: [{ text: `🎙️ Narrator chuno (abhi: ${prefs.narrator})`, keyboard: narratorKeyboard(prefs.narrator) }] };
       case "settings": return { answer: "", replies: [{ text: settingsText(prefs), keyboard: settingsKeyboard(prefs) }] };

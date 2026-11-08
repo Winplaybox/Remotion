@@ -23,6 +23,7 @@ Pressing Topic / Script / Idea asks for the text in the next message (10 min).
 | `/preview [narrator] <topic>` | same | the script comes first (numbered beats) with ▶️ Render / 🛑 Cancel; send an edited `/script` to change it |
 | `/script [narrator] [enhance]` + script on the next lines, or a `.txt`/`.md` file with caption `/script` | same | keeps the user's words and dialogue by default; `enhance` lets the AI tighten it (no new facts) |
 | video with caption `/style cartoon` | same, only when `TG_STYLE_ENABLED=true` | off by default |
+| long video with caption `/shorts [count] [seconds]` (or reply, or `/shorts <link> 3`) | allowlist + admin | 1–5 vertical Shorts (20–60 s), cut on sentence boundaries, word-by-word captions, hook, original audio, each with title + hashtags |
 | `/status [JOB]`, `/history`, `/cancel [JOB]` | everyone (own jobs) | progress, past videos + ideas, stop a job (the worker stops at its next step) |
 | `/settings`, `/narrators` | everyone | narrator, Hinglish/हिंदी/English, 9:16/16:9, ~30/50/90 s — used for the next video |
 | `/myid`, `/help` | everyone | |
@@ -40,6 +41,14 @@ Every finished video comes with: the MP4 (9:16 or 16:9), a **thumbnail** (1280×
 **title, description, hashtags and sources**. Topic videos first run a research step (Gemini + Google Search grounding);
 the script may only use those facts, and the sources are listed. Without sources the message says "verify facts".
 Languages: Hinglish (Roman captions, Hindi voice), हिंदी (Devanagari captions; font bundled), English (Indian-English voices).
+
+## Long video → Shorts (engines/short-clip)
+
+Worker `scripts/telegram/make-shorts.ts` (GitHub job `shorts`, up to 90 min): normalise → faster-whisper (`small`, CPU int8,
+model cached) word timestamps → Gemini picks highlights (fallback: dense-speech windows) → every clip is snapped to whole
+sentences, max 90 s, no overlaps → Remotion `ShortClip` (landscape = full frame + blurred fill, portrait = cover). Telegram
+uploads are limited to 20 MB, so send longer videos as a link (direct .mp4 or a page yt-dlp can read). Only use videos you
+own or have rights to; links to other people's content are the user's responsibility.
 
 ## Data (Supabase)
 
