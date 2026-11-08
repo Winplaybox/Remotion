@@ -350,7 +350,8 @@ async function adminCommand(S, c) {
     case "admin": return { replies: [{ text: ADMIN_HELP }] };
     case "dashboard": {
       const s2 = await ctx.store.stats();
-      return { replies: [{ text: `📊 ${s2.ideas_pending} ideas pending · ${s2.jobs_active} jobs active · ${s2.jobs_failed} failed\n🖥️ Web dashboard: ${ctx.publicUrl ? `${ctx.publicUrl.replace(/\/$/, "")}/admin` : "(PUBLIC_URL / RENDER_EXTERNAL_URL not set)"}` }] };
+      const link = ctx.magicLink ? ctx.magicLink(String(ctx.admin)) : null;
+      return { replies: [{ text: `📊 ${s2.ideas_pending} ideas pending · ${s2.jobs_active} jobs active · ${s2.jobs_failed} failed\n🖥️ Web dashboard: ${ctx.dashboardUrl || ctx.publicUrl || ""}/admin${link ? `\n🔑 Ek-baar login link (10 min, kisi ko forward mat karna):\n${link}` : ""}` }] };
     }
     case "stats": {
       const s = await ctx.store.stats();
