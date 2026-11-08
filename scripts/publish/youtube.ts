@@ -18,6 +18,12 @@ export function youtubeClient(tokenJson?: string, clientSecretJson?: string) {
   return google.youtube({ version: "v3", auth });
 }
 
+/** Slot time, or ~15 min from now when the slot has already passed (YouTube needs publishAt in the future). */
+function targetTime(publishAt: string): Date {
+  const at = new Date(publishAt);
+  return at.getTime() < Date.now() + 10 * 60_000 ? new Date(Date.now() + 15 * 60_000) : at;
+}
+
 export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientSecretJson }: UploadArgs): Promise<string> {
   const yt = youtubeClient(tokenJson, clientSecretJson);
 
@@ -28,11 +34,23 @@ export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientS
     const recent = await yt.playlistItems.list({ part: ["snippet"], playlistId: uploads, maxResults: 50 });
     const dup = recent.data.items?.find((i) => i.snippet?.title === meta.title.slice(0, 100));
     const dupId = dup?.snippet?.resourceId?.videoId;
-    if (dupId) { console.log(`[YouTube] already uploaded as ${dupId}, skipping`); return dupId; }
+    if (dupId) {
+      // Still private and scheduled for a different time (e.g. queued for a later start date)? Move it to this slot.
+      const v = (await yt.videos.list({ part: ["status"], id: [dupId] })).data.items?.[0]?.status;
+      const want = targetTime(publishAt);
+      if (v?.privacyStatus === "private" && v.publishAt && Math.abs(Date.parse(v.publishAt) - want.getTime()) > 5 * 60_000) {
+        try {
+          await yt.videos.update({ part: ["status"], requestBody: { id: dupId, status: { privacyStatus: "private", publishAt: want.toISOString(), selfDeclaredMadeForKids: false } } });
+          console.log(`[YouTube] already uploaded as ${dupId}; schedule moved ${v.publishAt} -> ${want.toISOString()}`);
+        } catch (e) {
+          console.warn(`[YouTube] already uploaded as ${dupId}, scheduled ${v.publishAt}; could not move it (${(e as Error).message}) — change it in YouTube Studio`);
+        }
+      } else console.log(`[YouTube] already uploaded as ${dupId} (${v?.privacyStatus ?? "?"}${v?.publishAt ? `, publishAt ${v.publishAt}` : ""}), skipping`);
+      return dupId;
+    }
   }
 
-  let at = new Date(publishAt);
-  if (at.getTime() < Date.now() + 10 * 60_000) at = new Date(Date.now() + 15 * 60_000); // slot already passed -> publish in 15 min
+  const at = targetTime(publishAt);
   const res = await yt.videos.insert({
     part: ["snippet", "status"],
     requestBody: {

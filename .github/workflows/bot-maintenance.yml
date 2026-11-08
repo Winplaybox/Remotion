@@ -5,6 +5,8 @@ name: Bot Maintenance
 on:
   schedule:
     - cron: "23 * * * *"
+  repository_dispatch:
+    types: [maintenance-tick] # backup hourly tick from Supabase pg_cron
   workflow_dispatch:
     inputs:
       retention: { description: "Also run storage retention", type: boolean, default: false }
