@@ -52,6 +52,7 @@ async function main() {
   }
 
   const props = cfg.resolve(n) as Record<string, unknown>;
+  const edgeVoice = (cfg as { voiceName?: string }).voiceName || process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural";
   if (cfg.narrated && !prerendered) {
     const story = props as { scenes: { audio?: string; narration: string }[] };
     const audioDir = path.join("public", "audio", channel, tag);
@@ -75,7 +76,6 @@ async function main() {
   }
   let voiced = cfg.narrated;
   const voiceOf = (cfg as { voice?: (n: number) => VoiceLine[] }).voice;
-  const edgeVoice = (cfg as { voiceName?: string }).voiceName || process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural";
   if (voiceOf && !prerendered) {
     const lines = voiceOf(n);
     const audioDir = path.join("public", "audio", channel, tag);
