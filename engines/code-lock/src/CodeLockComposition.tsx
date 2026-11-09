@@ -58,7 +58,7 @@ export const CodeLockComposition: React.FC<CodeLock> = (p) => {
         {Array.from({length:p.digits},(_,i)=><div key={i} style={{ width: 112, height: 116, borderRadius: 20, border: `3px solid ${p.palette.gold}`, background: "#07162D", display: "grid", placeItems: "center", color: "#fff", fontFamily: FONT.display, fontSize: 76, boxShadow: `0 0 26px ${p.palette.gold}44` }}>?</div>)}
       </div>
       <div style={{ position: "absolute", top: 1610, width: "100%", textAlign: "center", color: "#fff", fontFamily: FONT.ui, fontWeight: 900, fontSize: 34 }}>CAN YOU CRACK IT? COMMENT YOUR CODE!</div>
-      <div style={{ position: "absolute", top: 1780, width: "100%", textAlign: "center", color: p.palette.accent, fontFamily: FONT.mono, fontWeight: 800, fontSize: 31, letterSpacing: 2, textShadow: `0 0 18px ${p.palette.accent}99` }}>@DimaagLock</div>
+      <div style={{ position: "absolute", top: 1400, right: 82, color: p.palette.accent, fontFamily: FONT.mono, fontWeight: 800, fontSize: 22, letterSpacing: 1, opacity: 0.72, textShadow: `0 0 12px ${p.palette.accent}99` }}>@DimaagLock</div>
       <AskOutro from={introFrames + p.playSeconds * fps} a={p.askOutro} accent={p.palette.accent} tapAt={followTapAt(p.askOutro)} />
       {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PREVIOUS PUZZLE #${String(p.postNo - 1).padStart(3, "0")} ANSWER`} answer={p.prevAnswer} accent={p.palette.accent} bg={`linear-gradient(180deg, ${p.palette.bgTop}, ${p.palette.bgBottom})`} /> : null}
     </AbsoluteFill>
