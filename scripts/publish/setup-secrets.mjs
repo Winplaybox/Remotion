@@ -24,8 +24,9 @@ const args = process.argv.slice(2);
 const arg = (k) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
 const flag = (k) => args.includes(`--${k}`);
 
+const ghBin = process.platform === "win32" && fs.existsSync("C:\\Users\\sagar\\bin\\gh.exe") ? "C:\\Users\\sagar\\bin\\gh.exe" : "gh";
 function gh(argv, input) {
-  return execFileSync("gh", argv, { input, stdio: [input === undefined ? "inherit" : "pipe", "pipe", "inherit"], shell: process.platform === "win32" }).toString().trim();
+  return execFileSync(ghBin, argv, { input, stdio: [input === undefined ? "inherit" : "pipe", "pipe", "inherit"], shell: process.platform === "win32" }).toString().trim();
 }
 const setSecret = (name, value) => { gh(["secret", "set", name, "--repo", REPO], value); console.log(`  ✔ secret ${name} set`); };
 const setVar = (name, value) => { gh(["variable", "set", name, "--repo", REPO, "--body", value]); console.log(`  ✔ variable ${name}=${value}`); };

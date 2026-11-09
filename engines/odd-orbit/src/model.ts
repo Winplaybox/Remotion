@@ -198,6 +198,51 @@ function askFields(d: number, base: OddOrbit): Partial<OddOrbit> {
 
 export const ODD_ORBIT_DEMO: OddOrbit = chakraPuzzleForDay(1);
 
+export const DIMAAG_LOCK_BRAND = { brand: "DIMAAG LOCK", handle: "@DimaagLock" } as const;
+
+export const DIMAAG_RULE_COPY: Record<OddOrbit["oddRule"], { title: string; subtitle: string }> = {
+  reverse: { title: "ALAG GHUMNE WALA DHOONDHO", subtitle: "Sirf EK ulta ghoom raha hai 👀" },
+  faster: { title: "SABSE TEZ WALA DHOONDHO", subtitle: "Ek sabse tez ghoom raha hai ⚡" },
+  slower: { title: "SABSE DHEEMA WALA DHOONDHO", subtitle: "Ek aalsi hai, dhyan se dekho 🐢" },
+  tint: { title: "ALAG RANG DHOONDHO", subtitle: "Dhyan se dekho — halka sa farak hai 🔍" }
+};
+
+export function dimaagLockForDay(day: number): OddOrbit {
+  const d = Math.max(1, Math.floor(day));
+  const element = ELEMENT_ROTATION[(d - 1) % ELEMENT_ROTATION.length] ?? "chakra";
+  const level = LEVELS[Math.min(3, Math.floor(((d - 1) % 7) / 2))] ?? LEVELS[0]!;
+  const ruleCycle: OddOrbit["oddRule"][] = ["reverse", "reverse", "faster", "reverse", "slower", "reverse", "tint"];
+  let oddRule = ruleCycle[(d - 1) % ruleCycle.length] ?? "reverse";
+  if (element === "gear" && oddRule === "reverse") oddRule = "faster";
+  const speedRule = oddRule === "faster" || oddRule === "slower";
+  const copy = DIMAAG_RULE_COPY[oddRule];
+  return {
+    ...DIMAAG_LOCK_BRAND,
+    puzzleNo: d,
+    difficulty: level.difficulty,
+    title: copy.title,
+    subtitle: copy.subtitle,
+    footer: "APNA JAWAB COMMENT KARO 👇",
+    revealFooter: "MIL GAYA? ROZ NAYA PUZZLE 🔥",
+    answerPrefix: "JAWAB",
+    element,
+    oddRule,
+    cols: level.cols,
+    count: level.count,
+    oddIndex: -1,
+    seed: `dimaag-${d}`,
+    satellites: element === "ring" ? 2 : 1,
+    speed: element === "gear" || element === "chakra" ? 0.28 : element === "clock" ? 0.35 : 0.45,
+    speedJitter: speedRule ? 0.02 : level.jitter,
+    playSeconds: 10 + Math.min(3, Math.floor(((d - 1) % 7) / 2)),
+    revealSeconds: 3,
+    showTimer: true,
+    palette: PALETTES[(d - 1) % PALETTES.length] ?? PALETTES[0]!
+  };
+}
+
+export const DIMAAG_LOCK_DEMO: OddOrbit = dimaagLockForDay(1);
+
 /** Preview compositions in Studio: one per element. */
 export const ODD_ORBIT_VARIANTS: Record<string, Partial<OddOrbit>> = Object.fromEntries(
   ELEMENT_ROTATION.map((el, i) => [el, chakraPuzzleForDay(i + 1)])
@@ -250,3 +295,4 @@ export function chakraVoiceLines(p: OddOrbit): { file: string; text: string; at:
     ...(p.endCard.show ? [{ file: "outro.wav", at: p.playSeconds + p.revealSeconds + 0.2, text: "मैं एक सोलो डेवलपर हूँ, और चक्र पज़ल नाम का एक कोज़ी गेम बना रहा हूँ। फॉलो करो, सबसे पहले खेलो!" }] : [])
   ];
 }
+

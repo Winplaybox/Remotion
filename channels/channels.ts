@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { chakraPuzzleForDay, chakraVoiceLines, oddCellOf } from "../engines/odd-orbit/src/model";
 import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle/src/model";
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
@@ -7,6 +8,11 @@ import { parseCell, parseNumber, type Quiz } from "./quiz";
 import { championshipForEpisode, marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
 import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../engines/code-lock/src/model";
 // @engine-builder:imports
+=======
+import { chakraPuzzleForDay, dimaagLockForDay } from "../engines/odd-orbit/src/model";
+import { kaaliPeeliForDay } from "../engines/track-vehicle/src/model";
+import { epicBharatSagaForDay, VISHNU_SEASON } from "../content/epicbharatsaga/vishnu-season";
+>>>>>>> Stashed changes
 
 export interface PostMeta {
   title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string;
@@ -62,9 +68,31 @@ const PUZZLE_TAGS = ["puzzle", "brain teaser", "brain test", "odd one out", "iq 
 
 /**
  * Posting slots are chosen for reach: 06:30 and 08:30 IST = US prime time (8-11 PM ET),
- * 19:30 IST = India prime time. All three channels share one schedule file.
+ * 19:30 IST = India prime time. All channels share one schedule file.
  */
 export const CHANNELS = {
+  "dimaag-lock": {
+    name: "Dimaag Lock",
+    composition: "DimaagLock",
+    startDate: "2026-11-10",
+    slots: ["11:30", "17:30", "21:30"],
+    narrated: false,
+    autoPublish: true,
+    youtubeTokenSecret: "YT_TOKEN_DIMAAG_LOCK",
+    metaSecretPrefix: "META_DIMAAG",
+    resolve: (n) => dimaagLockForDay(n),
+    meta: (n) => {
+      const p = dimaagLockForDay(n);
+      return {
+        title: `${p.title} 🧠🔒 Dimaag Lock #${n} (${p.difficulty.toUpperCase()}) #shorts`,
+        description: `${p.subtitle}\nLevel #${n} · Answer reveal hone se pehle ROW + NUMBER comment karo!\n\nRoz naye dimagi puzzles ke liye subscribe karein @DimaagLock 🔥\n#dimaaglock #puzzle #brainteaser #iqtest #shorts #hindi`,
+        tags: [...PUZZLE_TAGS, "dimaag lock", "dimag ki batti", "hindi puzzle", "paheliyan", p.element],
+        caption: `Dimaag Lock #${n} — ${p.subtitle} Jawab comment karo 👇\n#dimaaglock #puzzle #reels #iqtest`,
+        language: "hi",
+        categoryId: "20"
+      };
+    }
+  },
   "chakra-puzzle": {
     name: "Chakra Puzzle",
     composition: "ChakraPuzzle",
