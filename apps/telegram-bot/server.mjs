@@ -291,6 +291,15 @@ async function socialRoute(req, res, url) {
         const u = await pinterestAccount(unseal(row.token_enc, SOCIAL_KEY));
         return json(res, 200, { ok: true, msg: `✓ Pinterest @${u.username}` });
       }
+      if (a.op === "moderate") {
+        await store.settingsSave(channel.id, { moderate: a.on === true });
+        return json(res, 200, { ok: true, msg: `${channel.name}: gande/spam comments hide ${a.on === true ? "ON" : "OFF"}` });
+      }
+      if (a.op === "blocked-words") {
+        const words = [...new Set(String(a.words ?? "").split(/[,\n]/).map((w) => w.trim().toLowerCase()).filter((w) => w.length >= 2 && w.length <= 40))].slice(0, 300);
+        await store.settingsSave(channel.id, { blocked_words: words });
+        return json(res, 200, { ok: true, msg: `${channel.name}: ${words.length} extra blocked words saved` });
+      }
       if (a.op === "auto-reply") {
         await store.settingsSave(channel.id, { auto_reply: a.on === true });
         return json(res, 200, { ok: true, msg: `${channel.name}: comment auto-reply ${a.on === true ? "ON" : "OFF"}` });
