@@ -108,5 +108,6 @@ export const workerSig = (serviceRoleKey, channel, ts) => crypto.createHmac("sha
 export const SOCIAL_CHANNELS = [
   { id: "chakra-puzzle", name: "Chakra Puzzle", handle: "@ChakraPuzzle" },
   { id: "kaali-peeli-chase", name: "Kaali Peeli Chase", handle: "@KaaliPeeliChase" },
-  { id: "epicbharatsaga", name: "Epic Bharat Saga", handle: "@EpicBharatSaga" }
+  { id: "epicbharatsaga", name: "Epic Bharat Saga", handle: "@EpicBharatSaga" },
+  { id: "dimaag-lock", name: "Dimaag Lock", handle: "@DimaagLock" }
 ];

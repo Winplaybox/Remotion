@@ -8,7 +8,7 @@ import { TRAFFIC_PUZZLE_DEMO, validateBoard, validateSolution } from "../../../.
 import { TrafficPuzzleComposition } from "../../../../engines/traffic-puzzle/src/TrafficPuzzleComposition";
 import { SANATAN_EPISODE_DEMO, SanatanEpisodeSchema } from "../../../../engines/sanatan-story/src/model";
 import { SanatanStoryComposition } from "../../../../engines/sanatan-story/src/SanatanStoryComposition";
-import { ODD_ORBIT_DEMO, ODD_ORBIT_VARIANTS, DIMAAG_LOCK_DEMO, OddOrbitSchema, oddOrbitDuration, type OddOrbit } from "../../../../engines/odd-orbit/src/model";
+import { ODD_ORBIT_DEMO, ODD_ORBIT_VARIANTS, OddOrbitSchema, oddOrbitDuration, type OddOrbit } from "../../../../engines/odd-orbit/src/model";
 import { OddOrbitComposition } from "../../../../engines/odd-orbit/src/OddOrbitComposition";
 import { championshipForEpisode, marathonForEpisode, marathonDuration, type Marathon } from "../../../../engines/puzzle-marathon/src/model";
 import { MarathonComposition } from "../../../../engines/puzzle-marathon/src/MarathonComposition";
@@ -48,7 +48,6 @@ const CODE_LOCK_DEMO = codeLockForDay(1);
 
 export const Root: React.FC = () => (
   <>
-<<<<<<< Updated upstream
     {/* @engine-builder:compositions */}
     <Folder name="DimaagLock">
       <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockRemotionSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
@@ -77,11 +76,6 @@ export const Root: React.FC = () => (
     <Folder name="Templates">
       <Composition id="EngineTemplate" component={TemplateComposition} schema={TemplateSchema} {...video} durationInFrames={templateDuration(TEMPLATE_DEMO)} defaultProps={TEMPLATE_DEMO}
         calculateMetadata={({ props }: { props: Template }) => ({ durationInFrames: templateDuration(props) })} />
-=======
-    <Folder name="DimaagLock">
-      <Composition id="DimaagLock" component={OddOrbitComposition} schema={OddOrbitSchema} {...video} durationInFrames={oddOrbitDuration(DIMAAG_LOCK_DEMO)} defaultProps={DIMAAG_LOCK_DEMO}
-        calculateMetadata={({ props }: { props: OddOrbit }) => ({ durationInFrames: oddOrbitDuration(props) })} />
->>>>>>> Stashed changes
     </Folder>
     <Folder name="ChakraPuzzle">
       <Composition id="ChakraPuzzle" component={OddOrbitComposition} schema={OddOrbitSchema} {...video} durationInFrames={oddOrbitDuration(ODD_ORBIT_DEMO)} defaultProps={ODD_ORBIT_DEMO}

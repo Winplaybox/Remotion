@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: "Channel id (dimaag-lock, chakra-puzzle, kaali-peeli-chase, epicbharatsaga). Empty = whatever is due."
+        description: "Channel id (including dimaag-lock). Empty = whatever is due."
         required: false
         type: string
       n:
@@ -93,9 +93,6 @@ jobs:
       YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
       YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
       YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}
-      META_DIMAAG_PAGE_ID: ${{ secrets.META_DIMAAG_PAGE_ID }}
-      META_DIMAAG_IG_USER_ID: ${{ secrets.META_DIMAAG_IG_USER_ID }}
-      META_DIMAAG_PAGE_TOKEN: ${{ secrets.META_DIMAAG_PAGE_TOKEN }}
       META_CHAKRA_PAGE_ID: ${{ secrets.META_CHAKRA_PAGE_ID }}
       META_CHAKRA_IG_USER_ID: ${{ secrets.META_CHAKRA_IG_USER_ID }}
       META_CHAKRA_PAGE_TOKEN: ${{ secrets.META_CHAKRA_PAGE_TOKEN }}
