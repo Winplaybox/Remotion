@@ -36,6 +36,8 @@ import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockC
 import { LiarLineupSchema, liarLineupDuration, liarLineupForDay, type LiarLineup } from "../../../../engines/liar-lineup/src/model";
 const LiarLineupRemotionSchema = LiarLineupSchema._def.schema;
 import { LiarLineupComposition } from "../../../../engines/liar-lineup/src/LiarLineupComposition";
+import { CharacterSheet } from "@visuals/rig/CharacterSheet";
+import { JasoosBanner, JasoosLogo } from "../../../../engines/liar-lineup/src/BrandArt";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -55,11 +57,17 @@ export const Root: React.FC = () => (
       <Composition id="LiarLineup" component={LiarLineupComposition} schema={LiarLineupRemotionSchema} {...video} durationInFrames={liarLineupDuration(liarLineupForDay(1))} defaultProps={liarLineupForDay(1)}
         calculateMetadata={({ props }: { props: LiarLineup }) => ({ durationInFrames: liarLineupDuration(props) })} />
     </Folder>
-{/* @engine-builder:compositions */}
+    <Folder name="Rig">
+      <Still id="CharacterSheet" component={CharacterSheet} {...video} defaultProps={{ pose: "idle" as const, talking: false }} />
+      <Still id="JasoosLogo" component={JasoosLogo} width={800} height={800} />
+      <Still id="JasoosBanner" component={JasoosBanner} width={2560} height={1440} />
+      <Composition id="CharacterSheetMotion" component={CharacterSheet} {...video} durationInFrames={150} defaultProps={{ pose: "talk" as const, talking: true }} />
+    </Folder>
     <Folder name="DimaagLock">
       <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockRemotionSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
         calculateMetadata={({ props }: { props: CodeLock }) => ({ durationInFrames: codeLockDuration(props) })} />
     </Folder>
+{/* @engine-builder:compositions */}
     <Folder name="NarratorVideo">
       <Composition id="NarratorVideo" component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={NARRATOR_DEMO}
         calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props), ...sizeOf(props.aspect) })} />

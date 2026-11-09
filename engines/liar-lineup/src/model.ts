@@ -43,7 +43,8 @@ export const LiarLineupSchema = z.object({
     gold: z.string(),
     card: z.string(),
     spotlight: z.string()
-  })
+  }),
+  spoken: z.record(z.string(), z.number()).optional()
 }).superRefine((p, ctx) => {
   if (p.suspects.filter((s) => s.isLiar).length !== 1) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Exactly one suspect must be the liar" });
