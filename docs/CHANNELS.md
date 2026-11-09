@@ -1,6 +1,6 @@
 # Channels: daily auto-publishing
 
-Three channels, one repo. Every slot has a fixed post number, so each upload is new and in order. This repo renders the videos, schedules them on YouTube, and posts Reels to Instagram and Facebook.
+Four channel brands, one repo; Dimaag Lock remains disabled until launch approval. Every slot has a fixed post number, so each upload is new and in order. This repo renders the videos, schedules them on YouTube, and posts Reels to Instagram and Facebook.
 
 | Channel | Composition | Language | Slots (IST) | Why these times |
 |---|---|---|---|---|
