@@ -19,20 +19,27 @@ export const CodeLockSchema = z.object({
   subtitle: z.string(),
   digits: z.number().int().min(3).max(4),
   code: z.string().regex(/^\\d{3,4}$/),
-  clues: z.array(z.object({ guess: z.string(), correct: z.number().int(), rightPlace: z.number().int() })).min(5),
+  clues: z.array(z.object({ guess: z.string(), correct: z.number().int(), rightPlace: z.number().int() })).length(5),
   seed: z.string(),
   playSeconds: z.number().positive(),
   introSeconds: z.number().min(0),
   prevAnswer: z.string(),
   askOutro: AskOutroSchema,
   palette: z.object({ bgTop: z.string(), bgBottom: z.string(), accent: z.string(), gold: z.string(), panel: z.string() })
+}).superRefine((p, ctx) => {
+  if (p.code.length !== p.digits || p.clues.some((c) => c.guess.length !== p.digits)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Code and clue lengths must match the selected digit count" });
+  const solutions = allCodes(p.digits).filter((candidate) => matches(candidate, p.clues));
+  if (solutions.length !== 1 || solutions[0] !== p.code) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Clues must produce exactly one solution, matching the answer" });
 });
 export type CodeLock = z.infer<typeof CodeLockSchema>;
 
 type Clue = CodeLock["clues"][number];
 const feedback = (code: string, guess: string) => {
   const rightPlace = [...code].filter((d, i) => d === guess[i]).length;
-  const correct = [...guess].filter((d) => code.includes(d)).length;
+  const counts = new Map<string, number>();
+  for (const digit of code) counts.set(digit, (counts.get(digit) ?? 0) + 1);
+  let correct = 0;
+  for (const digit of guess) { const remaining = counts.get(digit) ?? 0; if (remaining > 0) { correct++; counts.set(digit, remaining - 1); } }
   return { correct, rightPlace };
 };
 const matches = (candidate: string, clues: Clue[]) => clues.every((c) => {
@@ -47,24 +54,17 @@ function makePuzzle(day: number, digits: number) {
   const pool = allCodes(digits);
   for (let attempt = 0; attempt < 500; attempt++) {
     const clues: Clue[] = [];
-    for (let i = 0; i < 8; i++) {
-      const guess = String(Math.floor(random(`${seed}-${attempt}-guess-${i}`) * 10 ** digits)).padStart(digits, "0");
+    for (let i = 0; i < 5; i++) {
+      const guess = String(Math.floor(random(seed + "-" + attempt + "-guess-" + i) * 10 ** digits)).padStart(digits, "0");
       const f = feedback(code, guess);
       if (!clues.some((c) => c.guess === guess)) clues.push({ guess, ...f });
     }
-    const solutions = pool.filter((candidate) => matches(candidate, clues));
-    if (solutions.length === 1 && solutions[0] === code) return { code, clues: clues.slice(0, 5), seed };
+    if (clues.length === 5) {
+      const solutions = pool.filter((candidate) => matches(candidate, clues));
+      if (solutions.length === 1 && solutions[0] === code) return { code, clues, seed };
+    }
   }
-  // Deterministic fallback: each digit is isolated by a set of positional probes.
-  const fallback: Clue[] = [];
-  for (let i = 0; i < digits; i++) {
-    const guess = Array.from({ length: digits }, (_, j) => j === i ? code[i] : String((Number(code[j]) + 1) % 10)).join("");
-    fallback.push({ guess, ...feedback(code, guess) });
-  }
-  const solutions = pool.filter((candidate) => matches(candidate, fallback));
-  if (solutions.length !== 1) throw new Error(`Could not generate a unique code for day ${day}`);
-  while (fallback.length < 5) fallback.push({ ...fallback[fallback.length % digits]!, guess: fallback[fallback.length % digits]!.guess });
-  return { code, clues: fallback, seed };
+  throw new Error("Could not generate five unique clues for day " + day);
 }
 
 export function codeLockForDay(day: number): CodeLock {
