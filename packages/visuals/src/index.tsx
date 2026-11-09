@@ -4,3 +4,6 @@ export const VerticalSafeArea: React.FC<{ children: React.ReactNode; debug?: boo
 export const SceneBackdrop: React.FC<{ colors: readonly [string, string]; children?: React.ReactNode }> = ({ colors, children }) => <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 42%, ${colors[1]}, ${colors[0]} 72%)` }}>{children}</AbsoluteFill>;
 export const SectionLabel: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = "#FFD166" }) => <div style={{ color, fontFamily: "Arial, sans-serif", fontSize: 20, fontWeight: 800, letterSpacing: 5, textTransform: "uppercase" }}>{children}</div>;
 export const ProgressRail: React.FC<{ progress: number; color?: string }> = ({ progress, color = "#55D6FF" }) => <div style={{ height: 5, background: "rgba(255,255,255,.15)", borderRadius: 8, overflow: "hidden" }}><div style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%`, height: "100%", background: color }} /></div>;
+
+export * from "./rig";
+export * from "./styles";

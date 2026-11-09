@@ -33,6 +33,9 @@ import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from 
 // Keep the refined schema for generation/QA and expose its underlying object here.
 const CodeLockRemotionSchema = CodeLockSchema._def.schema;
 import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
+import { LiarLineupSchema, liarLineupDuration, liarLineupForDay, type LiarLineup } from "../../../../engines/liar-lineup/src/model";
+const LiarLineupRemotionSchema = LiarLineupSchema._def.schema;
+import { LiarLineupComposition } from "../../../../engines/liar-lineup/src/LiarLineupComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -48,7 +51,11 @@ const CODE_LOCK_DEMO = codeLockForDay(1);
 
 export const Root: React.FC = () => (
   <>
-    {/* @engine-builder:compositions */}
+    <Folder name="LiarLineup">
+      <Composition id="LiarLineup" component={LiarLineupComposition} schema={LiarLineupRemotionSchema} {...video} durationInFrames={liarLineupDuration(liarLineupForDay(1))} defaultProps={liarLineupForDay(1)}
+        calculateMetadata={({ props }: { props: LiarLineup }) => ({ durationInFrames: liarLineupDuration(props) })} />
+    </Folder>
+{/* @engine-builder:compositions */}
     <Folder name="DimaagLock">
       <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockRemotionSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
         calculateMetadata={({ props }: { props: CodeLock }) => ({ durationInFrames: codeLockDuration(props) })} />

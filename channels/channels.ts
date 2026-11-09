@@ -6,6 +6,7 @@ import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
 import { championshipForEpisode, marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
 import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../engines/code-lock/src/model";
+import { liarLineupForDay, liarLineupVoiceLines, liarLineupAnswerComment } from "../engines/liar-lineup/src/model";
 // @engine-builder:imports
 
 export interface PostMeta {
@@ -268,6 +269,31 @@ export const CHANNELS = {
         categoryId: "20"
       };
     }
+  },
+  "liar-lineup": {
+    name: "Jasoos Bhai Cases",
+    composition: "LiarLineup",
+    // Disabled until approved: set repo variables START_LIAR_LINEUP=<date> and LIVE_LIAR_LINEUP=true.
+    startDate: "2099-01-01",
+    slots: ["12:00", "19:00"],
+    narrated: false,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_LIAR_LINEUP",
+    metaSecretPrefix: "META_LIAR_LINEUP",
+    youtubeHandle: "@JasoosBhaiCases",
+    pinterestSecretPrefix: "PINTEREST_LIAR_LINEUP",
+    resolve: (n) => liarLineupForDay(n),
+    voice: (n) => liarLineupVoiceLines(liarLineupForDay(n)),
+    answer: (n) => liarLineupAnswerComment(liarLineupForDay(n)),
+    answerInNextFrom: 1,
+    meta: (n) => ({
+      title: `Jasoos Bhai Cases: ${liarLineupForDay(n).caseTitle} 🔍 #${n} #shorts`,
+      description: `${liarLineupForDay(n).victimEvent}\n${ASK_META.description}\n\nSubscribe @JasoosBhaiCases\n#jasoosbhai #mystery #puzzle #shorts`,
+      tags: ["jasoos bhai", "detective", "mystery", "crime puzzle", "brain teaser", "shorts"],
+      caption: `#${n} — ${liarLineupForDay(n).victimEvent}\n${ASK_META.caption}\n#jasoosbhai #mystery #reels`,
+      language: "hi",
+      categoryId: "20"
+    })
   },
   // @engine-builder:channels
 } satisfies Record<string, ChannelConfig>;
