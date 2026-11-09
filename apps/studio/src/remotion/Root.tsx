@@ -29,7 +29,9 @@ import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } f
 import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
 import { LiarLineupSchema, liarLineupDuration, liarLineupForDay, type LiarLineup } from "../../../../engines/liar-lineup/src/model";
 import { LiarLineupComposition } from "../../../../engines/liar-lineup/src/LiarLineupComposition";
+import { withSpokenDurations } from "../../../../engines/liar-lineup/src/metadata";
 import { CharacterSheet } from "@visuals/rig/CharacterSheet";
+import { JasoosBanner, JasoosLogo } from "../../../../engines/liar-lineup/src/BrandArt";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -46,10 +48,15 @@ export const Root: React.FC = () => (
   <>
         <Folder name="LiarLineup">
       <Composition id="LiarLineup" component={LiarLineupComposition} schema={LiarLineupSchema} {...video} durationInFrames={liarLineupDuration(liarLineupForDay(1))} defaultProps={liarLineupForDay(1)}
-        calculateMetadata={({ props }: { props: LiarLineup }) => ({ durationInFrames: liarLineupDuration(props) })} />
+        calculateMetadata={async ({ props }: { props: LiarLineup }) => {
+          const timed = await withSpokenDurations(props);
+          return { durationInFrames: liarLineupDuration(timed), props: timed };
+        }} />
     </Folder>
     <Folder name="Rig">
       <Still id="CharacterSheet" component={CharacterSheet} {...video} defaultProps={{ pose: "idle" as const, talking: false }} />
+      <Still id="JasoosLogo" component={JasoosLogo} width={800} height={800} />
+      <Still id="JasoosBanner" component={JasoosBanner} width={2560} height={1440} />
       <Composition id="CharacterSheetMotion" component={CharacterSheet} {...video} durationInFrames={150} defaultProps={{ pose: "talk" as const, talking: true }} />
     </Folder>
 {/* @engine-builder:compositions */}

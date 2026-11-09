@@ -251,7 +251,7 @@ export const CHANNELS = {
     autoPublish: false,
     youtubeTokenSecret: "YT_TOKEN_LIAR_LINEUP",
     metaSecretPrefix: "META_LIAR_LINEUP",
-    youtubeHandle: "@JasoosBhai",
+    youtubeHandle: "@JasoosBhaiCases",
     pinterestSecretPrefix: "PINTEREST_LIAR_LINEUP",
     resolve: (n) => liarLineupForDay(n),
     voice: (n) => liarLineupVoiceLines(liarLineupForDay(n)),

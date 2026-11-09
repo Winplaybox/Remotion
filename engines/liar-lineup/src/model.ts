@@ -12,7 +12,7 @@ import { AskOutroSchema, askOutro, askOutroSeconds, askOutroVoice } from "../../
 import { FLAVOR, HONEST, ITEMS, NAMES, RULES, SETS, fill, type Bi, type SetKey } from "./content";
 
 export const FPS = 30;
-export const HANDLE = "@JasoosBhai";
+export const HANDLE = "@JasoosBhaiCases";
 
 const BiSchema = z.object({ r: z.string(), d: z.string() });
 const SuspectSchema = z.object({
@@ -48,7 +48,9 @@ export const LiarLineupSchema = z.object({
   /** Seconds the viewer gets to think (ticking countdown) before the question. */
   thinkSeconds: z.number().min(2),
   askOutro: AskOutroSchema,
-  accent: z.string()
+  accent: z.string(),
+  /** Measured voice clip lengths (file -> seconds), filled at render time by withSpokenDurations; beats stretch to fit. */
+  spoken: z.record(z.string(), z.number()).default({})
 });
 export type LiarLineup = z.infer<typeof LiarLineupSchema>;
 export type Suspect = LiarLineup["suspects"][number];
@@ -134,10 +136,13 @@ export function liarLineupForDay(day: number): LiarLineup {
     askOutro: askOutro({
       question: "KAUN JHOOTH BOL RAHA HAI?",
       options: c.suspects.map((s, i) => `#${i + 1} ${s.name.r.toUpperCase()}`),
-      voiceQuestion: "कौन झूठ बोल रहा है? नंबर एक, दो या तीन?",
-      handle: HANDLE
+      voiceQuestion: "कौन झूठ बोल रहा है? एक, दो या तीन?",
+      handle: HANDLE,
+      questionSeconds: 4.6,
+      ctaSeconds: 5.8
     }),
-    accent: ACCENTS[(d - 1) % ACCENTS.length]!
+    accent: ACCENTS[(d - 1) % ACCENTS.length]!,
+    spoken: {}
   };
 }
 
@@ -152,13 +157,16 @@ export function liarBeats(p: LiarLineup): Beat[] {
   const beats: Beat[] = [];
   let t = 0;
   const add = (kind: BeatKind, file: string, d: string, r: string, index = 0, min = 0, gap = 0.15) => {
-    const dur = Math.max(min, speakSeconds(d));
+    const real = p.spoken[file];
+    const dur = Math.max(min, real !== undefined ? real + 0.35 : speakSeconds(d));
     beats.push({ kind, start: t, dur, file, d, r, index });
     t += dur + gap;
   };
   if (p.introSeconds > 0) {
-    beats.push({ kind: "prev", start: 0, dur: p.introSeconds, file: "prev.wav", d: p.prevVoice, r: p.prevAnswer, index: 0 });
-    t = p.introSeconds;
+    const real = p.spoken["prev.wav"];
+    const intro = Math.max(p.introSeconds, real !== undefined ? real + 0.5 : 0);
+    beats.push({ kind: "prev", start: 0, dur: intro, file: "prev.wav", d: p.prevVoice, r: p.prevAnswer, index: 0 });
+    t = intro;
   }
   add("hook", "hook.wav", `केस नंबर ${p.postNo}! ${p.victim.d} का ${p.item.d} गायब। चोरी ${p.time.d}।`,
     `${p.victim.r} ka ${p.item.r.toLowerCase()} gaayab! Chori ${p.time.r}.`, 0, 3.6);
@@ -176,6 +184,9 @@ export const outroStart = (p: LiarLineup) => {
   const last = b[b.length - 1]!;
   return last.start + last.dur;
 };
+
+/** Seconds the "previous answer" card stays up (stretched to the measured prev.wav). */
+export const introLength = (p: LiarLineup) => (p.introSeconds > 0 ? liarBeats(p)[0]!.dur : 0);
 
 export const liarLineupDuration = (p: LiarLineup) => Math.round((outroStart(p) + askOutroSeconds(p.askOutro)) * FPS);
 

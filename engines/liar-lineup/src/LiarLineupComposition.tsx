@@ -10,7 +10,7 @@ import { SetBackground } from "@visuals/rig/Sets";
 import type { PresetId } from "@visuals/rig/presets";
 import { Caption, CaseStamp, ClueNote, CountdownRing, SpeechBubble, Spotlight } from "@visuals/StoryKit";
 import { askOutroSfx, followTapAt } from "../../ask-outro";
-import { liarBeats, outroStart, type LiarLineup } from "./model";
+import { introLength, liarBeats, outroStart, type LiarLineup } from "./model";
 
 /**
  * Layout (1080x1920): 0-180 brand + CASE · 190-340 title + place/time · 360-580 clue board ·
@@ -153,7 +153,7 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
 
       <AskOutro from={Math.round(outroAt * fps)} a={p.askOutro} accent={accent} tapAt={followTapAt(p.askOutro)} />
       {p.introSeconds > 0 && p.prevAnswer ? (
-        <PrevAnswerCard seconds={p.introSeconds} heading={`PICHHLE CASE #${String(p.postNo - 1).padStart(3, "0")} KA JHOOTHA`} answer={p.prevAnswer} accent={accent} bg="linear-gradient(180deg,#1B0F1E,#2A1426)" />
+        <PrevAnswerCard seconds={introLength(p)} heading={`PICHHLE CASE #${String(p.postNo - 1).padStart(3, "0")} KA JHOOTHA`} answer={p.prevAnswer} accent={accent} bg="linear-gradient(180deg,#1B0F1E,#2A1426)" />
       ) : null}
     </AbsoluteFill>
   );
