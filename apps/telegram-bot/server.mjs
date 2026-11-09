@@ -246,7 +246,7 @@ async function socialRoute(req, res, url) {
     }
   }
   if (url.pathname === "/admin/api/social" && req.method === "GET") {
-    return json(res, 200, { channels: SOCIAL_CHANNELS, accounts: await store.socialList(), apps: { meta: !!(apps.meta.id && apps.meta.secret), pinterest: !!(apps.pinterest.id && apps.pinterest.secret) },
+    return json(res, 200, { channels: SOCIAL_CHANNELS, accounts: await store.socialList(), settings: await store.settingsList().catch(() => []), apps: { meta: !!(apps.meta.id && apps.meta.secret), pinterest: !!(apps.pinterest.id && apps.pinterest.secret) },
       shared: !!env.SUPABASE_SERVICE_ROLE_KEY, redirects: { meta: redirectFor(req, "meta"), pinterest: redirectFor(req, "pinterest") } });
   }
   if (url.pathname === "/admin/api/social" && req.method === "POST") {
@@ -290,6 +290,10 @@ async function socialRoute(req, res, url) {
         }
         const u = await pinterestAccount(unseal(row.token_enc, SOCIAL_KEY));
         return json(res, 200, { ok: true, msg: `✓ Pinterest @${u.username}` });
+      }
+      if (a.op === "auto-reply") {
+        await store.settingsSave(channel.id, { auto_reply: a.on === true });
+        return json(res, 200, { ok: true, msg: `${channel.name}: comment auto-reply ${a.on === true ? "ON" : "OFF"}` });
       }
       if (a.op === "disconnect") {
         await store.socialDelete(channel.id, a.platform === "pinterest" ? "pinterest" : "meta");

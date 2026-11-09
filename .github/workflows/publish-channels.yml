@@ -145,7 +145,7 @@ jobs:
           retention-days: 7
 
   answers:
-    # Answer comment on puzzle videos that just went public (pin it in YouTube Studio).
+    # Answer comment on puzzle videos that just went public (pin it in YouTube Studio) + comment auto-reply.
     runs-on: ubuntu-latest
     concurrency: { group: publish-answers, cancel-in-progress: false }
     if: vars.AUTO_PUBLISH == 'true' || github.event_name == 'workflow_dispatch'
@@ -153,9 +153,14 @@ jobs:
       YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
       YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
       YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "20", cache: "npm" }
       - run: npm ci
       - run: npx ts-node scripts/publish/answer-comments.ts --hours 3
+      # Reply to viewers' comments (YouTube / Instagram / Facebook); off per channel in the dashboard → Social.
+      - run: npx ts-node scripts/publish/engage.ts
+        continue-on-error: true
