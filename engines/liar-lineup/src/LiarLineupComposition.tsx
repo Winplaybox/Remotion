@@ -41,7 +41,7 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
   ];
 
   return (
-    <StyleFilter styleId="film-noir" frame={frame} intensity={0.4}>
+    <StyleFilter styleId="sharp-ink-outlines" frame={frame} intensity={0.8}>
       <AbsoluteFill
         style={{
           background: `radial-gradient(ellipse at 50% 30%, ${p.palette.bgBottom} 0%, ${p.palette.bgTop} 100%)`,
@@ -217,9 +217,9 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
             {/* Suspects Lineup & Spotlight Arena */}
             <div
               style={{
-                marginTop: 36,
+                marginTop: 56,
                 position: "relative",
-                height: 640,
+                height: 720,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-end"
@@ -253,10 +253,10 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
                       <div
                         style={{
                           position: "absolute",
-                          top: -60,
-                          width: 240,
-                          height: 520,
-                          background: `radial-gradient(ellipse at 50% 0%, ${p.palette.accent}66 0%, transparent 75%)`,
+                          top: -70,
+                          width: 260,
+                          height: 600,
+                          background: `radial-gradient(ellipse at 50% 0%, ${p.palette.accent}77 0%, transparent 75%)`,
                           pointerEvents: "none",
                           zIndex: 0
                         }}
@@ -268,70 +268,70 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
                       <div
                         style={{
                           position: "absolute",
-                          top: -75,
-                          maxWidth: 300,
+                          top: -30,
+                          width: 290,
                           background: "#FFFFFF",
-                          color: "#1A1A1A",
-                          padding: "10px 14px",
-                          borderRadius: 14,
-                          fontSize: 16,
+                          color: "#181410",
+                          padding: "12px 14px",
+                          borderRadius: 16,
+                          fontSize: 17,
                           fontWeight: 700,
-                          lineHeight: 1.3,
+                          lineHeight: 1.35,
                           textAlign: "center",
-                          boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
-                          zIndex: 2,
-                          animation: "none"
+                          boxShadow: "0 10px 30px rgba(0,0,0,0.7), 0 0 15px rgba(255,209,102,0.4)",
+                          border: `2px solid ${p.palette.gold}`,
+                          zIndex: 10
                         }}
                       >
                         "{suspect.statement}"
                         <div
                           style={{
                             position: "absolute",
-                            bottom: -8,
+                            bottom: -10,
                             left: "50%",
-                            marginLeft: -8,
+                            marginLeft: -10,
                             width: 0,
                             height: 0,
-                            borderLeft: "8px solid transparent",
-                            borderRight: "8px solid transparent",
-                            borderTop: "8px solid #FFFFFF"
+                            borderLeft: "10px solid transparent",
+                            borderRight: "10px solid transparent",
+                            borderTop: `10px solid #FFFFFF`
                           }}
                         />
                       </div>
                     ) : null}
 
                     {/* 2D Vector Character Rig */}
-                    <div style={{ zIndex: 1, marginBottom: -10 }}>
+                    <div style={{ zIndex: 1, marginBottom: -8 }}>
                       <CharacterRig
                         character={suspect.characterId}
                         action={suspectAction}
                         expression={suspectExp}
                         frame={frame}
                         talk={talkAmp}
-                        scale={0.72}
+                        scale={0.88}
                       />
                     </div>
 
                     {/* Numbered Podium */}
                     <div
                       style={{
-                        width: "88%",
+                        width: "92%",
                         background: isSpeaking
                           ? `linear-gradient(180deg, ${p.palette.accent} 0%, #B8860B 100%)`
-                          : "linear-gradient(180deg, #3A404D 0%, #1A202C 100%)",
+                          : "linear-gradient(180deg, #2E3440 0%, #151A23 100%)",
                         border: isSpeaking ? `3px solid ${p.palette.gold}` : "2px solid rgba(255,255,255,0.2)",
-                        borderRadius: "14px 14px 6px 6px",
-                        padding: "10px 8px",
+                        borderRadius: "16px 16px 8px 8px",
+                        padding: "12px 8px",
                         textAlign: "center",
                         boxShadow: isSpeaking
-                          ? `0 0 25px ${p.palette.accent}88, 0 10px 20px rgba(0,0,0,0.8)`
+                          ? `0 0 30px ${p.palette.accent}88, 0 12px 24px rgba(0,0,0,0.85)`
                           : "0 8px 16px rgba(0,0,0,0.5)",
                         transition: "all 0.2s ease"
                       }}
                     >
                       <div
                         style={{
-                          fontSize: 26,
+                          fontSize: 28,
                           fontWeight: 900,
                           color: isSpeaking ? "#1A1208" : "#FFFFFF"
                         }}
@@ -340,10 +340,10 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
                       </div>
                       <div
                         style={{
-                          fontSize: 17,
+                          fontSize: 19,
                           fontWeight: 800,
                           color: isSpeaking ? "#1A1208" : p.palette.gold,
-                          marginTop: 2,
+                          marginTop: 3,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis"
@@ -353,9 +353,9 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
                       </div>
                       <div
                         style={{
-                          fontSize: 13,
+                          fontSize: 14,
                           fontWeight: 600,
-                          color: isSpeaking ? "#3D2B14" : "rgba(255,255,255,0.65)",
+                          color: isSpeaking ? "#3D2B14" : "rgba(255,255,255,0.7)",
                           marginTop: 2
                         }}
                       >
@@ -370,31 +370,45 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
             {/* Bottom Jasoos Bhai Detective Banner */}
             <div
               style={{
-                marginTop: 28,
-                background: "rgba(0,0,0,0.65)",
-                border: "2px dashed rgba(233, 185, 73, 0.5)",
-                borderRadius: 18,
-                padding: "14px 24px",
+                marginTop: 48,
+                background: "linear-gradient(135deg, rgba(20,26,38,0.92) 0%, rgba(10,13,20,0.95) 100%)",
+                border: `2px solid ${p.palette.gold}88`,
+                borderRadius: 22,
+                padding: "18px 24px",
                 display: "flex",
                 alignItems: "center",
-                gap: 20
+                gap: 22,
+                boxShadow: "0 14px 35px rgba(0,0,0,0.7)"
               }}
             >
-              <div style={{ flexShrink: 0 }}>
-                <CharacterRig
-                  character="jasoos-bhai"
-                  action={activeSuspect >= 0 ? "thinking" : "pointing"}
-                  expression="thinking"
-                  frame={frame}
-                  scale={0.34}
-                />
+              <div
+                style={{
+                  flexShrink: 0,
+                  width: 105,
+                  height: 125,
+                  position: "relative",
+                  overflow: "hidden",
+                  borderRadius: 18,
+                  background: "rgba(0,0,0,0.5)",
+                  border: `2px solid ${p.palette.gold}66`
+                }}
+              >
+                <div style={{ position: "absolute", top: -35, left: "50%", transform: "translateX(-50%)" }}>
+                  <CharacterRig
+                    character="jasoos-bhai"
+                    action={activeSuspect >= 0 ? "thinking" : "pointing"}
+                    expression="thinking"
+                    frame={frame}
+                    scale={0.48}
+                  />
+                </div>
               </div>
 
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 20, fontWeight: 900, color: p.palette.gold }}>
-                  JASOOS BHAI:
+                <div style={{ fontSize: 22, fontWeight: 900, color: p.palette.gold, letterSpacing: 1.5 }}>
+                  🕵️‍♂️ JASOOS BHAI:
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 700, color: "#FFFFFF", marginTop: 2 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "#FFFFFF", marginTop: 4, lineHeight: 1.3 }}>
                   {activeSuspect >= 0
                     ? `Suspect #${activeSuspect + 1} ki baat dhyan se suno aur suraagon se milao!`
                     : "Teeno suraag dekh liye? Ab suspects ke bayaan suno!"}
