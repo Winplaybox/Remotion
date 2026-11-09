@@ -7,6 +7,7 @@ Three channels, one repo. Every slot has a fixed post number, so each upload is 
 | Chakra Puzzle (@ChakraPuzzle) | `ChakraPuzzle` | Hinglish + voice, ~20 s | 06:30, 08:30, 19:30 | 06:30 and 08:30 IST are US prime time. 19:30 IST is India prime time. |
 | Kaali Peeli Chase (@KaaliPeeliChase) | `KaaliPeeliChase` | Hinglish + voice, ~20 s | 07:00, 09:00, 20:00 | Same reasoning, offset so the two channels don't clash |
 | EpicBharatSaga | `EpicBharatSaga` | Hinglish + IndicF5 voice + captions | 19:00 | Switches over from colab-YT, see below |
+| Dimaag Lock | `CodeLock` | English + Edge TTS (`en-US-AriaNeural`) | 12:30, 19:30 | Disabled until account setup and QA approval; see `DIMAAG_LOCK_SETUP.md` |
 
 All slots, start dates, titles, descriptions, tags and captions are in `channels/channels.ts`.
 
@@ -19,7 +20,7 @@ Claude renders, GitHub uploads.
 3. **Upload (GitHub Actions, `publish-channels.yml`, hourly)**: `scripts/due.ts` finds slots 30–90 min away; `scripts/post.ts` takes Claude's MP4 from `render-queue`, schedules it on YouTube for the exact slot and posts the Reel to Instagram + Facebook. If Claude's video is missing, it renders the post itself so nothing is skipped (set repo variable `CI_RENDER_FALLBACK=false` to forbid that).
 4. **Answer comment**: the `answers` job posts the answer as a comment on puzzle videos once they are public. The YouTube API cannot pin comments: pin it in YouTube Studio (one tap) if you want it on top.
 
-Scheduled runs only fire from the **default branch** and only when the repo variable `AUTO_PUBLISH=true` is set.
+Scheduled runs only fire from the **default branch** and only when the repo variable `AUTO_PUBLISH=true` is set. Dimaag Lock additionally stays disabled until `START_DIMAAG_LOCK` is set to its launch date and `LIVE_DIMAAG_LOCK=true`; see `docs/DIMAAG_LOCK_SETUP.md`.
 
 ## One-time setup
 
@@ -42,13 +43,15 @@ Add these in Settings → Secrets and variables → Actions:
 | `YT_TOKEN_CHAKRA_PUZZLE` | output of `node scripts/publish/auth-youtube.mjs client_secret.json`. Pick **Chakra Puzzle** on the consent screen |
 | `YT_TOKEN_KAALI_PEELI_CHASE` | same command, pick **Kaali Peeli Chase** |
 | `YT_TOKEN_EPICBHARATSAGA` | same command, signed in as epicbharat.official, pick **EpicBharatSaga** |
+| `YT_TOKEN_DIMAAG_LOCK` | OAuth token JSON for the separate Dimaag Lock channel |
+| `YT_TOKEN_DIMAAG_LOCK_CLIENT` | OAuth client JSON for the dedicated Dimaag Lock Cloud project |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | public bucket `meta-publishing`, where Meta pulls each Reel from (same values as daily-devotional-shorts) |
 | `META_CHAKRA_PAGE_ID` / `_IG_USER_ID` / `_PAGE_TOKEN` | Facebook Page + Instagram professional account for Chakra Puzzle |
-| `META_KPC_*`, `META_EBS_*` | same for the other two |
+| `META_KPC_*`, `META_EBS_*`, `META_DIMAAG_LOCK_*` | same for the other channels; Dimaag Lock uses its own Page + Instagram Professional account |
 
 Variables: `AUTO_PUBLISH=true`. Add `EBS_ALLOW_SILENT=true` only if you want EpicBharatSaga to go out with captions and no voice.
 
-**YouTube quota:** one upload costs 1,600 units, and a Google Cloud project gets 10,000 units/day. Six puzzle uploads a day = 9,600 units, so put EpicBharatSaga on a second Cloud project (its own client JSON), or keep puzzles at ≤ 3 slots per channel.
+**YouTube quota:** one upload costs 1,600 units, and a Google Cloud project gets 10,000 units/day. Chakra Puzzle + Kaali Peeli Chase already use six uploads/day = 9,600 units. Dimaag Lock must use its own Google Cloud project and OAuth client for its two daily uploads; do not share the puzzle channels’ project quota.
 
 If a channel's Meta secrets are missing, that channel skips Meta and still uploads to YouTube.
 
