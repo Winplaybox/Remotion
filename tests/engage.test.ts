@@ -1,6 +1,7 @@
 import { parseCell, parseNumber } from "../channels/quiz";
 import { CHANNELS } from "../channels/channels";
 import { decide, replyText, revealedFn, MAX_AGE } from "../scripts/publish/engage";
+import { blocked, tone } from "../channels/moderation";
 
 describe("parseCell", () => {
   it.each([
@@ -33,7 +34,7 @@ describe("decide", () => {
     expect(decide(c("wow 🔥"), quiz, [5, 9], false, now)).toBe("hello");
     expect(decide(c("5"), quiz, [5, 9], false, now)).toBe("partial");
     expect(decide(c("wow", MAX_AGE.other / 3600_000 + 1), quiz, [5, 9], false, now)).toBeNull();
-    expect(decide(c("sub 4 sub? check my channel https://x.y"), quiz, [5, 9], true, now)).toBeNull();
+    expect(decide(c("sub 4 sub? check my channel https://x.y"), quiz, [5, 9], true, now)).toBe("hide");
     expect(decide(c("   "), quiz, [5, 9], true, now)).toBeNull();
   });
 });
@@ -63,5 +64,34 @@ describe("channel quiz keys match the answer comments", () => {
   it.each([["chakra-puzzle"], ["kaali-peeli-chase"]] as const)("%s", (id) => {
     const cfg = CHANNELS[id];
     for (const n of [4, 10, 18]) expect(cfg.answer!(n)).toContain(cfg.quiz!.label(cfg.quiz!.key(n)).replace(" · ", " · "));
+  });
+});
+
+describe("moderation", () => {
+  it.each(["chutiya video", "B.C kya hai ye", "ch*tiya", "f**k this", "fuuuuck", "teri maa ki", "M C", "bsdk", "earn money fast whatsapp me", "visit my channel"])("hides %s", (t) => expect(blocked(t)).not.toBeNull());
+  it.each(["row 5 #9", "mast puzzle 🔥", "chod do yaar mushkil hai", "class mein dekha", "chakka maar diya", "suno", "become better", "assignment ke baad dekha", "Shukriya"])("keeps %s", (t) => expect(blocked(t)).toBeNull());
+  it("extra blocked words from the dashboard", () => expect(blocked("ye bilkul pagal hai", ["pagal"])).toBe("pagal"));
+  it("tone", () => {
+    expect(tone("bakwas video")).toBe("negative");
+    expect(tone("wow 🔥")).toBe("positive");
+    expect(tone("hmm")).toBe("unclear");
+  });
+});
+
+describe("decide: no wrong replies", () => {
+  const quiz = CHANNELS["chakra-puzzle"].quiz!;
+  const now = Date.parse("2026-11-10T00:00:00Z");
+  const c = (text: string) => ({ id: "c1", text, at: now - 3600_000 });
+  it("abuse is hidden, never answered — even with a correct guess", () => expect(decide(c("row 5 #9 chutiye"), quiz, [5, 9], true, now)).toBe("hide"));
+  it("negative or unclear comments get no reply", () => {
+    expect(decide(c("bakwas video"), quiz, [5, 9], true, now)).toBeNull();
+    expect(decide(c("hmm"), quiz, [5, 9], true, now)).toBeNull();
+  });
+  it("numbers inside a long sentence are not judged", () => {
+    expect(decide(c("maine 3 baar dekha phir bhi nahi mila 10 second kam hai yaar"), quiz, [5, 9], true, now)).toBeNull();
+  });
+  it("clear answers are judged", () => {
+    expect(decide(c("Row 5 number 9 mil gaya bhai finally"), quiz, [5, 9], true, now)).toBe("correct");
+    expect(decide(c("5 9"), quiz, [5, 9], true, now)).toBe("correct");
   });
 });

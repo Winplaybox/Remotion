@@ -482,8 +482,15 @@ async function renderSocial() {
   const replyCell = (c) => {
     const st = (d.settings ?? []).find((x) => x.channel === c.id);
     const on = st?.settings?.auto_reply !== false;
+    const mod = st?.settings?.moderate !== false;
+    const words = (st?.settings?.blocked_words ?? []).join(", ");
     return `<label class="small" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" data-autoreply="${c.id}" ${on ? "checked" : ""}> Comments ka auto-reply</label>
-      <div class="mute small" style="margin-top:4px">YouTube + Instagram + Facebook · har ghante · 24h mein ${Number(st?.replies_24h ?? 0)} replies</div>`;
+      <label class="small" style="display:flex;gap:6px;align-items:center;cursor:pointer;margin-top:4px"><input type="checkbox" data-moderate="${c.id}" ${mod ? "checked" : ""}> Gande / spam comments hide karo</label>
+      <div class="mute small" style="margin-top:4px">YouTube + Instagram + Facebook · har ghante · 24h mein ${Number(st?.replies_24h ?? 0)} replies/hides</div>
+      <details style="margin-top:6px"><summary class="small" style="cursor:pointer">Extra blocked words${words ? ` (${(st?.settings?.blocked_words ?? []).length})` : ""}</summary>
+        <div class="small mute" style="margin:4px 0">Built-in list (Hindi/English gaaliyan + spam) hamesha on hai. Yahan apne words jodo, comma se alag.</div>
+        <textarea data-words="${c.id}" rows="3" style="width:100%;max-width:340px">${esc(words)}</textarea>
+        <div><button class="btn sm" data-save-words="${c.id}">Save</button></div></details>`;
   };
   v.innerHTML = `${msg ? `<div class="card" style="margin-bottom:12px">${esc(msg)}</div>` : ""}
     <div class="card" style="margin-bottom:12px"><h2>Har channel ke apne social accounts</h2>
@@ -528,6 +535,12 @@ document.addEventListener("click", async (e) => {
   const chip = t.closest("[data-status]"); if (chip) { setHash({ status: chip.dataset.status, page: 1 }); return; }
   const pg = t.closest("[data-page]"); if (pg && !pg.disabled) { setHash({ page: Number(pg.dataset.page) }); window.scrollTo({ top: 0 }); return; }
   if (t.closest("[data-close]")) { closeDrawer(); return; }
+  const sw = t.closest("[data-save-words]");
+  if (sw) {
+    const ta = document.querySelector(`textarea[data-words="${sw.dataset.saveWords}"]`);
+    try { toast(await social("blocked-words", { channel: sw.dataset.saveWords, words: ta ? ta.value : "" })); } catch (err) { toast("✗ " + err.message); }
+    renderSocial(); return;
+  }
   const soc = t.closest("[data-soc]");
   if (soc) {
     if (soc.dataset.soc === "disconnect" && !confirm(`${soc.dataset.pf} disconnect karein?`)) return;
@@ -565,6 +578,7 @@ document.addEventListener("change", async (e) => {
   if (e.target.id === "size") { localSet("size", e.target.value); setHash({ size: Number(e.target.value), page: 1 }); }
   if (e.target.matches("[data-prio]")) { try { await act("priority", e.target.dataset.prio, e.target.value); toast("✓ Priority " + e.target.value); } catch (err) { toast("✗ " + err.message); } refresh(true); }
   if (e.target.matches("[data-pick-page]") && e.target.value) { try { toast(await social("pick-page", { channel: e.target.dataset.pickPage, nonce: e.target.dataset.nonce, page_id: e.target.value })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
+  if (e.target.matches("[data-moderate]")) { try { toast(await social("moderate", { channel: e.target.dataset.moderate, on: e.target.checked })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
   if (e.target.matches("[data-autoreply]")) { try { toast(await social("auto-reply", { channel: e.target.dataset.autoreply, on: e.target.checked })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
   if (e.target.matches("[data-pick-board]") && e.target.value) { try { toast(await social("pick-board", { channel: e.target.dataset.pickBoard, board_id: e.target.value })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
   if (e.target.id === "live") { localSet("live", e.target.checked ? "1" : ""); }
