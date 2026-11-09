@@ -84,9 +84,9 @@ const GRIDS = [[3, 3], [3, 4], [3, 4], [4, 4]] as const;
 /** Day N of the channel (1-based) -> a complete, deterministic level. */
 /**
  * From this level on: harder (bigger grid sooner, longer + faster shuffles, the target always in play).
- * Earlier levels are already rendered/published — never change what they produce.
+ * Earlier levels are already published — never change what they produce.
  */
-export const HARD_FROM = 19;
+export const HARD_FROM = 10;
 const HARD_GRIDS = [[3, 4], [4, 4], [4, 4], [4, 4]] as const;
 
 export function kaaliPeeliForDay(day: number): TrackVehicle {
