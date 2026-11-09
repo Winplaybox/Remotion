@@ -9,6 +9,7 @@ import { buildSchedule } from "./track-vehicle/src/schedule";
 import { StoryDioramaSchema, storyDioramaDuration } from "./story-diorama/src/model";
 import { epicBharatSagaForDay, authoredEpisodes } from "../content/epicbharatsaga/vishnu-season";
 import { TemplateSchema, templateForDay, templateDuration, templateVoiceLines, templateAnswerComment } from "./_template/src/model";
+import { CodeLockSchema, codeLockForDay, codeLockDuration, codeLockVoiceLines, codeLockAnswerComment } from "./code-lock/src/model";
 // @engine-builder:imports
 
 export interface VoiceLine { file: string; text: string; at: number }
@@ -59,6 +60,11 @@ export const ENGINE_CATALOG: EngineEntry[] = [
     slug: "_template", compositionId: "EngineTemplate", schema: TemplateSchema, forDay: templateForDay,
     durationFrames: templateDuration as (p: never) => number, voiceLines: templateVoiceLines as (p: never) => VoiceLine[],
     answer: (n) => templateAnswerComment(templateForDay(n)), seconds: [15, 30], days: () => range(30), askFrom: 1, demo: true
+  },
+  {
+    slug: "code-lock", compositionId: "CodeLock", schema: CodeLockSchema, forDay: codeLockForDay,
+    durationFrames: codeLockDuration as (p: never) => number, voiceLines: codeLockVoiceLines as (p: never) => VoiceLine[],
+    answer: (n) => codeLockAnswerComment(codeLockForDay(n)), seconds: [25, 40], days: () => range(30), askFrom: 1
   },
   // @engine-builder:catalog
 ];

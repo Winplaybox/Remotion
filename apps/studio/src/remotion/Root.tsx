@@ -27,6 +27,8 @@ import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type Too
 import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
 import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } from "../../../../engines/short-clip/src/model";
 import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
+import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from "../../../../engines/code-lock/src/model";
+import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -38,10 +40,15 @@ const STORY_DEMO = epicBharatSagaForDay(1);
 const video = { fps: MASTER_VIDEO.fps, width: MASTER_VIDEO.width, height: MASTER_VIDEO.height };
 
 const TEMPLATE_DEMO = templateForDay(1);
+const CODE_LOCK_DEMO = codeLockForDay(1);
 
 export const Root: React.FC = () => (
   <>
     {/* @engine-builder:compositions */}
+    <Folder name="DimaagLock">
+      <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
+        calculateMetadata={({ props }: { props: CodeLock }) => ({ durationInFrames: codeLockDuration(props) })} />
+    </Folder>
     <Folder name="NarratorVideo">
       <Composition id="NarratorVideo" component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={NARRATOR_DEMO}
         calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props), ...sizeOf(props.aspect) })} />

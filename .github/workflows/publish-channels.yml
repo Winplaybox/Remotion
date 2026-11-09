@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-        description: "Channel id (chakra-puzzle, kaali-peeli-chase, epicbharatsaga). Empty = whatever is due."
+        description: "Channel id (including dimaag-lock). Empty = whatever is due."
         required: false
         type: string
       n:
@@ -60,6 +60,8 @@ jobs:
         env:
           LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
           START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
+          LIVE_DIMAAG_LOCK: ${{ vars.LIVE_DIMAAG_LOCK }}
+          START_DIMAAG_LOCK: ${{ vars.START_DIMAAG_LOCK }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
@@ -86,6 +88,8 @@ jobs:
     env:
       YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
       YT_TOKEN_EPICBHARATSAGA_CLIENT: ${{ secrets.YT_TOKEN_EPICBHARATSAGA_CLIENT }}
+      YT_TOKEN_DIMAAG_LOCK: ${{ secrets.YT_TOKEN_DIMAAG_LOCK }}
+      YT_TOKEN_DIMAAG_LOCK_CLIENT: ${{ secrets.YT_TOKEN_DIMAAG_LOCK_CLIENT }}
       YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
       YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
       YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}
@@ -98,8 +102,13 @@ jobs:
       META_EBS_PAGE_ID: ${{ secrets.META_EBS_PAGE_ID }}
       META_EBS_IG_USER_ID: ${{ secrets.META_EBS_IG_USER_ID }}
       META_EBS_PAGE_TOKEN: ${{ secrets.META_EBS_PAGE_TOKEN }}
+      META_DIMAAG_LOCK_PAGE_ID: ${{ secrets.META_DIMAAG_LOCK_PAGE_ID }}
+      META_DIMAAG_LOCK_IG_USER_ID: ${{ secrets.META_DIMAAG_LOCK_IG_USER_ID }}
+      META_DIMAAG_LOCK_PAGE_TOKEN: ${{ secrets.META_DIMAAG_LOCK_PAGE_TOKEN }}
       LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
       START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
+      LIVE_DIMAAG_LOCK: ${{ vars.LIVE_DIMAAG_LOCK }}
+      START_DIMAAG_LOCK: ${{ vars.START_DIMAAG_LOCK }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PINTEREST_APP_ID: ${{ secrets.PINTEREST_APP_ID }}
@@ -110,6 +119,8 @@ jobs:
       PINTEREST_KPC_BOARD_ID: ${{ secrets.PINTEREST_KPC_BOARD_ID }}
       PINTEREST_EBS_REFRESH_TOKEN: ${{ secrets.PINTEREST_EBS_REFRESH_TOKEN }}
       PINTEREST_EBS_BOARD_ID: ${{ secrets.PINTEREST_EBS_BOARD_ID }}
+      PINTEREST_DIMAAG_LOCK_REFRESH_TOKEN: ${{ secrets.PINTEREST_DIMAAG_LOCK_REFRESH_TOKEN }}
+      PINTEREST_DIMAAG_LOCK_BOARD_ID: ${{ secrets.PINTEREST_DIMAAG_LOCK_BOARD_ID }}
       SOCIAL_GAP_MIN: ${{ vars.SOCIAL_GAP_MIN }}
       BOT_PUBLIC_URL: ${{ vars.BOT_PUBLIC_URL }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
@@ -153,6 +164,8 @@ jobs:
       YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
       YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
       YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+      YT_TOKEN_DIMAAG_LOCK: ${{ secrets.YT_TOKEN_DIMAAG_LOCK }}
+      YT_TOKEN_DIMAAG_LOCK_CLIENT: ${{ secrets.YT_TOKEN_DIMAAG_LOCK_CLIENT }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
