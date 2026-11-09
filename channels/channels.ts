@@ -4,7 +4,7 @@ import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
-import { marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
+import { championshipForEpisode, marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
 // @engine-builder:imports
 
 export interface PostMeta {
@@ -198,6 +198,43 @@ export const CHANNELS = {
         caption: `IQ Marathon #${n}: 25 puzzles + bonus 🧠 Kitne solve kar paoge?\nPehle 2 levels yahan — baaki 23 + BONUS YouTube pe!\n#puzzle #brainteaser #iqtest #reels`,
         // Level 1 + 2 (puzzle, answer) right after the hook.
         teaser: { start: m.hookSeconds, length: m.levels.slice(0, 2).reduce((a, l) => a + l.levelCard + l.play + l.reveal, 0), banner: "Baaki 23 levels YouTube pe" },
+        language: "hi",
+        categoryId: "20"
+      };
+    }
+  },
+  // Long video (16:9) for watch hours. Same YouTube channel + Instagram/Facebook as Kaali Peeli Chase.
+  "kpc-championship": {
+    name: "Kaali Peeli Chase Championship",
+    composition: "KpcChampionship",
+    startDate: "2026-11-12",
+    slots: ["18:30"],
+    weekdays: [2, 4, 6], // Tue / Thu / Sat
+    longForm: true,
+    socialAccount: "kaali-peeli-chase",
+    narrated: false,
+    autoPublish: true,
+    youtubeTokenSecret: "YT_TOKEN_KAALI_PEELI_CHASE",
+    metaSecretPrefix: "META_KPC",
+    youtubeHandle: "@KaaliPeeliChase",
+    pinterestSecretPrefix: "PINTEREST_KPC",
+    resolve: (n) => championshipForEpisode(n),
+    voice: (n) => marathonVoiceLines(championshipForEpisode(n)),
+    meta: (n) => {
+      const m = championshipForEpisode(n);
+      return {
+        title: `20 Rounds + Bonus 🚕 Kitne track kar paoge? | Kaali Peeli Championship #${n} (Hindi)`,
+        description: [
+          "Taxi, auto, bus pe nazar rakho 👀 har sahi jawab = +1 point. Round 1-15 ka jawab turant, EXPERT rounds ka jawab video ke END mein, aur BONUS round ka jawab AGLE episode mein!",
+          m.prevBonus ? `Pichhle episode ke bonus ka jawab: ${m.prevBonus}` : "",
+          "", "⏱️ Chapters", marathonChapters(m), "",
+          `Comment mein apna score likho 👇 ${m.ranks[0]!.min}+ = TOP 1% 🏆`,
+          "Roz naye levels (Shorts) + har Tue/Thu/Sat Championship — subscribe @KaaliPeeliChase",
+          "#puzzle #trackthecar #shellgame #brainteaser #eyetest #puzzlegame"
+        ].filter((l, i, a) => l !== "" || a[i - 1] !== "").join("\n"),
+        tags: ["puzzle", "track the car", "shell game", "brain teaser", "eye test", "focus test", "hindi puzzle", "kaali peeli", "taxi game", "20 rounds"],
+        caption: `Kaali Peeli Championship #${n}: 20 rounds + bonus 🚕 Kitne track kar paoge?\nPehle 2 rounds yahan — baaki 18 + BONUS YouTube pe!\n#puzzle #trackthecar #brainteaser #reels`,
+        teaser: { start: m.hookSeconds, length: m.levels.slice(0, 2).reduce((a, l) => a + l.levelCard + l.play + l.reveal, 0), banner: "Baaki 18 rounds YouTube pe" },
         language: "hi",
         categoryId: "20"
       };

@@ -10,7 +10,7 @@ import { SANATAN_EPISODE_DEMO, SanatanEpisodeSchema } from "../../../../engines/
 import { SanatanStoryComposition } from "../../../../engines/sanatan-story/src/SanatanStoryComposition";
 import { ODD_ORBIT_DEMO, ODD_ORBIT_VARIANTS, OddOrbitSchema, oddOrbitDuration, type OddOrbit } from "../../../../engines/odd-orbit/src/model";
 import { OddOrbitComposition } from "../../../../engines/odd-orbit/src/OddOrbitComposition";
-import { marathonForEpisode, marathonDuration, type Marathon } from "../../../../engines/puzzle-marathon/src/model";
+import { championshipForEpisode, marathonForEpisode, marathonDuration, type Marathon } from "../../../../engines/puzzle-marathon/src/model";
 import { MarathonComposition } from "../../../../engines/puzzle-marathon/src/MarathonComposition";
 import { TRACK_VEHICLE_DEMO, TRACK_VEHICLE_VARIANTS, TrackVehicleSchema, trackVehicleDuration, type TrackVehicle } from "../../../../engines/track-vehicle/src/model";
 import { TrackVehicleComposition } from "../../../../engines/track-vehicle/src/TrackVehicleComposition";
@@ -77,6 +77,9 @@ export const Root: React.FC = () => (
     <Folder name="LongForm">
       <Composition id="ChakraMarathon" component={MarathonComposition as unknown as React.FC<Record<string, unknown>>} fps={30} width={1920} height={1080}
         durationInFrames={marathonDuration(marathonForEpisode(1))} defaultProps={marathonForEpisode(1) as unknown as Record<string, unknown>}
+        calculateMetadata={({ props }) => ({ durationInFrames: marathonDuration(props as unknown as Marathon) })} />
+      <Composition id="KpcChampionship" component={MarathonComposition as unknown as React.FC<Record<string, unknown>>} fps={30} width={1920} height={1080}
+        durationInFrames={marathonDuration(championshipForEpisode(1))} defaultProps={championshipForEpisode(1) as unknown as Record<string, unknown>}
         calculateMetadata={({ props }) => ({ durationInFrames: marathonDuration(props as unknown as Marathon) })} />
     </Folder>
     <Folder name="KaaliPeeliChase">

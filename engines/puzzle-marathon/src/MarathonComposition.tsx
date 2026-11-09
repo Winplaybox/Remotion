@@ -4,14 +4,17 @@ import { FONT, useBundledFonts } from "@visuals/fonts";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { OddOrbitComposition } from "../../odd-orbit/src/OddOrbitComposition";
-import { FPS, HIDDEN_FROM, answerAt, answerText, marathonTimeline, type Marathon, type MarathonLevel, type Segment } from "./model";
+import type { OddOrbit } from "../../odd-orbit/src/model";
+import { TrackVehicleComposition } from "../../track-vehicle/src/TrackVehicleComposition";
+import type { TrackVehicle } from "../../track-vehicle/src/model";
+import { FPS, HIDDEN_COUNT, answerAt, marathonTimeline, type Marathon, type MarathonLevel, type Segment } from "./model";
 
 const BG = "linear-gradient(135deg, #070B1A 0%, #0E1430 55%, #160B26 100%)";
 const GOLD = "#FFD23F";
 // Vertical puzzle canvas, cropped to its busy part (title -> grid) and scaled to full height.
-const CROP_TOP = 60, CROP_BOTTOM = 1640;
-const PANEL_SCALE = 1080 / (CROP_BOTTOM - CROP_TOP);
-const PANEL_W = 1080 * PANEL_SCALE;
+// Kaali Peeli grids reach further down (4 rows), so its crop is taller. Same panel width for both keeps the layout fixed.
+const CROP: Record<string, [number, number]> = { orbit: [60, 1640], track: [40, 1860] };
+const PANEL_W = 1080 * (1080 / (1640 - 60));
 const SIDE = (1920 - PANEL_W) / 2;
 const DIFF_COLOR: Record<string, string> = { easy: "#5BE38A", medium: "#4FC3FF", hard: "#FF9F43", expert: "#FF5A6E" };
 
@@ -47,9 +50,9 @@ const Hook: React.FC<{ m: Marathon }> = ({ m }) => {
       ) : null}
       <Sequence from={off} layout="none">
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-          <Pop><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, letterSpacing: 6, color: "#9FB3FF" }}>CHAKRA PUZZLE · IQ MARATHON #{m.episode}</div></Pop>
+          <Pop><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, letterSpacing: 6, color: "#9FB3FF" }}>{m.series} #{m.episode}</div></Pop>
           <Pop delay={6}><div style={{ fontFamily: FONT.display, fontSize: 118, color: "#fff", lineHeight: 1.05, marginTop: 20, textShadow: "0 8px 0 #2B1D6B" }}>{m.title}</div></Pop>
-          <Pop delay={18}><div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 44, color: GOLD, marginTop: 30 }}>Level 25 sirf 1% log solve karte hain 🔥 · + BONUS level</div></Pop>
+          <Pop delay={18}><div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 44, color: GOLD, marginTop: 30 }}>{m.tagline}</div></Pop>
           <Pop delay={34}><div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 36, color: "#DDE3FF", marginTop: 26 }}>✍️ Paper-pen lo · har sahi jawab = +1 point · end mein apna rank dekho</div></Pop>
           <Pop delay={50}>
             <div style={{ display: "flex", gap: 16, marginTop: 44, justifyContent: "center" }}>
@@ -64,40 +67,48 @@ const Hook: React.FC<{ m: Marathon }> = ({ m }) => {
   );
 };
 
-const LevelCard: React.FC<{ l: MarathonLevel; total: number; bonus?: boolean | undefined }> = ({ l, total, bonus }) => {
+const LevelCard: React.FC<{ l: MarathonLevel; total: number; unit: string; bonus?: boolean | undefined }> = ({ l, total, unit, bonus }) => {
   const f = useCurrentFrame();
   const out = interpolate(f, [l.levelCard * FPS - 8, l.levelCard * FPS], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const c = bonus ? GOLD : DIFF_COLOR[l.puzzle.difficulty] ?? GOLD;
+  const c = bonus ? GOLD : DIFF_COLOR[l.difficulty] ?? GOLD;
   return (
     <AbsoluteFill style={{ background: BG, alignItems: "center", justifyContent: "center", opacity: out }}>
-      <Pop><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 34, letterSpacing: 8, color: c }}>{bonus ? "SIRF 1% SOLVE KARTE HAIN" : l.puzzle.difficulty.toUpperCase()}</div></Pop>
-      <Pop delay={3}><div style={{ fontFamily: FONT.display, fontSize: 240, color: bonus ? GOLD : "#fff", lineHeight: 1 }}>{bonus ? "BONUS LEVEL" : `LEVEL ${l.no}`}</div></Pop>
+      <Pop><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 34, letterSpacing: 8, color: c }}>{bonus ? "SIRF 1% SOLVE KARTE HAIN" : l.difficulty.toUpperCase()}</div></Pop>
+      <Pop delay={3}><div style={{ fontFamily: FONT.display, fontSize: 240, color: bonus ? GOLD : "#fff", lineHeight: 1 }}>{bonus ? `BONUS ${unit}` : `${unit} ${l.no}`}</div></Pop>
       {bonus ? null : <Pop delay={8}><div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 40, color: "#9FB3FF" }}>{l.no} / {total}{l.hidden ? " · jawab END mein 🔒" : ""}</div></Pop>}
     </AbsoluteFill>
   );
 };
 
+const scaleOf = (l: MarathonLevel) => { const [a, b] = CROP[l.game]!; return 1080 / (b - a); };
+
 /** The vertical puzzle, cropped + scaled into the middle of the 16:9 frame. */
-const Panel: React.FC<{ l: MarathonLevel; revealSeconds?: number }> = ({ l, revealSeconds }) => (
-  <div style={{ position: "absolute", left: SIDE, top: 0, width: PANEL_W, height: 1080, overflow: "hidden", borderRadius: 28, boxShadow: "0 0 0 3px rgba(159,179,255,.25)" }}>
-    <div style={{ position: "absolute", left: 0, top: -CROP_TOP * PANEL_SCALE, width: 1080, height: 1920, transform: `scale(${PANEL_SCALE})`, transformOrigin: "top left" }}>
-      <OddOrbitComposition {...l.puzzle} {...(revealSeconds !== undefined ? { revealSeconds } : {})} />
+const Panel: React.FC<{ l: MarathonLevel; revealSeconds?: number }> = ({ l, revealSeconds }) => {
+  const r = revealSeconds !== undefined;
+  const game = l.game === "orbit"
+    ? <OddOrbitComposition {...(l.puzzle as OddOrbit)} {...(r ? { revealSeconds } : {})} />
+    : <TrackVehicleComposition {...(l.puzzle as TrackVehicle)} {...(r ? { answerSeconds: revealSeconds, cta: "" } : {})} />;
+  return (
+  <div style={{ position: "absolute", left: SIDE, top: 0, width: PANEL_W, height: 1080, overflow: "hidden", borderRadius: 28, boxShadow: "0 0 0 3px rgba(159,179,255,.25)", background: "#0B0D12" }}>
+    <div style={{ position: "absolute", left: (PANEL_W - 1080 * scaleOf(l)) / 2, top: -CROP[l.game]![0] * scaleOf(l), width: 1080, height: 1920, transform: `scale(${scaleOf(l)})`, transformOrigin: "top left" }}>
+      {game}
     </div>
   </div>
-);
+  );
+};
 
-const LeftBar: React.FC<{ l: MarathonLevel; total: number; bonus?: boolean | undefined }> = ({ l, total, bonus }) => {
-  const c = bonus ? GOLD : DIFF_COLOR[l.puzzle.difficulty] ?? GOLD;
+const LeftBar: React.FC<{ l: MarathonLevel; total: number; unit: string; bonus?: boolean | undefined }> = ({ l, total, unit, bonus }) => {
+  const c = bonus ? GOLD : DIFF_COLOR[l.difficulty] ?? GOLD;
   return (
     <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: SIDE, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 18 }}>
-      <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, letterSpacing: 6, color: "#9FB3FF" }}>{bonus ? "BONUS" : "LEVEL"}</div>
+      <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, letterSpacing: 6, color: "#9FB3FF" }}>{bonus ? "BONUS" : unit}</div>
       <div style={{ fontFamily: FONT.display, fontSize: bonus ? 150 : 200, color: bonus ? GOLD : "#fff", lineHeight: 0.9 }}>{bonus ? "★" : l.no}</div>
       {bonus ? null : <div style={{ fontFamily: FONT.ui, fontWeight: 800, fontSize: 34, color: "#9FB3FF" }}>of {total}</div>}
-      <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 28, color: "#0B0F1F", background: c, padding: "8px 22px", borderRadius: 10, marginTop: 10 }}>{bonus ? "1% ONLY" : l.puzzle.difficulty.toUpperCase()}</div>
+      <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 28, color: "#0B0F1F", background: c, padding: "8px 22px", borderRadius: 10, marginTop: 10 }}>{bonus ? "1% ONLY" : l.difficulty.toUpperCase()}</div>
       {bonus ? null : (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 26px)", gap: 10, marginTop: 30 }}>
           {Array.from({ length: total }, (_, i) => (
-            <div key={i} style={{ width: 26, height: 26, borderRadius: 7, background: i + 1 < l.no ? "#5B6CFF" : i + 1 === l.no ? GOLD : i + 1 >= HIDDEN_FROM ? "rgba(255,90,110,.25)" : "rgba(255,255,255,.1)", boxShadow: i + 1 === l.no ? `0 0 16px ${GOLD}` : "none" }} />
+            <div key={i} style={{ width: 26, height: 26, borderRadius: 7, background: i + 1 < l.no ? "#5B6CFF" : i + 1 === l.no ? GOLD : i + 1 > total - HIDDEN_COUNT ? "rgba(255,90,110,.25)" : "rgba(255,255,255,.1)", boxShadow: i + 1 === l.no ? `0 0 16px ${GOLD}` : "none" }} />
           ))}
         </div>
       )}
@@ -109,19 +120,28 @@ const Right: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: SIDE, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", padding: "0 40px" }}>{children}</div>
 );
 
-const LevelView: React.FC<{ l: MarathonLevel; total: number; handle: string; bonus?: boolean | undefined; askSeconds?: number }> = ({ l, total, handle, bonus, askSeconds = 0 }) => {
+const LevelView: React.FC<{ l: MarathonLevel; total: number; unit: string; handle: string; bonus?: boolean | undefined; askSeconds?: number }> = ({ l, total, unit, handle, bonus, askSeconds = 0 }) => {
   const cardF = l.levelCard * FPS;
   const playF = l.play * FPS;
   return (
     <AbsoluteFill style={{ background: BG }}>
       <Sequence from={cardF} layout="none">
         <Panel l={l} />
-        <LeftBar l={l} total={total} bonus={bonus} />
+        <LeftBar l={l} total={total} unit={unit} bonus={bonus} />
         <Right>
           <Sequence durationInFrames={playF} layout="none">
             <Pop>
-              <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 46, color: "#fff", lineHeight: 1.2 }}>Odd one<br />dhundo 👀</div>
-              <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 30, color: "#9FB3FF", marginTop: 24, lineHeight: 1.4 }}>Timer khatam hone se<br />pehle ROW + NUMBER<br />yaad rakho</div>
+              {l.game === "orbit" ? (
+                <>
+                  <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 46, color: "#fff", lineHeight: 1.2 }}>Odd one<br />dhundo 👀</div>
+                  <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 30, color: "#9FB3FF", marginTop: 24, lineHeight: 1.4 }}>Timer khatam hone se<br />pehle ROW + NUMBER<br />yaad rakho</div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 46, color: "#fff", lineHeight: 1.2 }}>Nazar mat<br />hatana 👀</div>
+                  <div style={{ fontFamily: FONT.ui, fontWeight: 700, fontSize: 30, color: "#9FB3FF", marginTop: 24, lineHeight: 1.4 }}>Shuffle ke baad<br />NUMBER yaad rakho</div>
+                </>
+              )}
               <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 24, color: "#9FB3FF", marginTop: 40, opacity: 0.7 }}>{handle}</div>
             </Pop>
           </Sequence>
@@ -141,7 +161,7 @@ const LevelView: React.FC<{ l: MarathonLevel; total: number; handle: string; bon
           </Sequence>
         </Right>
       </Sequence>
-      <Sequence durationInFrames={cardF} layout="none"><LevelCard l={l} total={total} bonus={bonus} /></Sequence>
+      <Sequence durationInFrames={cardF} layout="none"><LevelCard l={l} total={total} unit={unit} bonus={bonus} /></Sequence>
       {bonus ? (
         <Sequence from={cardF + playF} durationInFrames={askSeconds * FPS} layout="none">
           <AbsoluteFill style={{ background: "rgba(5,6,18,.86)", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
@@ -163,7 +183,7 @@ const AnswerRound: React.FC<{ m: Marathon }> = ({ m }) => {
       <Sequence durationInFrames={3 * FPS} layout="none">
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
           <Pop><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 36, letterSpacing: 8, color: "#FF5A6E" }}>ANSWER ROUND</div></Pop>
-          <Pop delay={5}><div style={{ fontFamily: FONT.display, fontSize: 150, color: "#fff" }}>EXPERT LEVELS KE JAWAB</div></Pop>
+          <Pop delay={5}><div style={{ fontFamily: FONT.display, fontSize: 150, color: "#fff" }}>EXPERT {m.unit}S KE JAWAB</div></Pop>
         </AbsoluteFill>
       </Sequence>
       {hidden.map((l, i) => (
@@ -171,11 +191,11 @@ const AnswerRound: React.FC<{ m: Marathon }> = ({ m }) => {
           <AbsoluteFill>
             {/* Start the puzzle at the end of play so its reveal animation runs. */}
             <Sequence from={-l.play * FPS} layout="none"><Panel l={l} revealSeconds={3.6} /></Sequence>
-            <LeftBar l={l} total={m.levels.length} />
+            <LeftBar l={l} total={m.levels.length} unit={m.unit} />
             <Right>
               <Pop>
-                <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, color: "#9FB3FF", letterSpacing: 4 }}>LEVEL {l.no} KA JAWAB</div>
-                <div style={{ fontFamily: FONT.display, fontSize: 84, color: GOLD, marginTop: 10 }}>{answerText(l.puzzle)}</div>
+                <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, color: "#9FB3FF", letterSpacing: 4 }}>{m.unit} {l.no} KA JAWAB</div>
+                <div style={{ fontFamily: FONT.display, fontSize: 84, color: GOLD, marginTop: 10 }}>{l.answer}</div>
                 <div style={{ fontFamily: FONT.display, fontSize: 90, color: "#5BE38A", marginTop: 10 }}>SAHI? +1</div>
               </Pop>
             </Right>
@@ -212,7 +232,7 @@ const Result: React.FC<{ m: Marathon }> = ({ m }) => (
         );
       })}
     </div>
-    <Pop delay={50}><div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 50, color: GOLD, marginTop: 34 }}>Comment mein apna score likho 👇 · abhi BONUS level baaki hai!</div></Pop>
+    <Pop delay={50}><div style={{ fontFamily: FONT.ui, fontWeight: 900, fontSize: 50, color: GOLD, marginTop: 34 }}>Comment mein apna score likho 👇 · abhi BONUS {m.unit.toLowerCase()} baaki hai!</div></Pop>
   </AbsoluteFill>
 );
 
@@ -235,12 +255,12 @@ export const MarathonComposition: React.FC<Marathon> = (m) => {
   return (
     <AbsoluteFill style={{ background: BG }}>
       <VoiceCues cues={m.voice} />
-      <SoundBed music="sfx/music_puzzle.mp3" musicVolume={0.13} duck={duckFromCues(m.voice)} sfx={sfx.filter((x) => x.at * FPS < durationInFrames)} />
+      <SoundBed music={m.game === "orbit" ? "sfx/music_puzzle.mp3" : "sfx/music_chase.mp3"} musicVolume={0.13} duck={duckFromCues(m.voice)} sfx={sfx.filter((x) => x.at * FPS < durationInFrames)} />
       {tl.map((s, i) => (
         <Sequence key={i} from={s.from} durationInFrames={s.frames}>
           {s.kind === "hook" ? <Hook m={m} />
-            : s.kind === "level" ? <LevelView l={s.level!} total={m.levels.length} handle={m.handle} />
-            : s.kind === "bonus" ? <LevelView l={s.level!} total={m.levels.length} handle={m.handle} bonus askSeconds={m.bonusAskSeconds} />
+            : s.kind === "level" ? <LevelView l={s.level!} total={m.levels.length} unit={m.unit} handle={m.handle} />
+            : s.kind === "bonus" ? <LevelView l={s.level!} total={m.levels.length} unit={m.unit} handle={m.handle} bonus askSeconds={m.bonusAskSeconds} />
             : s.kind === "checkpoint" ? <CheckpointView s={s} handle={m.handle} />
             : s.kind === "answers" ? <AnswerRound m={m} />
             : <Result m={m} />}
