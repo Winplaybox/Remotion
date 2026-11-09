@@ -18,7 +18,7 @@ export const CodeLockSchema = z.object({
   title: z.string(),
   subtitle: z.string(),
   digits: z.number().int().min(3).max(4),
-  code: z.string().regex(/^\\d{3,4}$/),
+  code: z.string().regex(/^\d{3,4}$/),
   clues: z.array(z.object({ guess: z.string(), correct: z.number().int(), rightPlace: z.number().int() })).length(5),
   seed: z.string(),
   playSeconds: z.number().positive(),
