@@ -5,7 +5,7 @@ name: Telegram Bot Jobs
 #   tg-style: real video (Telegram file) -> Remotion ToonVideo (cartoon/anime/comic/sketch/watercolor) -> sent back
 #   tg-shorts: long video / link -> faster-whisper transcript -> Gemini highlights (sentence boundaries) -> ShortClip x N
 #   tg-idea : idea appended to content/ideas/inbox.jsonl on branch bot-data, admin notified
-# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (job progress; optional).  Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
+# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (job progress; optional), YOUTUBE_COOKIES_B64 (optional Netscape cookies for YouTube links blocked by bot checks). Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
 on:
   repository_dispatch:
     types: [tg-video, tg-style, tg-shorts, tg-idea]
@@ -50,7 +50,7 @@ jobs:
         with: { python-version: "3.12" }
       - uses: actions/cache@v4
         with: { path: ~/.cache/huggingface, key: whisper-small-v1 }
-      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && python -m pip install --quiet faster-whisper yt-dlp
+      - uses: denoland/setup-deno@v2\n      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && python -m pip install --quiet faster-whisper yt-dlp
       - run: npm ci
       - name: Make and send the Shorts
         env:
