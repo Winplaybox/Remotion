@@ -24,12 +24,16 @@ const watchUrl = (id: string) => `https://youtu.be/${id}`;
 const channelUrl = (handle: string) => `https://youtube.com/${handle}`;
 
 /** Captions with the YouTube call to action. Instagram captions have no clickable links, so the handle leads. */
-export function socialCopy(cfg: Pick<ChannelConfig, "name" | "youtubeHandle" | "longForm">, meta: PostMeta, youtubeId: string) {
+export function socialCopy(cfg: Pick<ChannelConfig, "name" | "youtubeHandle" | "longForm" | "quiz">, meta: PostMeta, youtubeId: string) {
   const yt = cfg.longForm ? watchUrl(youtubeId) : shortUrl(youtubeId);
   const sub = `🔔 YouTube pe subscribe karo: ${cfg.youtubeHandle}`;
+  // Every post invites people to the YouTube channel: more games + long videos live there.
+  const more = cfg.quiz || cfg.longForm
+    ? `🎮 Aur bhi games khelne hain? YouTube pe follow karo ${cfg.youtubeHandle} — wahan roz naye puzzles, 9-min LONG videos (25 levels + bonus) aur aur bhi games hain!`
+    : `📺 Aur kahaniyaan + LONG videos YouTube pe — follow karo ${cfg.youtubeHandle}`;
   return {
-    instagram: [meta.caption.trim(), "", `▶️ Roz naya video pehle YouTube pe aata hai — search karo ${cfg.youtubeHandle}`, sub, "🔗 Link bio mein"].join("\n").slice(0, 2200),
-    facebook: [meta.title.replace(/#shorts/gi, "").trim(), "", `👀 Ye sirf jhalak hai — pura video aur jawab YouTube pe:`, yt, "", sub, channelUrl(cfg.youtubeHandle)].join("\n").slice(0, 2200),
+    instagram: [meta.caption.trim(), "", more, `▶️ Roz naya video pehle YouTube pe aata hai — search karo ${cfg.youtubeHandle}`, sub, "🔗 Link bio mein"].join("\n").slice(0, 2200),
+    facebook: [meta.title.replace(/#shorts/gi, "").trim(), "", `👀 Ye sirf jhalak hai — pura video aur jawab YouTube pe:`, yt, "", more, sub, channelUrl(cfg.youtubeHandle)].join("\n").slice(0, 2200),
     pinterest: {
       title: meta.title.replace(/#[A-Za-z]\w*/g, "").replace(/\s{2,}/g, " ").trim().slice(0, 100),
       description: `${meta.description.split("\n")[0]?.trim() ?? ""}\n▶️ Pura video YouTube pe dekho aur subscribe karo ${cfg.youtubeHandle}`.slice(0, 800),

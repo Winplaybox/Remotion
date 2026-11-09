@@ -90,7 +90,7 @@ const hash = (s: string) => { let h = 2166136261; for (const ch of s) h = Math.i
 export function replyText(kind: Kind, commentId: string, quiz: Quiz, key: number[], platform: Platform, handle: string): string {
   const pool = TEXTS[kind];
   const base = pool[hash(commentId) % pool.length]!.replace("{ans}", quiz.label(key)).replace("{how}", quiz.how);
-  const tail = platform === "youtube" ? (kind === "correct" || kind === "wrong" ? "\n🔔 Subscribe karo — roz naya challenge!" : "") : `\n▶️ Roz naya video YouTube pe: ${handle}`;
+  const tail = platform === "youtube" ? (kind === "correct" || kind === "wrong" ? "\n🔔 Subscribe karo — roz naya challenge!" : "") : `\n🎮 Aur games + LONG videos YouTube pe: ${handle}`;
   return base + tail;
 }
 
