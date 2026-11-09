@@ -28,6 +28,8 @@ jobs:
     env:
       LIVE_EPICBHARATSAGA: ${{ vars.LIVE_EPICBHARATSAGA }}
       START_EPICBHARATSAGA: ${{ vars.START_EPICBHARATSAGA }}
+      LIVE_DIMAAG_LOCK: ${{ vars.LIVE_DIMAAG_LOCK }}
+      START_DIMAAG_LOCK: ${{ vars.START_DIMAAG_LOCK }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
       PYTHON: python
       QUEUE_REMOTE: https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
