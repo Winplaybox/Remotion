@@ -49,6 +49,8 @@ export function supabaseStore(url, key) {
     socialDelete: (channel, platform) => rpc("videobot_social_delete", { p_channel: channel, p_platform: platform }),
     oauthPut: (nonce, platform, channel, dataEnc) => rpc("videobot_oauth_put", { p_nonce: nonce, p_platform: platform, p_channel: channel, p_data_enc: dataEnc }),
     oauthGet: (nonce) => rpc("videobot_oauth_get", { p_nonce: nonce }),
+    settingsList: () => rpc("videobot_channel_settings_list", {}),
+    settingsSave: (channel, patch) => rpc("videobot_channel_settings_save", { p_channel: channel, p_patch: patch }),
     async signedUrl(path, seconds = 600) {
       const base = url.replace(/\/$/, "");
       const res = await fetch(`${base}/storage/v1/object/sign/videobot/${path.split("/").map(encodeURIComponent).join("/")}`, {
@@ -72,7 +74,7 @@ function similarity(a, b) {
 }
 
 export function memoryStore() {
-  const updates = new Set(), users = new Map(), prefs = new Map(), ideas = [], jobs = [], pubs = [], social = new Map(), oauth = new Map();
+  const updates = new Set(), users = new Map(), prefs = new Map(), ideas = [], jobs = [], pubs = [], social = new Map(), oauth = new Map(), settings = new Map();
   const OPEN = (p) => !["REJECTED", "CANCELLED", "FAILED"].includes(p.status);
   const pubJson = (p) => { const j = jobs.find((x) => x.id === p.job_id); return { ...p, job: j ? { code: j.code, kind: j.kind, tg_id: j.tg_id, chat_id: j.chat_id, output: j.output } : null }; };
   const now = () => new Date().toISOString();
@@ -200,6 +202,8 @@ export function memoryStore() {
     async socialDelete(channel, platform) { return social.delete(`${channel}|${platform}`) ? 1 : 0; },
     async oauthPut(nonce, platform, channel, data_enc) { oauth.set(nonce, { nonce, platform, channel, data_enc }); },
     async oauthGet(nonce) { return oauth.get(nonce) ?? null; },
+    async settingsList() { return [...settings.entries()].map(([channel, v]) => ({ channel, settings: v, replies_24h: 0 })); },
+    async settingsSave(channel, patch) { const v = { ...(settings.get(channel) ?? {}), ...patch }; settings.set(channel, v); return v; },
     async stats() {
       const active = jobs.filter((j) => !FINAL.has(j.status)).length;
       return { users: users.size, active_users_7d: users.size, ideas: ideas.length, ideas_pending: ideas.filter((i) => i.status === "PENDING_REVIEW").length, ideas_approved: ideas.filter((i) => i.status === "APPROVED").length, jobs_active: active, jobs_completed: jobs.filter((j) => j.status === "COMPLETED").length, jobs_failed: jobs.filter((j) => j.status === "FAILED").length };

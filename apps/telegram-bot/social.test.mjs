@@ -55,3 +55,12 @@ test("worker signature is bound to channel and time", () => {
   assert.notEqual(workerSig("k", "chakra-puzzle", 1), workerSig("k", "kaali-peeli-chase", 1));
   assert.notEqual(workerSig("k", "chakra-puzzle", 1), workerSig("k", "chakra-puzzle", 2));
 });
+
+test("channel settings: auto-reply switch merges and lists (memory store)", async () => {
+  const { memoryStore } = await import("./store.mjs");
+  const store = memoryStore();
+  await store.settingsSave("chakra-puzzle", { auto_reply: false });
+  await store.settingsSave("chakra-puzzle", { other: 1 });
+  const row = (await store.settingsList()).find((s) => s.channel === "chakra-puzzle");
+  assert.deepEqual(row.settings, { auto_reply: false, other: 1 });
+});

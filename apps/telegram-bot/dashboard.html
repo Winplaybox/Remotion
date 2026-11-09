@@ -479,15 +479,22 @@ async function renderSocial() {
       <div class="mute small">Token ${a.expires_at ? `valid till ${esc(fmt.format(when(a.expires_at)))} (apne aap refresh)` : ""}</div>
       <div class="actions" style="margin-top:6px"><button class="btn sm" data-soc="check" data-ch="${c.id}" data-pf="pinterest">Test</button><a class="btn sm" href="/admin/connect/pinterest?channel=${c.id}">Reconnect</a><button class="btn sm bad" data-soc="disconnect" data-ch="${c.id}" data-pf="pinterest">Disconnect</button></div>`;
   };
+  const replyCell = (c) => {
+    const st = (d.settings ?? []).find((x) => x.channel === c.id);
+    const on = st?.settings?.auto_reply !== false;
+    return `<label class="small" style="display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" data-autoreply="${c.id}" ${on ? "checked" : ""}> Comments ka auto-reply</label>
+      <div class="mute small" style="margin-top:4px">YouTube + Instagram + Facebook · har ghante · 24h mein ${Number(st?.replies_24h ?? 0)} replies</div>`;
+  };
   v.innerHTML = `${msg ? `<div class="card" style="margin-bottom:12px">${esc(msg)}</div>` : ""}
     <div class="card" style="margin-bottom:12px"><h2>Har channel ke apne social accounts</h2>
       <div class="small mute">Connect dabao → login karo → Allow. Token encrypted ho ke save hota hai; publish job wahi use karta hai.
-      Order: YouTube → Instagram +5 min → Facebook teaser +10 → Pinterest pin +15. Har jagah YouTube link + subscribe.</div>
+      Order: YouTube → Instagram +5 min → Facebook teaser +10 → Pinterest pin +15. Har jagah YouTube link + subscribe.
+      Auto-reply: viewer ka jawab (jaise "row 5 #9") agla video aane ke baad ✅/❌ ke saath reply hota hai; baaki comments ko turant reply.</div>
       ${d.shared ? "" : `<div class="alert small" style="margin-top:8px">Database connected nahi hai (memory mode) — connect kiye accounts GitHub jobs tak nahi pahunchenge.</div>`}
       ${appWarn("meta", "Meta (Instagram/Facebook)")}${appWarn("pinterest", "Pinterest")}
       <div class="small mute" style="margin-top:8px">Ek Facebook login se saare Pages aa jaate hain — jis Page ka naam channel jaisa hai wo apne aap jud jaata hai. Pinterest: har channel ka alag account, isliye Connect se pehle pinterest.com pe us channel ke account se login rakho.</div></div>
-    <div class="tablewrap"><table><thead><tr><th>Channel</th><th>Instagram + Facebook</th><th>Pinterest</th></tr></thead><tbody>
-    ${d.channels.map((c) => `<tr style="cursor:default"><td data-l="Channel"><b>${esc(c.name)}</b><div class="mute small">${esc(c.handle)}</div></td><td data-l="Instagram + Facebook">${metaCell(c)}</td><td data-l="Pinterest">${pinCell(c)}</td></tr>`).join("")}
+    <div class="tablewrap"><table><thead><tr><th>Channel</th><th>Instagram + Facebook</th><th>Pinterest</th><th>Auto-reply</th></tr></thead><tbody>
+    ${d.channels.map((c) => `<tr style="cursor:default"><td data-l="Channel"><b>${esc(c.name)}</b><div class="mute small">${esc(c.handle)}</div></td><td data-l="Instagram + Facebook">${metaCell(c)}</td><td data-l="Pinterest">${pinCell(c)}</td><td data-l="Auto-reply">${replyCell(c)}</td></tr>`).join("")}
     </tbody></table></div>`;
 }
 
@@ -558,6 +565,7 @@ document.addEventListener("change", async (e) => {
   if (e.target.id === "size") { localSet("size", e.target.value); setHash({ size: Number(e.target.value), page: 1 }); }
   if (e.target.matches("[data-prio]")) { try { await act("priority", e.target.dataset.prio, e.target.value); toast("✓ Priority " + e.target.value); } catch (err) { toast("✗ " + err.message); } refresh(true); }
   if (e.target.matches("[data-pick-page]") && e.target.value) { try { toast(await social("pick-page", { channel: e.target.dataset.pickPage, nonce: e.target.dataset.nonce, page_id: e.target.value })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
+  if (e.target.matches("[data-autoreply]")) { try { toast(await social("auto-reply", { channel: e.target.dataset.autoreply, on: e.target.checked })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
   if (e.target.matches("[data-pick-board]") && e.target.value) { try { toast(await social("pick-board", { channel: e.target.dataset.pickBoard, board_id: e.target.value })); } catch (err) { toast("✗ " + err.message); } renderSocial(); }
   if (e.target.id === "live") { localSet("live", e.target.checked ? "1" : ""); }
 });

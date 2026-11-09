@@ -3,6 +3,7 @@ import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
 import { ASK_META } from "../engines/ask-outro";
+import { parseCell, parseNumber, type Quiz } from "./quiz";
 // @engine-builder:imports
 
 export interface PostMeta { title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string }
@@ -36,6 +37,8 @@ export interface ChannelConfig {
   answer?: (n: number) => string;
   /** From this post on the answer is revealed in the next video; the comment is posted once post n+1 is public. */
   answerInNextFrom?: number;
+  /** Structured answer: comment auto-reply checks viewers' guesses against it (YouTube / Instagram / Facebook). */
+  quiz?: Quiz;
 }
 
 export interface VoiceLine { file: string; text: string; at: number }
@@ -62,6 +65,12 @@ export const CHANNELS = {
     resolve: (n) => chakraPuzzleForDay(n),
     voice: (n) => chakraVoiceLines(chakraPuzzleForDay(n)),
     answerInNextFrom: 4,
+    quiz: {
+      key: (n) => { const { row, col } = oddCellOf(chakraPuzzleForDay(n)); return [row, col]; },
+      parse: (t) => parseCell(t, 20, 12),
+      label: ([r, c]) => `ROW ${r} · #${c}`,
+      how: "Row + number, jaise: Row 5 #9"
+    },
     answer: (n) => { const { row, col } = oddCellOf(chakraPuzzleForDay(n)); return `✅ JAWAB: ROW ${row} · #${col}\nAapne pakda? Reply mein batao 👇\nKal naya puzzle — follow karo, sabse pehle khelo! 🎮`; },
     meta: (n) => {
       const p = chakraPuzzleForDay(n);
@@ -91,6 +100,12 @@ export const CHANNELS = {
     resolve: (n) => kaaliPeeliForDay(n),
     voice: (n) => { const p = kaaliPeeliForDay(n); return kaaliPeeliVoiceLines(p, buildSchedule(p).answerSlot + 1); },
     answerInNextFrom: 4,
+    quiz: {
+      key: (n) => [buildSchedule(kaaliPeeliForDay(n)).answerSlot + 1],
+      parse: (t) => parseNumber(t, 16),
+      label: ([v]) => `#${v}`,
+      how: "Number likho, jaise: #7"
+    },
     answer: (n) => `✅ JAWAB: #${buildSchedule(kaaliPeeliForDay(n)).answerSlot + 1}\nAapne pakda? Reply mein batao 👇\nKal naya level — follow karo, sabse pehle khelo! 🎮`,
     meta: (n) => {
       const p = kaaliPeeliForDay(n);

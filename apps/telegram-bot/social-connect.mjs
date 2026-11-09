@@ -4,7 +4,7 @@
 import crypto from "node:crypto";
 
 const GRAPH = `https://graph.facebook.com/${process.env.META_GRAPH_API_VERSION || "v25.0"}`;
-export const META_SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "instagram_basic", "instagram_content_publish", "business_management"];
+export const META_SCOPES = ["pages_show_list", "pages_read_engagement", "pages_manage_posts", "pages_manage_engagement", "pages_read_user_content", "instagram_basic", "instagram_content_publish", "instagram_manage_comments", "business_management"];
 export const PINTEREST_SCOPES = ["boards:read", "boards:write", "pins:read", "pins:write", "user_accounts:read"];
 
 // ---------- crypto ----------
