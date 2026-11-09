@@ -63,7 +63,7 @@ async function main() {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       console.log(`[narration] generating ${missing()} missing scene(s) with Edge TTS`);
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", ...(flag("refresh-narration") ? [] : ["--missing-only"]), "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", ...(flag("refresh-narration") ? [] : ["--missing-only"]), "--edge-voice", edgeVoice], { stdio: "inherit" });
       } catch (e) {
         console.warn(`[narration] Edge TTS failed: ${(e as Error).message}`);
       }
@@ -74,7 +74,7 @@ async function main() {
     if (flag("require-narration") && have < story.scenes.length) throw new Error(`Narration missing for ${tag}; run scripts/narration/narrate.py first`);
   }
   let voiced = cfg.narrated;
-  const voiceOf = (cfg as { voice?: (n: number) => VoiceLine[] }).voice;
+  const voiceOf = (cfg as { voice?: (n: number) => VoiceLine[] }).voice;\n  const edgeVoice = (cfg as { voiceName?: string }).voiceName || process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural";
   if (voiceOf && !prerendered) {
     const lines = voiceOf(n);
     const audioDir = path.join("public", "audio", channel, tag);
