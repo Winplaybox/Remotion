@@ -6,7 +6,7 @@
  *   (ledger start) are never caught up, so nothing published before the ledger existed is posted again.
  *   npx ts-node scripts/due.ts [--from ISO] [--hours 1] [--channel id] [--no-ledger]
  */
-import { CHANNELS, isLive, startDateOf, todayIST, slotTimeISO, type ChannelId } from "../channels/channels";
+import { CHANNELS, isLive, isPostDay, startDateOf, todayIST, slotTimeISO, type ChannelId } from "../channels/channels";
 import { ledgerEnabled, ledgerStatus, type SlotKey } from "./ledger";
 
 export const LOOKBACK_HOURS = 12;
@@ -19,7 +19,7 @@ export function candidates(from: number, hours: number, only: string | undefined
     const date = todayIST(new Date(from + dayOffset * 86_400_000));
     for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
       if (only && only !== channel) continue;
-      if (!isLive(channel) || date < startDateOf(channel)) continue;
+      if (!isLive(channel) || date < startDateOf(channel) || !isPostDay(channel, date)) continue;
       CHANNELS[channel].slots.forEach((hhmm, slot) => {
         const t = Date.parse(slotTimeISO(date, hhmm));
         const normal = t >= from + 30 * 60_000 && t < from + (30 + hours * 60) * 60_000;

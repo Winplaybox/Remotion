@@ -34,13 +34,22 @@ function useLayout(p: OddOrbit) {
       let dir = 1;
       if (i === odd) {
         if (p.oddRule === "reverse") dir = -1;
-        if (p.oddRule === "faster") mul = 1.55;
-        if (p.oddRule === "slower") mul = 0.55;
+        const k = p.oddStrength ?? 1;
+        if (p.oddRule === "faster") mul = 1 + 0.55 * k;
+        if (p.oddRule === "slower") mul = 1 - 0.45 * k;
       }
       return { x, y, row, col, phase: random(`${p.seed}-p${i}`) * TAU, mul, dir, delay: (Math.hypot(x - cx, y - cy) / maxD) * 16 };
     });
     return { cells, pitch, odd };
   }, [p]);
+}
+
+/** a -> b by t (hex colours). */
+function mixHex(a: string, b: string, t: number): string {
+  const h = (x: string) => [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16));
+  const [x, y] = [h(a), h(b)];
+  if (x.some(Number.isNaN) || y.some(Number.isNaN)) return t >= 0.5 ? b : a;
+  return `#${x.map((v, i) => Math.round(v + ((y[i] ?? v) - v) * t).toString(16).padStart(2, "0")).join("")}`;
 }
 
 const Stars: React.FC<{ seed: string; frame: number }> = ({ seed, frame }) => (
@@ -68,6 +77,8 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
   const timeLeft = Math.max(0, p.playSeconds - t);
   const oddCell = cells[odd];
   const pal = p.palette;
+  const oddBody = (p.oddStrength ?? 1) >= 1 ? pal.oddTint : mixHex(pal.body, pal.oddTint, 0.25 + 0.75 * (p.oddStrength ?? 1));
+  const oddLine = (p.oddStrength ?? 1) >= 1 ? pal.oddTint : mixHex(pal.line, pal.oddTint, 0.25 + 0.75 * (p.oddStrength ?? 1));
   const glowDrift = Math.sin(t * 0.4) * 40;
   const spin = rampedTime(p, t);
   const endStart = (p.playSeconds + p.revealSeconds) * fps;
@@ -81,7 +92,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
     const tinted = isOdd && p.oddRule === "tint";
     return (
       <g key={i} transform={`translate(${c.x} ${c.y}) scale(${scale})`} opacity={opacity}>
-        <Element a={a} dir={c.dir} r={r} sats={p.satellites} body={tinted ? pal.oddTint : pal.body} line={tinted ? pal.oddTint : pal.line} odd={isOdd && p.oddRule === "shape"} glyphs={p.glyphs} />
+        <Element a={a} dir={c.dir} r={r} sats={p.satellites} body={tinted ? oddBody : pal.body} line={tinted ? oddLine : pal.line} odd={isOdd && p.oddRule === "shape"} glyphs={p.glyphs} />
       </g>
     );
   };

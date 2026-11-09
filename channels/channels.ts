@@ -4,9 +4,14 @@ import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
+import { marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
 // @engine-builder:imports
 
-export interface PostMeta { title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string }
+export interface PostMeta {
+  title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string;
+  /** Long videos: part cut as the vertical Instagram/Facebook teaser (seconds) + its closing banner. */
+  teaser?: { start: number; length: number; banner: string };
+}
 
 export interface ChannelConfig {
   name: string;
@@ -15,6 +20,12 @@ export interface ChannelConfig {
   startDate: string;
   /** Publish times in IST, "HH:MM". Post number = (day - 1) * slots.length + slotIndex + 1. */
   slots: readonly string[];
+  /** Only post on these weekdays (IST, 0 = Sunday). Post numbers then count only those days. Default: every day. */
+  weekdays?: readonly number[];
+  /** Long video (16:9): Instagram / Facebook get a vertical teaser that sends viewers to YouTube; no Pinterest pin. */
+  longForm?: boolean;
+  /** Use this channel's connected Instagram / Facebook / Pinterest accounts (same brand, different format). */
+  socialAccount?: string;
   narrated: boolean;
   /**
    * false = only published when the repo variable LIVE_<ID>=true is set (ID = channel id upper-cased, "-" -> "_").
@@ -154,6 +165,44 @@ export const CHANNELS = {
       };
     }
   },
+  // Long video (16:9) for watch hours. Same YouTube channel + Instagram/Facebook as Chakra Puzzle.
+  "chakra-marathon": {
+    name: "Chakra Puzzle Marathon",
+    composition: "ChakraMarathon",
+    startDate: "2026-11-11",
+    slots: ["18:30"],
+    weekdays: [1, 3, 5], // Mon / Wed / Fri
+    longForm: true,
+    socialAccount: "chakra-puzzle",
+    narrated: false,
+    autoPublish: true,
+    youtubeTokenSecret: "YT_TOKEN_CHAKRA_PUZZLE",
+    metaSecretPrefix: "META_CHAKRA",
+    youtubeHandle: "@ChakraPuzzle",
+    pinterestSecretPrefix: "PINTEREST_CHAKRA",
+    resolve: (n) => marathonForEpisode(n),
+    voice: (n) => marathonVoiceLines(marathonForEpisode(n)),
+    meta: (n) => {
+      const m = marathonForEpisode(n);
+      return {
+        title: `25 Puzzles + Bonus 🧠 Kitne solve kar paoge? | IQ Marathon #${n} (Odd One Out, Hindi)`,
+        description: [
+          "Paper-pen lo ✍️ har sahi jawab = +1 point. Level 1-20 ka jawab turant, EXPERT levels ka jawab video ke END mein, aur BONUS level ka jawab AGLE episode mein!",
+          m.prevBonus ? `Pichhle episode ke bonus ka jawab: ${m.prevBonus}` : "",
+          "", "⏱️ Chapters", marathonChapters(m), "",
+          "Comment mein apna score likho 👇 23+ = TOP 1% 🏆",
+          "Roz naye puzzles (Shorts) + har Mon/Wed/Fri Marathon — subscribe @ChakraPuzzle",
+          "#puzzle #brainteaser #oddoneout #iqtest #dimaagkapuzzle #puzzlegame"
+        ].filter((l, i, a) => l !== "" || a[i - 1] !== "").join("\n"),
+        tags: ["puzzle", "brain teaser", "iq test", "odd one out", "puzzle challenge", "hindi puzzle", "dimaag ka puzzle", "find the odd one", "25 puzzles", "brain test"],
+        caption: `IQ Marathon #${n}: 25 puzzles + bonus 🧠 Kitne solve kar paoge?\nPehle 2 levels yahan — baaki 23 + BONUS YouTube pe!\n#puzzle #brainteaser #iqtest #reels`,
+        // Level 1 + 2 (puzzle, answer) right after the hook.
+        teaser: { start: m.hookSeconds, length: m.levels.slice(0, 2).reduce((a, l) => a + l.levelCard + l.play + l.reveal, 0), banner: "Baaki 23 levels YouTube pe" },
+        language: "hi",
+        categoryId: "20"
+      };
+    }
+  },
   // @engine-builder:channels
 } satisfies Record<string, ChannelConfig>;
 
@@ -176,13 +225,29 @@ export function isLive(channel: ChannelId): boolean {
   return CHANNELS[channel].autoPublish || process.env[`LIVE_${envKey(channel)}`] === "true";
 }
 
+const weekdaysOf = (channel: ChannelId): readonly number[] | undefined => (CHANNELS[channel] as ChannelConfig).weekdays;
+const weekdayOf = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay();
+const addDays = (date: string, k: number) => new Date(Date.parse(`${date}T00:00:00Z`) + k * 86_400_000).toISOString().slice(0, 10);
+
+/** Whether the channel posts on this date (weekday channels skip the other days). */
+export function isPostDay(channel: ChannelId, date: string): boolean {
+  const w = weekdaysOf(channel);
+  return !w || w.includes(weekdayOf(date));
+}
+
+/** 1-based posting day: calendar days since start, or (weekday channels) posting days since start. */
 export function dayNumber(channel: ChannelId, date: string): number {
   const startDate = startDateOf(channel);
   const start = Date.parse(`${startDate}T00:00:00Z`);
   const target = Date.parse(`${date}T00:00:00Z`);
   const d = Math.round((target - start) / 86_400_000) + 1;
   if (d < 1) throw new Error(`${channel}: ${date} is before startDate ${startDate}`);
-  return d;
+  const w = weekdaysOf(channel);
+  if (!w) return d;
+  if (!w.includes(weekdayOf(date))) throw new Error(`${channel}: ${date} is not a posting day`);
+  let count = 0;
+  for (let i = 0; i < d; i++) if (w.includes(weekdayOf(addDays(startDate, i)))) count++;
+  return count;
 }
 
 /** Sequential post number for a date + slot index. */
@@ -190,6 +255,17 @@ export function postNumber(channel: ChannelId, date: string, slot: number): numb
   const slots = CHANNELS[channel].slots.length;
   if (slot < 0 || slot >= slots) throw new Error(`${channel}: slot ${slot} out of range 0..${slots - 1}`);
   return (dayNumber(channel, date) - 1) * slots + slot + 1;
+}
+
+/** Date (IST) on which post n goes out. */
+export function dateOfPost(channel: ChannelId, n: number): string {
+  const slots = CHANNELS[channel].slots.length;
+  const day = Math.floor((n - 1) / slots) + 1; // posting day number
+  const start = startDateOf(channel);
+  if (!weekdaysOf(channel)) return addDays(start, day - 1);
+  let count = 0;
+  for (let i = 0; i < 4000; i++) { const d = addDays(start, i); if (isPostDay(channel, d) && ++count === day) return d; }
+  throw new Error(`${channel}: post ${n} out of range`);
 }
 
 /** ISO timestamp for a date + "HH:MM" IST slot. */

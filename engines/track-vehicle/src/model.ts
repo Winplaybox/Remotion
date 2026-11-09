@@ -82,11 +82,19 @@ const ROTATION: { vehicle: VehicleKind; label: string; colors: TrackVehicle["col
 const GRIDS = [[3, 3], [3, 4], [3, 4], [4, 4]] as const;
 
 /** Day N of the channel (1-based) -> a complete, deterministic level. */
+/**
+ * From this level on: harder (bigger grid sooner, longer + faster shuffles, the target always in play).
+ * Earlier levels are already rendered/published — never change what they produce.
+ */
+export const HARD_FROM = 19;
+const HARD_GRIDS = [[3, 4], [4, 4], [4, 4], [4, 4]] as const;
+
 export function kaaliPeeliForDay(day: number): TrackVehicle {
   const d = Math.max(1, Math.floor(day));
+  const hard = d >= HARD_FROM;
   const v = ROTATION[(d - 1) % ROTATION.length] ?? ROTATION[0]!;
   const week = (d - 1) % 7; // ramps every week, resets with a new vehicle mix
-  const [cols, rows] = GRIDS[Math.min(3, Math.floor(week / 2))] ?? GRIDS[0];
+  const [cols, rows] = (hard ? HARD_GRIDS : GRIDS)[Math.min(3, Math.floor(week / 2))] ?? GRIDS[0];
   const long = ["bestbus", "truck", "ambulance", "firetruck", "schoolbus", "tanker"].includes(v.vehicle);
   const base: TrackVehicle = {
     ...KPC_BRAND,
@@ -107,9 +115,9 @@ export function kaaliPeeliForDay(day: number): TrackVehicle {
     seed: `kpc-${d}`,
     // Levels 1-3 were published with the smooth ramp; keep them identical.
     speedTiers: d > 3,
-    shuffleSeconds: 8 + Math.round(week * 0.5),
-    difficulty: Math.min(3, 1 + week * 0.34),
-    targetBias: 0.9,
+    shuffleSeconds: hard ? 10 + Math.round(week * 0.6) : 8 + Math.round(week * 0.5),
+    difficulty: hard ? Math.min(3, 2 + week * 0.2) : Math.min(3, 1 + week * 0.34),
+    targetBias: hard ? 1 : 0.9,
     questionSeconds: 2.5,
     answerSeconds: 2,
     endCard: { show: true, title: "KAALI PEELI CHASE", line: "Kal ka naya vehicle chase challenge miss mat karna!", button: "FOLLOW KARO, KAL NAYA CHALLENGE KHELO", seconds: 5 },

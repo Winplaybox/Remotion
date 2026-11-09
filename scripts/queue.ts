@@ -14,7 +14,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { CHANNELS, type ChannelConfig, isLive, postNumber, startDateOf, todayIST, type ChannelId } from "../channels/channels";
+import { CHANNELS, type ChannelConfig, dateOfPost, isLive, isPostDay, postNumber, startDateOf, todayIST, type ChannelId } from "../channels/channels";
 
 const [cmd = "plan", ...args] = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -35,7 +35,7 @@ function plan(): Planned[] {
     const date = todayIST(new Date(now + d * 86_400_000));
     for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
       if (only && only !== channel) continue;
-      if ((!isLive(channel) && !includePaused) || date < startDateOf(channel)) continue;
+      if ((!isLive(channel) && !includePaused) || date < startDateOf(channel) || !isPostDay(channel, date)) continue;
       CHANNELS[channel].slots.forEach((_, slot) => {
         const n = postNumber(channel, date, slot);
         out.push({ channel, n, date, slot, tag: tagOf(n) });
@@ -54,6 +54,15 @@ const voiceCurrent = (dir: string, expected: string) => {
   if (fs.existsSync(m)) return fs.readFileSync(m, "utf8") === expected;
   return (JSON.parse(expected) as { file: string }[]).every((l) => fs.existsSync(path.join(dir, l.file)));
 };
+/** GitHub refuses files over 100 MB: long videos above ~90 MB are re-encoded to fit (same length, lower bitrate). */
+function fitForGit(src: string, dest: string, maxBytes = 90e6) {
+  if (fs.statSync(src).size <= maxBytes) { fs.copyFileSync(src, dest); return; }
+  const secs = Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", src]).toString().trim());
+  const kbps = Math.floor((maxBytes * 8 * 0.93) / secs / 1000) - 128;
+  console.log(`[render] ${path.basename(src)} is ${(fs.statSync(src).size / 1e6).toFixed(0)} MB -> re-encoding at ${kbps} kbps`);
+  execFileSync("ffmpeg", ["-v", "error", "-y", "-i", src, "-c:v", "libx264", "-preset", "veryfast", "-b:v", `${kbps}k`, "-maxrate", `${Math.round(kbps * 1.3)}k`, "-bufsize", `${kbps * 2}k`,
+    "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", dest], { stdio: "inherit" });
+}
 const hasFiles = (dir: string) => fs.existsSync(dir) && fs.readdirSync(dir).length > 0;
 
 if (cmd === "plan") {
@@ -111,7 +120,7 @@ if (cmd === "plan") {
     try {
       run("npx", ["ts-node", "scripts/post.ts", "--channel", p.channel, "--n", String(p.n), "--force", "--no-queue"]);
       fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.copyFileSync(path.join("output", p.channel, `${p.tag}.mp4`), dest);
+      fitForGit(path.join("output", p.channel, `${p.tag}.mp4`), dest);
       console.log(`[render] ${p.channel} ${p.tag} ✓`);
       if (args.includes("--push-each")) run("bash", ["scripts/queue-sync.sh", "commit", `video ${p.channel} ${p.tag}`]);
     } catch (e) {
@@ -133,9 +142,7 @@ if (cmd === "plan") {
       for (const entry of fs.readdirSync(path.join(root, ch))) {
         const tag = entry.replace(/\.mp4$/, "");
         const n = Number(tag.replace("post-", ""));
-        const slots = CHANNELS[ch].slots.length;
-        const day = Math.floor((n - 1) / slots);
-        const date = todayIST(new Date(Date.parse(`${startDateOf(ch)}T12:00:00+05:30`) + day * 86_400_000));
+        const date = dateOfPost(ch, n);
         if (date < cutoff && !keep.has(`${ch}/${tag}`)) { fs.rmSync(path.join(root, ch, entry), { recursive: true, force: true }); console.log(`[prune] ${kind}/${ch}/${entry}`); }
       }
     }
