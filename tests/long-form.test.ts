@@ -1,5 +1,5 @@
 import { CHANNELS, dateOfPost, isPostDay, postNumber } from "../channels/channels";
-import { FPS, HIDDEN_FROM, marathonDuration, marathonForEpisode, marathonTimeline, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
+import { FPS, HIDDEN_FROM, championshipForEpisode, marathonDuration, marathonForEpisode, marathonTimeline, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
 import { chakraPuzzleForDay, HARD_FROM } from "../engines/odd-orbit/src/model";
 import { kaaliPeeliForDay, HARD_FROM as KPC_HARD_FROM } from "../engines/track-vehicle/src/model";
 
@@ -24,7 +24,7 @@ describe("marathon", () => {
   it("is long enough for mid-roll ads and hides expert answers", () => {
     expect(marathonDuration(m) / FPS).toBeGreaterThan(8 * 60);
     expect(m.levels.filter((l) => l.hidden).map((l) => l.no)).toEqual([21, 22, 23, 24, 25].filter((n) => n >= HIDDEN_FROM));
-    expect(m.levels.filter((l) => l.hidden).every((l) => l.puzzle.revealSeconds === 0)).toBe(true);
+    expect(m.levels.filter((l) => l.hidden).every((l) => (l.puzzle as { revealSeconds: number }).revealSeconds === 0)).toBe(true);
     expect(m.prevBonus).toMatch(/^ROW \d+ · #\d+$/);
     expect(marathonForEpisode(1).prevBonus).toBe("");
   });
@@ -57,5 +57,26 @@ describe("harder puzzles only for unrendered posts", () => {
   it("kaali peeli", () => {
     expect(kaaliPeeliForDay(KPC_HARD_FROM).targetBias).toBe(1);
     expect(kaaliPeeliForDay(KPC_HARD_FROM - 1).targetBias).toBe(0.9);
+  });
+});
+
+describe("kaali peeli championship", () => {
+  const m = championshipForEpisode(2);
+  it("20 rounds, last 5 answered at the end, long enough", () => {
+    expect(m.levels).toHaveLength(20);
+    expect(m.levels.filter((l) => l.hidden).map((l) => l.no)).toEqual([16, 17, 18, 19, 20]);
+    expect(m.levels.filter((l) => l.hidden).every((l) => (l.puzzle as { answerSeconds: number }).answerSeconds === 0)).toBe(true);
+    expect(marathonDuration(m) / FPS).toBeGreaterThan(8 * 60);
+    expect(m.prevBonus).toMatch(/^#\d+$/);
+  });
+  it("voice lines unique and inside the video", () => {
+    const v = marathonVoiceLines(m);
+    expect(new Set(v.map((x) => x.file)).size).toBe(v.length);
+    expect(v.every((x) => x.at >= 0 && x.at < marathonDuration(m) / FPS)).toBe(true);
+  });
+  it("channel posts Tue/Thu/Sat", () => {
+    expect(postNumber("kpc-championship", "2026-11-12", 0)).toBe(1);
+    expect(isPostDay("kpc-championship", "2026-11-13")).toBe(false);
+    expect(CHANNELS["kpc-championship"].meta(1).description).toContain("0:00 Start");
   });
 });
