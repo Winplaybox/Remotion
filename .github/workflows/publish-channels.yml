@@ -14,11 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       channel:
-<<<<<<< Updated upstream
-        description: "Channel id (including dimaag-lock). Empty = whatever is due."
-=======
         description: "Channel id (dimaag-lock, chakra-puzzle, kaali-peeli-chase, epicbharatsaga). Empty = whatever is due."
->>>>>>> Stashed changes
         required: false
         type: string
       n:
