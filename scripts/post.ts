@@ -82,7 +82,7 @@ async function main() {
     if (flag("auto-narrate")) {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", edgeVoice], { stdio: "inherit" });
       } catch (e) {
         console.warn(`[voice] Edge TTS failed, posting without voice: ${(e as Error).message}`);
       }
