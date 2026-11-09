@@ -10,6 +10,8 @@ import { SANATAN_EPISODE_DEMO, SanatanEpisodeSchema } from "../../../../engines/
 import { SanatanStoryComposition } from "../../../../engines/sanatan-story/src/SanatanStoryComposition";
 import { ODD_ORBIT_DEMO, ODD_ORBIT_VARIANTS, OddOrbitSchema, oddOrbitDuration, type OddOrbit } from "../../../../engines/odd-orbit/src/model";
 import { OddOrbitComposition } from "../../../../engines/odd-orbit/src/OddOrbitComposition";
+import { marathonForEpisode, marathonDuration, type Marathon } from "../../../../engines/puzzle-marathon/src/model";
+import { MarathonComposition } from "../../../../engines/puzzle-marathon/src/MarathonComposition";
 import { TRACK_VEHICLE_DEMO, TRACK_VEHICLE_VARIANTS, TrackVehicleSchema, trackVehicleDuration, type TrackVehicle } from "../../../../engines/track-vehicle/src/model";
 import { TrackVehicleComposition } from "../../../../engines/track-vehicle/src/TrackVehicleComposition";
 import { StoryDioramaSchema, storyDioramaDuration, type StoryDiorama } from "../../../../engines/story-diorama/src/model";
@@ -71,6 +73,11 @@ export const Root: React.FC = () => (
         const props = { ...ODD_ORBIT_DEMO, ...patch };
         return <Composition key={name} id={`ChakraPuzzle-${name}`} component={OddOrbitComposition} schema={OddOrbitSchema} {...video} durationInFrames={oddOrbitDuration(props)} defaultProps={props} />;
       })}
+    </Folder>
+    <Folder name="LongForm">
+      <Composition id="ChakraMarathon" component={MarathonComposition as unknown as React.FC<Record<string, unknown>>} fps={30} width={1920} height={1080}
+        durationInFrames={marathonDuration(marathonForEpisode(1))} defaultProps={marathonForEpisode(1) as unknown as Record<string, unknown>}
+        calculateMetadata={({ props }) => ({ durationInFrames: marathonDuration(props as unknown as Marathon) })} />
     </Folder>
     <Folder name="KaaliPeeliChase">
       <Composition id="KaaliPeeliChase" component={TrackVehicleComposition} schema={TrackVehicleSchema} {...video} durationInFrames={trackVehicleDuration(TRACK_VEHICLE_DEMO)} defaultProps={TRACK_VEHICLE_DEMO}

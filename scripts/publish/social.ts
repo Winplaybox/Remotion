@@ -20,11 +20,12 @@ export interface SocialResult { ok: boolean; id?: string; error?: string; at: st
 export const PLATFORM_ORDER: Platform[] = ["instagram", "facebook", "pinterest"];
 
 const shortUrl = (id: string) => `https://youtube.com/shorts/${id}`;
+const watchUrl = (id: string) => `https://youtu.be/${id}`;
 const channelUrl = (handle: string) => `https://youtube.com/${handle}`;
 
 /** Captions with the YouTube call to action. Instagram captions have no clickable links, so the handle leads. */
-export function socialCopy(cfg: Pick<ChannelConfig, "name" | "youtubeHandle">, meta: PostMeta, youtubeId: string) {
-  const yt = shortUrl(youtubeId);
+export function socialCopy(cfg: Pick<ChannelConfig, "name" | "youtubeHandle" | "longForm">, meta: PostMeta, youtubeId: string) {
+  const yt = cfg.longForm ? watchUrl(youtubeId) : shortUrl(youtubeId);
   const sub = `🔔 YouTube pe subscribe karo: ${cfg.youtubeHandle}`;
   return {
     instagram: [meta.caption.trim(), "", `▶️ Roz naya video pehle YouTube pe aata hai — search karo ${cfg.youtubeHandle}`, sub, "🔗 Link bio mein"].join("\n").slice(0, 2200),
@@ -56,6 +57,24 @@ export function makeTeaser(video: string, out: string): string {
   const b = bannerFilter("Pura video + jawab YouTube pe", 420, len - 2.5);
   const audio = hasAudio(video);
   ffmpeg(["-i", video, "-t", String(len), "-vf", `fade=t=out:st=${len - 0.6}:d=0.6${b ? `,${b}` : ""}`,
+    ...(audio ? ["-af", `afade=t=out:st=${len - 0.6}:d=0.6`, "-c:a", "aac", "-b:a", "128k"] : ["-an"]),
+    "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]);
+  return out;
+}
+
+/**
+ * Long video -> vertical teaser for Instagram / Facebook: the middle (puzzle) column of the 16:9 frame, cropped to
+ * 738x1080 and scaled to fill 1080 wide, with a header and a "watch the rest on YouTube" footer.
+ */
+export function makeLongTeaser(video: string, out: string, t: { start: number; length: number; banner: string }, handle: string): string {
+  const len = Math.min(t.length, 85);
+  const font = FONT ? `fontfile='${FONT.replace(/:/g, "\\:")}':` : "";
+  const text = (s: string, y: number, size: number, color: string) => (FONT ? `,drawtext=${font}text='${esc(s)}':fontcolor=${color}:fontsize=${size}:x=(w-text_w)/2:y=${y}` : "");
+  const vf = `crop=738:1080:591:0,scale=1080:1580,pad=1080:1920:0:170:0x0B1024${text("IQ MARATHON - 25 PUZZLES + BONUS", 64, 44, "0xFFD23F")}` +
+    `${text(t.banner, 1768, 44, "0xFFFFFF")}${text(`YouTube: ${handle}`, 1840, 40, "0xFFD23F")}` +
+    `,fade=t=out:st=${len - 0.6}:d=0.6`;
+  const audio = hasAudio(video);
+  ffmpeg(["-ss", String(t.start), "-i", video, "-t", String(len), "-vf", vf,
     ...(audio ? ["-af", `afade=t=out:st=${len - 0.6}:d=0.6`, "-c:a", "aac", "-b:a", "128k"] : ["-an"]),
     "-c:v", "libx264", "-preset", "veryfast", "-crf", "21", "-pix_fmt", "yuv420p", "-movflags", "+faststart", out]);
   return out;
@@ -109,14 +128,16 @@ export interface FanoutArgs {
 /** Posts the platforms in order, each `gap` minutes after the previous (starting `gap` after YouTube goes public). */
 export async function fanout({ cfg, meta, video, youtubeId, publishAt, key, done, record, gapMinutes = Number(process.env.SOCIAL_GAP_MIN || 5) }: FanoutArgs): Promise<number> {
   const copy = socialCopy(cfg, meta, youtubeId);
-  const channel = key.split("/")[0]!;
+  const channel = cfg.socialAccount ?? key.split("/")[0]!;
   const m = await metaCreds(channel, cfg);
   const pin = await pinterestCreds(channel, cfg, pinterestToken);
   const ready: Record<Platform, boolean> = {
     instagram: !!(m.pageToken && m.igUserId),
     facebook: !!(m.pageToken && m.pageId),
-    pinterest: !!(pin.accessToken && pin.boardId)
+    pinterest: !!(pin.accessToken && pin.boardId) && !cfg.longForm
   };
+  const longTeaser = () => makeLongTeaser(video, path.join(path.dirname(video), `${path.basename(video, ".mp4")}.vertical.mp4`), meta.teaser ?? { start: 0, length: 40, banner: "Pura video YouTube pe" }, cfg.youtubeHandle);
+  let vertical: string | null = null;
   console.log(`[social] accounts: Meta ${m.source}${m.igUserId ? " +IG" : ""}${m.pageId ? " +FB" : ""} · Pinterest ${pin.source}${pin.boardId ? "" : pin.accessToken ? " (no board)" : ""}`);
   const live = Math.max(Date.parse(publishAt), Date.now() - gapMinutes * 60_000);
   let failed = 0;
@@ -129,11 +150,13 @@ export async function fanout({ cfg, meta, video, youtubeId, publishAt, key, done
     try {
       let id: string;
       if (platform === "instagram") {
-        videoUrl ??= await hostVideo(video, key);
+        if (cfg.longForm) vertical ??= longTeaser();
+        videoUrl ??= await hostVideo(cfg.longForm ? vertical! : video, cfg.longForm ? `${key}-vertical` : key);
         id = await instagram(videoUrl, copy.instagram, m.pageToken!, m.igUserId!);
       } else if (platform === "facebook") {
-        const teaser = makeTeaser(video, path.join(path.dirname(video), `${path.basename(video, ".mp4")}.teaser.mp4`));
-        id = await facebook(await hostVideo(teaser, `${key}-teaser`), copy.facebook, m.pageToken!, m.pageId!);
+        if (cfg.longForm) vertical ??= longTeaser();
+        const teaser = cfg.longForm ? vertical! : makeTeaser(video, path.join(path.dirname(video), `${path.basename(video, ".mp4")}.teaser.mp4`));
+        id = await facebook(cfg.longForm ? (videoUrl ?? await hostVideo(teaser, `${key}-vertical`)) : await hostVideo(teaser, `${key}-teaser`), copy.facebook, m.pageToken!, m.pageId!);
       } else {
         const img = makePinImage(video, path.join(path.dirname(video), `${path.basename(video, ".mp4")}.pin.jpg`));
         id = await pinterestPin(pin.accessToken!, pin.boardId!, img, copy.pinterest);

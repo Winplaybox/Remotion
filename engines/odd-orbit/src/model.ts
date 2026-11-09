@@ -49,6 +49,8 @@ export const OddOrbitSchema = z.object({
   speed: z.number().positive(),
   /** 0..0.5 random per-cell speed spread. Keep low for speed rules. */
   speedJitter: z.number().min(0).max(0.5),
+  /** How different the odd one is: 1 = obvious (posts 1-18), lower = subtler (faster/slower speed gap, tint colour). */
+  oddStrength: z.number().min(0.15).max(1).default(1),
   playSeconds: z.number().positive(),
   revealSeconds: z.number().min(0),
   /** Speed ramp: everything starts slow (startSpeed x) and ends fast (endSpeed x) by the end of play. */
@@ -99,11 +101,25 @@ const LEVELS = [
   { difficulty: "expert", cols: 10, count: 130, jitter: 0.22 }
 ] as const;
 
+/**
+ * From this post on puzzles are harder: more elements, a subtler odd one, less time.
+ * Posts before it are already rendered/published — never change what they produce (answers + auto-replies depend on it).
+ */
+export const HARD_FROM = 19;
+export const HARD_LEVELS = [
+  { difficulty: "easy", cols: 7, count: 63, jitter: 0.12, strength: 0.7 },
+  { difficulty: "medium", cols: 8, count: 88, jitter: 0.16, strength: 0.58 },
+  { difficulty: "hard", cols: 10, count: 130, jitter: 0.2, strength: 0.48 },
+  { difficulty: "expert", cols: 11, count: 154, jitter: 0.24, strength: 0.4 }
+] as const;
+
 /** Day N of the channel (1-based) -> a complete, deterministic puzzle. */
 export function chakraPuzzleForDay(day: number): OddOrbit {
   const d = Math.max(1, Math.floor(day));
+  const hard = d >= HARD_FROM;
   // weekly ramp: Mon-Tue easy/medium ... weekend expert
-  const level = LEVELS[Math.min(3, Math.floor(((d - 1) % 7) / 2))] ?? LEVELS[0];
+  const tierIdx = Math.min(3, Math.floor(((d - 1) % 7) / 2));
+  const level = (hard ? HARD_LEVELS[tierIdx] : LEVELS[tierIdx]) ?? LEVELS[0];
   // Puzzle type rotates daily: spin direction, odd design, speed, hidden letter, colour...
   // Posts 1-3 were published before the new modes existed; keep them exactly as uploaded.
   const MODES = ["reverse", "shape", "faster", "glyph", "reverse", "slower", "shape", "tint", "glyph"] as const;
@@ -138,6 +154,7 @@ export function chakraPuzzleForDay(day: number): OddOrbit {
     satellites: element === "ring" ? 2 : 1,
     speed: element === "gear" || element === "chakra" ? 0.28 : element === "clock" ? 0.35 : 0.45,
     speedJitter: speedRule ? 0.02 : level.jitter,
+    oddStrength: "strength" in level ? level.strength : 1,
     playSeconds: 12 + Math.min(1, Math.floor(((d - 1) % 7) / 4)),
     revealSeconds: 2.6,
     startSpeed: 0.45,
@@ -171,7 +188,7 @@ function askFields(d: number, base: OddOrbit): Partial<OddOrbit> {
     askMode: true,
     askOutro: outro,
     introSeconds: 2.6,
-    playSeconds: 11,
+    playSeconds: d >= HARD_FROM ? 10 : 11,
     prevAnswer: `ROW ${row} · #${col}`,
     revealSeconds: askOutroSeconds(outro),
     footer: "COMMENT MEIN BATAIYE: ROW + NUMBER 👇",
