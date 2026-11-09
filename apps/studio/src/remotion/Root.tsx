@@ -28,6 +28,10 @@ import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVid
 import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } from "../../../../engines/short-clip/src/model";
 import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
 import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from "../../../../engines/code-lock/src/model";
+// Remotion 4 expects a ZodObject for its `schema` prop. CodeLockSchema adds
+// cross-field validation with superRefine(), which wraps the object in ZodEffects.
+// Keep the refined schema for generation/QA and expose its underlying object here.
+const CodeLockRemotionSchema = CodeLockSchema._def.schema;
 import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
 // @engine-builder:imports
 
@@ -46,7 +50,7 @@ export const Root: React.FC = () => (
   <>
     {/* @engine-builder:compositions */}
     <Folder name="DimaagLock">
-      <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
+      <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockRemotionSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
         calculateMetadata={({ props }: { props: CodeLock }) => ({ durationInFrames: codeLockDuration(props) })} />
     </Folder>
     <Folder name="NarratorVideo">
