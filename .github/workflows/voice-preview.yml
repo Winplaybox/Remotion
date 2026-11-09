@@ -1,0 +1,65 @@
+name: Voice Preview
+# Makes the Edge TTS voice for the first posts of a channel that is not live yet, so Claude can render a full
+# preview (Edge TTS is not reachable from Claude's sandbox). Output goes to branch voice-preview/<channel>
+# as public/audio/<channel>/post-NNN/*.wav — never to main.
+on:
+  push:
+    branches: ["feat/**"]
+    paths: ["engines/liar-lineup/**", ".github/workflows/voice-preview.yml"]
+  workflow_dispatch:
+    inputs:
+      channel: { description: "Channel id", required: true, default: "liar-lineup" }
+      posts: { description: "Post numbers (first-last)", required: true, default: "1-3" }
+permissions:
+  contents: write
+concurrency:
+  group: voice-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  voice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CHANNEL: ${{ inputs.channel || 'liar-lineup' }}
+      POSTS: ${{ inputs.posts || '1-3' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: npm }
+      - run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+      - run: npm ci
+      - run: pip install edge-tts
+      - name: Write voice lines
+        run: |
+          npx ts-node -T -e '
+            const { CHANNELS } = require("./channels/channels");
+            const fs = require("fs");
+            const [lo, hi] = process.env.POSTS.split("-").map(Number);
+            const cfg = CHANNELS[process.env.CHANNEL];
+            const out = [];
+            for (let n = lo; n <= (hi || lo); n++) for (const l of cfg.voice(n)) out.push({ n, file: l.file, text: l.text });
+            fs.writeFileSync("lines.json", JSON.stringify(out));
+            console.log(out.length, "lines");'
+      - name: Edge TTS
+        run: |
+          python - <<'EOF'
+          import json, os, subprocess, sys
+          ch = os.environ["CHANNEL"]
+          for l in json.load(open("lines.json", encoding="utf-8")):
+              d = f"public/audio/{ch}/post-{l['n']:03d}"
+              os.makedirs(d, exist_ok=True)
+              mp3 = "/tmp/x.mp3"
+              subprocess.run([sys.executable, "-m", "edge_tts", "--voice", "hi-IN-MadhurNeural", "--rate=+5%", "--text", l["text"], "--write-media", mp3], check=True)
+              af = "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,loudnorm=I=-16:TP=-1.5:LRA=11"
+              subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", mp3, "-af", af, "-ar", "48000", "-ac", "1", f"{d}/{l['file']}"], check=True)
+              print(d, l["file"])
+          EOF
+      - name: Push to voice-preview branch
+        run: |
+          git config user.name "voice-preview-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git checkout --orphan "voice-preview/$CHANNEL"
+          git rm -rq --cached .
+          git add -f "public/audio/$CHANNEL"
+          git commit -qm "voice preview: $CHANNEL posts $POSTS"
+          git push -f origin "HEAD:voice-preview/$CHANNEL"

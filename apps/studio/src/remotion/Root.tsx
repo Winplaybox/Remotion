@@ -27,6 +27,9 @@ import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type Too
 import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
 import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } from "../../../../engines/short-clip/src/model";
 import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
+import { LiarLineupSchema, liarLineupDuration, liarLineupForDay, type LiarLineup } from "../../../../engines/liar-lineup/src/model";
+import { LiarLineupComposition } from "../../../../engines/liar-lineup/src/LiarLineupComposition";
+import { CharacterSheet } from "@visuals/rig/CharacterSheet";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -41,7 +44,15 @@ const TEMPLATE_DEMO = templateForDay(1);
 
 export const Root: React.FC = () => (
   <>
-    {/* @engine-builder:compositions */}
+        <Folder name="LiarLineup">
+      <Composition id="LiarLineup" component={LiarLineupComposition} schema={LiarLineupSchema} {...video} durationInFrames={liarLineupDuration(liarLineupForDay(1))} defaultProps={liarLineupForDay(1)}
+        calculateMetadata={({ props }: { props: LiarLineup }) => ({ durationInFrames: liarLineupDuration(props) })} />
+    </Folder>
+    <Folder name="Rig">
+      <Still id="CharacterSheet" component={CharacterSheet} {...video} defaultProps={{ pose: "idle" as const, talking: false }} />
+      <Composition id="CharacterSheetMotion" component={CharacterSheet} {...video} durationInFrames={150} defaultProps={{ pose: "talk" as const, talking: true }} />
+    </Folder>
+{/* @engine-builder:compositions */}
     <Folder name="NarratorVideo">
       <Composition id="NarratorVideo" component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={NARRATOR_DEMO}
         calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props), ...sizeOf(props.aspect) })} />
