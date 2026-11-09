@@ -141,9 +141,7 @@ export const CHANNELS = {
     startDate: "2026-11-10",
     slots: ["19:00"],
     narrated: true,
-    // Switch-over from Winplaybox/colab-YT: set repo variables LIVE_EPICBHARATSAGA=true and START_EPICBHARATSAGA=<YYYY-MM-DD>
-    // on the same day the colab-YT EpicBharatSaga cron is disabled. Never both.
-    autoPublish: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
     metaSecretPrefix: "META_EBS",
     youtubeHandle: "@EpicBharatSaga",
@@ -246,11 +244,10 @@ export const CHANNELS = {
   "dimaag-lock": {
     name: "Dimaag Lock",
     composition: "CodeLock",
-    // Disabled until the channel accounts and credentials are ready and a human approves launch.
-    startDate: "2099-01-01",
+    startDate: "2026-11-10",
     slots: ["12:30", "19:30"],
     narrated: false,
-    autoPublish: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_DIMAAG_LOCK",
     metaSecretPrefix: "META_DIMAAG_LOCK",
     youtubeHandle: "@DimaagLock",
