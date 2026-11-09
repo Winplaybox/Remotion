@@ -44,7 +44,35 @@ async function fetchSource(to: string) {
       fs.writeFileSync(to, Buffer.from(await res.arrayBuffer()));
       return;
     }
-    run("yt-dlp", ["-f", "bv*[height<=1080]+ba/b[height<=1080]/b", "--merge-output-format", "mp4", "--max-filesize", "1500M", "-o", to, "--no-playlist", job.url]);
+    const downloaderArgs = [
+      "-f", "bv*[height<=1080]+ba/b[height<=1080]/b",
+      "--merge-output-format", "mp4",
+      "--max-filesize", "1500M",
+      "--no-playlist",
+      "--js-runtimes", "deno",
+    ];
+    const cookiesB64 = process.env.YOUTUBE_COOKIES_B64?.trim();
+    if (cookiesB64) {
+      const cookiePath = path.join(dir, "youtube-cookies.txt");
+      const cookieText = Buffer.from(cookiesB64, "base64").toString("utf8");
+      if (!cookieText.includes("# Netscape HTTP Cookie File") && !cookieText.includes("# HTTP Cookie File")) {
+        throw new Error("YOUTUBE_COOKIES_B64 is not a valid base64-encoded Netscape cookies.txt file");
+      }
+      fs.writeFileSync(cookiePath, cookieText, { mode: 0o600 });
+      downloaderArgs.push("--cookies", cookiePath);
+    }
+    downloaderArgs.push("-o", to, job.url);
+    try {
+      run("yt-dlp", downloaderArgs);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      if (/Sign in to confirm|not a bot|cookies/i.test(detail)) {
+        throw new Error(
+          "YouTube blocked this server download with its bot check. Upload the source video directly to Telegram, use a direct MP4 link, or configure the YOUTUBE_COOKIES_B64 GitHub Actions secret with a base64-encoded Netscape cookies.txt file from an account authorized to access the video. Cookies are optional and are never printed in logs."
+        );
+      }
+      throw new Error(`YouTube download failed: ${detail}`);
+    }
     return;
   }
   throw new Error("Video ya link nahi mila");
