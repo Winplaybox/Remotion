@@ -34,20 +34,35 @@ const brand = { name: job.brand?.name ?? process.env.BRAND_NAME ?? "", logo: job
 const wantReel = job.reel !== false;
 const hindi = (job.language ?? "hinglish") !== "english";
 
-/** AI voice-over line -> mp3 (Edge TTS, free). Returns { file (under /public), seconds } or null when TTS is unavailable. */
+/**
+ * AI voice-over line -> audio file under /public. Kokoro-82M first (free, CPU; Hindi voices read Devanagari), Edge TTS as fallback.
+ * Voice: KOKORO_VOICE (default hm_omega for Hindi/Hinglish, af_heart for English). TTS_ENGINE=edge forces Edge TTS.
+ * Returns { file, seconds } or null when no engine works (the reel then simply has no voice line).
+ */
 function tts(text: string, name: string): { file: string; seconds: number } | null {
   if (local && !process.env.TTS_LOCAL) return null;
-  const out = path.join(dir, name);
-  const voice = hindi ? "hi-IN-MadhurNeural" : "en-US-GuyNeural";
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      execFileSync(py, ["-m", "edge_tts", "--voice", voice, "--rate=+6%", "--text", text, "--write-media", out], { stdio: "ignore", timeout: 60_000 });
-      return { file: `tg/${jobId}/${name}`, seconds: Number(probe(out, "format=duration")) + 0.3 };
-    } catch { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500 * attempt); }
+  const base = name.replace(/\.\w+$/, "");
+  const attempt = (ext: string, fn: (out: string) => void) => {
+    const out = path.join(dir, `${base}.${ext}`);
+    try { fn(out); return { file: `tg/${jobId}/${base}.${ext}`, seconds: Number(probe(out, "format=duration")) + 0.3 }; } catch (e) { console.warn(`[tts] ${base}: ${(e as Error).message.split("\n")[0]}`); return null; }
+  };
+  if (process.env.TTS_ENGINE !== "edge") {
+    const voice = process.env.KOKORO_VOICE || (hindi ? "hm_omega" : "af_heart");
+    const r = attempt("wav", (out) => { execFileSync(py, ["scripts/telegram/kokoro.py", out, "--text", text, "--voice", voice, "--lang", hindi ? "hi" : "en-us", "--speed", "1.0"], { stdio: "ignore", timeout: 120_000 }); });
+    if (r) return r;
   }
-  console.warn(`[tts] ${name} failed — reel continues without that voice line`);
+  const edgeVoice = hindi ? "hi-IN-MadhurNeural" : "en-US-GuyNeural";
+  for (let n = 1; n <= 3; n++) {
+    const r = attempt("mp3", (out) => { execFileSync(py, ["-m", "edge_tts", "--voice", edgeVoice, "--rate=+6%", "--text", text, "--write-media", out], { stdio: "ignore", timeout: 60_000 }); });
+    if (r) return r;
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500 * n);
+  }
   return null;
 }
+
+const HI_NUM = ["शून्य", "एक", "दो", "तीन", "चार", "पाँच", "छह", "सात", "आठ", "नौ", "दस"];
+/** Fallback intro when the AI gave none: Devanagari for Hindi voices (Roman text would be mispronounced). */
+const introFor = (rank: number, hook: string) => (hindi ? `नंबर ${HI_NUM[rank] ?? rank}!` : `Number ${rank}: ${hook}`);
 
 const run = (cmd: string, a: string[]) => execFileSync(cmd, a, { stdio: ["ignore", "pipe", "inherit"] }).toString();
 const probe = (f: string, entries: string, stream = "") => run("ffprobe", ["-v", "error", ...(stream ? ["-select_streams", stream] : []), "-show_entries", entries, "-of", "csv=p=0", f]).trim();
@@ -173,12 +188,12 @@ async function pickClips(segs: Segment[], duration: number): Promise<Clip[]> {
       const plan = reelPlan(ranked, tr.segments);
       const topic = ranked[0]!.title.replace(/#\w+/g, "").trim();
       const clipsProps = plan.map((e) => {
-        const line = e.clip.intro || (hindi ? `Number ${e.rank}: ${e.clip.hook || e.clip.title}` : `Number ${e.rank}: ${e.clip.hook || e.clip.title}`);
+        const line = e.clip.intro || introFor(e.rank, e.clip.hook || e.clip.title);
         const v = tts(line, `v${e.rank}.mp3`);
         return ShortClipSchema.parse({ src: `tg/${jobId}/src.mp4`, start: e.start, end: e.end, width: w, height: h, framing: "fit", words: clipWords(tr.segments, e), hook: "", handle: brand.handle, accent: brand.accent, badge: `#${e.rank}`, voice: v?.file ?? "", voiceSeconds: v?.seconds ?? 0 });
       });
       const title = `TOP ${plan.length} MOMENTS`;
-      const introVoice = tts(hindi ? `Ye hain sabse zabardast ${plan.length} pal. Number ${plan.length} se shuru karte hain!` : `Here are the ${plan.length} best moments. Let's count down!`, "intro.mp3");
+      const introVoice = tts(hindi ? `ये हैं सबसे ज़बरदस्त ${HI_NUM[plan.length] ?? plan.length} पल। चलिए गिनती शुरू करते हैं!` : `Here are the ${plan.length} best moments. Let's count down!`, "intro.mp3");
       const reelProps = HighlightReelSchema.parse({ title, subtitle: topic.slice(0, 70), intro: introVoice?.file ?? "", introSeconds: introVoice?.seconds ?? 0, cta: hindi ? "Aur dekhne ke liye follow karo" : "Follow for more", clips: clipsProps, accent: brand.accent, brand: brand.name, logo: brand.logo });
       reelFile = await renderComposition("HighlightReel", reelProps, path.join(root, "output", "tg", `${jobId}-reel.mp4`), 23);
       normalizeLoudness(reelFile);
