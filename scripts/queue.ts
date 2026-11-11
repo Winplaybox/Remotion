@@ -14,6 +14,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { voiceProfileFor } from "../channels/voices";
 import { CHANNELS, type ChannelConfig, dateOfPost, isLive, isPostDay, postNumber, startDateOf, todayIST, type ChannelId } from "../channels/channels";
 
 const [cmd = "plan", ...args] = process.argv.slice(2);
@@ -47,11 +48,18 @@ function plan(): Planned[] {
 
 const run = (file: string, a: string[]) => execFileSync(file, a, { stdio: "inherit", shell: process.platform === "win32" });
 const copyDir = (from: string, to: string) => { fs.mkdirSync(to, { recursive: true }); for (const f of fs.readdirSync(from)) fs.copyFileSync(path.join(from, f), path.join(to, f)); };
-const voiceJson = (ch: ChannelId, n: number) => { const v = (CHANNELS[ch] as ChannelConfig).voice; return v ? JSON.stringify(v(n)) : null; };
+/** Expected lines.json: the voice lines, plus the narrator profile for posts on the new voice (a narrator change re-voices them). */
+const voiceJson = (ch: ChannelId, n: number) => {
+  const v = (CHANNELS[ch] as ChannelConfig).voice;
+  if (!v) return null;
+  const profile = voiceProfileFor(ch, n);
+  return profile ? JSON.stringify({ lines: v(n), narrator: profile }) : JSON.stringify(v(n));
+};
 /** Voice dir is current: lines.json matches, or (older dirs without it) every expected clip is present. */
 const voiceCurrent = (dir: string, expected: string) => {
   const m = path.join(dir, "lines.json");
   if (fs.existsSync(m)) return fs.readFileSync(m, "utf8") === expected;
+  if (!expected.startsWith("[")) return false; // narrator-profile voice always has a lines.json
   return (JSON.parse(expected) as { file: string }[]).every((l) => fs.existsSync(path.join(dir, l.file)));
 };
 /** GitHub refuses files over 100 MB: long videos above ~90 MB are re-encoded to fit (same length, lower bitrate). */

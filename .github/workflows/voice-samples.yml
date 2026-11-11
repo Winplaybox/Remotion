@@ -1,0 +1,44 @@
+name: Voice Samples
+
+# Real lines of every channel through Kokoro, Gemini TTS and Edge TTS (channels/voices.ts).
+# Download the "voice-samples" artifact, listen, then adjust the narrator per channel.
+on:
+  pull_request:
+    paths: ["channels/voices.ts", "scripts/narration/**", ".github/workflows/voice-samples.yml"]
+  workflow_dispatch:
+    inputs:
+      lines: { description: "lines per channel", required: false, default: "3" }
+
+permissions:
+  contents: read
+
+jobs:
+  samples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
+      PYTHON: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: tts-kokoro-v1
+      - name: Narration engines (Kokoro, Gemini via API, Edge TTS)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg espeak-ng
+          python -m pip install --quiet edge-tts
+          python -m pip install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install --quiet "kokoro>=0.9.4" soundfile
+      - run: npm ci
+      - run: npx ts-node scripts/narration/samples.ts --lines "${{ inputs.lines || '3' }}"
+      - uses: actions/upload-artifact@v4
+        with: { name: voice-samples, path: out/voice-samples, retention-days: 14 }

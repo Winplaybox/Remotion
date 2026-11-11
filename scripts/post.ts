@@ -17,6 +17,7 @@ import path from "node:path";
 import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId, type VoiceLine } from "../channels/channels";
 import { uploadYouTube } from "./publish/youtube";
 import { fanout } from "./publish/social";
+import { narrateArgs } from "../channels/voices";
 import { ledgerEnabled, ledgerRecord, ledgerSocial, ledgerStatus } from "./ledger";
 
 const args = process.argv.slice(2);
@@ -52,7 +53,6 @@ async function main() {
   }
 
   const props = cfg.resolve(n) as Record<string, unknown>;
-  const edgeVoice = (cfg as { voiceName?: string }).voiceName || process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural";
   if (cfg.narrated && !prerendered) {
     const story = props as { scenes: { audio?: string; narration: string }[] };
     const audioDir = path.join("public", "audio", channel, tag);
@@ -62,11 +62,11 @@ async function main() {
     // WAVs committed to public/audio (e.g. IndicF5 in your own voice) always win; only gaps are filled.
     if (flag("auto-narrate") && missing() > 0) {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
-      console.log(`[narration] generating ${missing()} missing scene(s) with Edge TTS`);
+      console.log(`[narration] generating ${missing()} missing scene(s) (${narrateArgs(channel, n)[1]})`);
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", ...(flag("refresh-narration") ? [] : ["--missing-only"]), "--edge-voice", edgeVoice], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), ...narrateArgs(channel, n), ...(flag("refresh-narration") ? [] : ["--missing-only"])], { stdio: "inherit" });
       } catch (e) {
-        console.warn(`[narration] Edge TTS failed: ${(e as Error).message}`);
+        console.warn(`[narration] TTS failed: ${(e as Error).message}`);
       }
     }
     story.scenes.forEach((s, i) => { if (fs.existsSync(path.join(audioDir, `scene-${i + 1}.wav`))) s.audio = `audio/${channel}/${tag}/scene-${i + 1}.wav`; });
@@ -83,9 +83,9 @@ async function main() {
     if (flag("auto-narrate")) {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", edgeVoice], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), ...narrateArgs(channel, n), "--missing-only"], { stdio: "inherit" });
       } catch (e) {
-        console.warn(`[voice] Edge TTS failed, posting without voice: ${(e as Error).message}`);
+        console.warn(`[voice] TTS failed, posting without voice: ${(e as Error).message}`);
       }
     }
     const cues = lines.filter((l) => fs.existsSync(path.join(audioDir, l.file))).map((l) => ({ src: `audio/${channel}/${tag}/${l.file}`, at: l.at }));
