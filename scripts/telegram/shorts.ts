@@ -108,9 +108,24 @@ export function fallbackClips(segs: Segment[], count: number, target: number): C
   return rankClips(out);
 }
 
-/** Words inside a clip, re-timed from 0. */
+/** Spread a sentence's words over [start, end] by letter count (no per-word timing available), commas add a short pause. */
+export function estimateWords(text: string, start: number, end: number): Word[] {
+  const toks = text.split(/\s+/).filter(Boolean);
+  if (!toks.length || end <= start) return [];
+  const weights = toks.map((t) => Math.max(1, t.replace(/[^\p{L}\p{N}]/gu, "").length) + 2.5 + (/[,;:.!?]$/.test(t) ? 1.5 : 0));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let t = start;
+  return toks.map((tok, i) => {
+    const d = ((end - start) * weights[i]!) / total;
+    const w = { start: +t.toFixed(2), end: +(t + d * 0.92).toFixed(2), word: tok };
+    t += d;
+    return w;
+  });
+}
+
+/** Words inside a clip, re-timed from 0. Segments without word timestamps are split with estimated timing (never one giant "word"). */
 export function clipWords(segs: Segment[], c: Pick<Clip, "start" | "end">): Word[] {
-  const words = segs.flatMap((s) => s.words?.length ? s.words : [{ start: s.start, end: s.end, word: s.text }]);
+  const words = segs.flatMap((s) => (s.words?.length ? s.words : estimateWords(s.text, s.start, s.end)));
   return words.filter((w) => w.end > c.start && w.start < c.end).map((w) => ({ start: +(Math.max(0, w.start - c.start)).toFixed(2), end: +(Math.min(c.end, w.end) - c.start).toFixed(2), word: w.word.trim() })).filter((w) => w.word);
 }
 
