@@ -1,6 +1,6 @@
 import { parseCell, parseNumber } from "../channels/quiz";
 import { CHANNELS } from "../channels/channels";
-import { decide, replyText, revealedFn, MAX_AGE } from "../scripts/publish/engage";
+import { decide, decideGeneric, likeDue, replyDue, replyText, revealedFn, MAX_AGE } from "../scripts/publish/engage";
 import { blocked, tone } from "../channels/moderation";
 
 describe("parseCell", () => {
@@ -93,5 +93,20 @@ describe("decide: no wrong replies", () => {
   it("clear answers are judged", () => {
     expect(decide(c("Row 5 number 9 mil gaya bhai finally"), quiz, [5, 9], true, now)).toBe("correct");
     expect(decide(c("5 9"), quiz, [5, 9], true, now)).toBe("correct");
+  });
+});
+
+describe("comment care timing + generic channels", () => {
+  const T = 1_800_000_000_000, mk = (text: string, minAgo: number) => ({ id: "c", text, at: T - minAgo * 60_000 });
+  it("likes after 30 min, replies after 60 min", () => {
+    expect(likeDue(mk("nice", 29), T)).toBe(false);
+    expect(likeDue(mk("nice", 30), T)).toBe(true);
+    expect(replyDue(mk("nice", 59), T)).toBe(false);
+    expect(replyDue(mk("nice", 60), T)).toBe(true);
+  });
+  it("non-quiz channels: thanks for friendly comments, nothing for empty, hide for abuse", () => {
+    expect(decideGeneric(mk("Bahut mast video ❤️", 61), T)).toBe("thanks");
+    expect(decideGeneric(mk("   ", 61), T)).toBeNull();
+    expect(decideGeneric(mk("nice", 49 * 60), T)).toBeNull(); // too old for small talk
   });
 });

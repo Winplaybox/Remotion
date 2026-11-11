@@ -5,6 +5,7 @@ import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vis
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
 import { championshipForEpisode, marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
+import { liarLineupForDay, liarLineupVoiceLines, liarLineupAnswerComment, HANDLE as HANDLE_LIAR } from "../engines/liar-lineup/src/model";
 import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../engines/code-lock/src/model";
 // @engine-builder:imports
 
@@ -238,6 +239,34 @@ export const CHANNELS = {
         teaser: { start: m.hookSeconds, length: m.levels.slice(0, 2).reduce((a, l) => a + l.levelCard + l.play + l.reveal, 0), banner: "Baaki 18 rounds YouTube pe" },
         language: "hi",
         categoryId: "20"
+      };
+    }
+  },
+  "liar-lineup": {
+    name: "Jasoos Bhai",
+    composition: "LiarLineup",
+    // Disabled until approved: set repo variables START_LIAR_LINEUP=<date> and LIVE_LIAR_LINEUP=true.
+    startDate: "2099-01-01",
+    slots: ["07:15", "13:15", "20:15"],
+    narrated: false,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_LIAR_LINEUP",
+    metaSecretPrefix: "META_LIAR_LINEUP",
+    youtubeHandle: "@JasoosBhaiCases",
+    pinterestSecretPrefix: "PINTEREST_LIAR_LINEUP",
+    resolve: (n) => liarLineupForDay(n),
+    voice: (n) => liarLineupVoiceLines(liarLineupForDay(n)),
+    answer: (n) => liarLineupAnswerComment(liarLineupForDay(n)),
+    answerInNextFrom: 1,
+    meta: (n) => {
+      const p = liarLineupForDay(n);
+      return {
+        title: `${p.title} 🤥 Jhooth kaun bol raha hai? | Case #${n} #shorts`,
+        description: `Case #${n}: ${p.place.r} se ${p.item.r.toLowerCase()} gaayab! 3 suraag, 3 bayaan — ek jhooth hai. Pakdo! 🕵️\n${ASK_META.description}\n\nRoz naya case — Subscribe ${HANDLE_LIAR}\n#jasoos #mystery #riddle #paheli #detective #shorts`,
+        tags: ["jasoos", "mystery", "riddle", "paheli", "detective", "jhooth kaun", "hindi puzzle", "brain teaser", "shorts"],
+        caption: `Case #${n} 🕵️ ${p.title} Ek jhooth bol raha hai — kaun? 🤥\n${ASK_META.caption}\nYouTube pe roz naya case 👉 ${HANDLE_LIAR}\n#jasoos #mystery #paheli #reels`,
+        language: "hi",
+        categoryId: "24"
       };
     }
   },

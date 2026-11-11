@@ -27,6 +27,13 @@ import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type Too
 import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
 import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } from "../../../../engines/short-clip/src/model";
 import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
+import { LiarLineupSchema, liarLineupDuration, liarLineupForDay, type LiarLineup } from "../../../../engines/liar-lineup/src/model";
+import { LiarLineupComposition } from "../../../../engines/liar-lineup/src/LiarLineupComposition";
+import { withSpokenDurations } from "../../../../engines/liar-lineup/src/metadata";
+import { ActionSheet, CharacterSheet } from "@visuals/rig/CharacterSheet";
+import { StyleShowcase } from "@visuals/styles";
+import { SPRITE, SpriteFrame } from "@visuals/rig/SpriteFrame";
+import { JasoosBanner, JasoosLogo } from "../../../../engines/liar-lineup/src/BrandArt";
 import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from "../../../../engines/code-lock/src/model";
 // Remotion 4 expects a ZodObject for its `schema` prop. CodeLockSchema adds
 // cross-field validation with superRefine(), which wraps the object in ZodEffects.
@@ -48,11 +55,29 @@ const CODE_LOCK_DEMO = codeLockForDay(1);
 
 export const Root: React.FC = () => (
   <>
-    {/* @engine-builder:compositions */}
     <Folder name="DimaagLock">
       <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockRemotionSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
         calculateMetadata={({ props }: { props: CodeLock }) => ({ durationInFrames: codeLockDuration(props) })} />
     </Folder>
+        <Folder name="LiarLineup">
+      <Composition id="LiarLineup" component={LiarLineupComposition} schema={LiarLineupSchema} {...video} durationInFrames={liarLineupDuration(liarLineupForDay(1))} defaultProps={liarLineupForDay(1)}
+        calculateMetadata={async ({ props }: { props: LiarLineup }) => {
+          const timed = await withSpokenDurations(props);
+          return { durationInFrames: liarLineupDuration(timed), props: timed };
+        }} />
+    </Folder>
+    <Folder name="Styles">
+      <Still id="StyleShowcase" component={StyleShowcase} {...video} defaultProps={{ styleId: "comic-art" }} />
+    </Folder>
+    <Folder name="Rig">
+      <Still id="CharacterSheet" component={CharacterSheet} {...video} defaultProps={{ category: "detective" as const, action: "idle" as const }} />
+      <Still id="ActionSheet" component={ActionSheet} {...video} defaultProps={{ id: "jasoos" as const }} />
+      <Still id="SpriteFrame" component={SpriteFrame} width={SPRITE.width} height={SPRITE.height} defaultProps={{ id: "jasoos" as const, action: "idle" as const, frame: 0 }} />
+      <Still id="JasoosLogo" component={JasoosLogo} width={800} height={800} />
+      <Still id="JasoosBanner" component={JasoosBanner} width={2560} height={1440} />
+      <Composition id="CharacterSheetMotion" component={CharacterSheet} {...video} durationInFrames={150} defaultProps={{ category: "detective" as const, action: "talk" as const }} />
+    </Folder>
+{/* @engine-builder:compositions */}
     <Folder name="NarratorVideo">
       <Composition id="NarratorVideo" component={NarratorVideoComposition} schema={NarratorVideoSchema} {...video} durationInFrames={narratorVideoDuration(NARRATOR_DEMO)} defaultProps={NARRATOR_DEMO}
         calculateMetadata={({ props }: { props: NarratorVideo }) => ({ durationInFrames: narratorVideoDuration(props), ...sizeOf(props.aspect) })} />
