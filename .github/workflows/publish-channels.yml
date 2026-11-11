@@ -124,6 +124,8 @@ jobs:
       SOCIAL_GAP_MIN: ${{ vars.SOCIAL_GAP_MIN }}
       BOT_PUBLIC_URL: ${{ vars.BOT_PUBLIC_URL }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
       CI_RENDER_FALLBACK: ${{ vars.CI_RENDER_FALLBACK }}
       PYTHON: python
     steps:
@@ -133,7 +135,9 @@ jobs:
       - run: npm ci
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
-      - name: Narration tools (Edge TTS + ffmpeg)
+      - name: Narration tools (Edge TTS + ffmpeg; Gemini via API)
+        # Kokoro is not installed here to keep the hourly job fast: voices are made ahead by Prepare Voice.
+        # If a post has to be narrated here (no pre-rendered video), the chain skips Kokoro -> Gemini -> Edge.
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
           python -m pip install --quiet edge-tts
