@@ -1,5 +1,6 @@
 /**
- * Comment auto-reply on YouTube, Instagram and Facebook for quiz channels (channel config has `quiz`).
+ * Comment care on YouTube, Instagram and Facebook for ALL channels: like after 30 min (Facebook only), reply after 60 min.
+ * Quiz channels (config has `quiz`) get answer-aware replies; the others a friendly thank-you.
  * Runs hourly from publish-channels.yml (answers job). Idempotent: every answered comment is stored in
  * videobot.comment_replies, so a comment never gets two replies.
  *
@@ -20,11 +21,20 @@ import { metaCreds } from "./social-accounts";
 import { youtubeClient } from "./youtube";
 
 export type Platform = "youtube" | "instagram" | "facebook";
-export type Kind = "correct" | "wrong" | "partial" | "hello";
+export type Kind = "correct" | "wrong" | "partial" | "hello" | "thanks";
 export type Action = Kind | "hide";
-export interface ViewerComment { id: string; text: string; at: number }
+export interface ViewerComment { id: string; text: string; at: number; liked?: boolean }
 
 const HOUR = 3600_000;
+/**
+ * Human-like timing for every channel (quiz or not): a comment is liked after LIKE_AFTER_MIN, answered after REPLY_AFTER_MIN
+ * (so ~30 min after the like). Abuse is hidden at once. The workflow ticks hourly, so real delay is the minimum + up to one tick.
+ * Platform support: Facebook Page can like a comment via Graph (`/{comment}/likes`). The YouTube Data API has no comment like
+ * and no creator heart; the Instagram Graph API has no comment like — those two get the reply only.
+ */
+export const DELAY = { likeMin: Number(process.env.ENGAGE_LIKE_AFTER_MIN ?? 30), replyMin: Number(process.env.ENGAGE_REPLY_AFTER_MIN ?? 60) };
+export const likeDue = (c: ViewerComment, now = Date.now()) => now - c.at >= DELAY.likeMin * 60_000;
+export const replyDue = (c: ViewerComment, now = Date.now()) => now - c.at >= DELAY.replyMin * 60_000;
 /** Max comment age for a reply (guesses can wait for the reveal; small talk only while fresh). */
 export const MAX_AGE = { guess: 7 * 24 * HOUR, other: 48 * HOUR };
 /** Per channel+platform per run; YouTube also per day for all channels (50 quota units per reply out of 10k). */
@@ -58,7 +68,21 @@ export function decide(c: ViewerComment, quiz: Quiz, key: number[], revealed: bo
   return mood === "positive" ? "hello" : null;
 }
 
+/** Channels without a quiz: friendly, on-brand reply to positive / neutral comments; negative or empty -> nothing. */
+export function decideGeneric(c: ViewerComment, now = Date.now(), extraBlocked: readonly string[] = []): Action | null {
+  if (!c.text.trim()) return null;
+  if (blocked(c.text, extraBlocked)) return "hide";
+  if (now - c.at > MAX_AGE.other) return null;
+  return tone(c.text) === "negative" ? null : "thanks";
+}
+
 const TEXTS: Record<Kind, string[]> = {
+  thanks: [
+    "🙏 Shukriya! Aapka pyaar hi hamari taakat hai ❤️ Roz naya video aata hai — subscribe zaroor karna!",
+    "❤️ Thanks for watching! Agla video bhi miss mat karna 🔔",
+    "😊 Bahut shukriya! Aapko kaun sa part sabse pasand aaya? Bataiye 👇",
+    "🙌 Dil se thanks! Support karte rahiye, roz naya content aa raha hai 🔥"
+  ],
   correct: [
     "✅ Ekdum sahi — {ans}! 🔥 Sharp nazar! Naya puzzle aa gaya hai, wo bhi try karo 👀",
     "🎯 Bilkul sahi pakda: {ans}! 👏 Tum top players mein ho. Agla wala aur mushkil hai 😎",
@@ -87,9 +111,9 @@ const TEXTS: Record<Kind, string[]> = {
 const hash = (s: string) => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return h >>> 0; };
 
 /** Varied wording (picked by comment id, so it is stable) + platform tail. */
-export function replyText(kind: Kind, commentId: string, quiz: Quiz, key: number[], platform: Platform, handle: string): string {
+export function replyText(kind: Kind, commentId: string, quiz: Quiz | undefined, key: number[], platform: Platform, handle: string): string {
   const pool = TEXTS[kind];
-  const base = pool[hash(commentId) % pool.length]!.replace("{ans}", quiz.label(key)).replace("{how}", quiz.how);
+  const base = pool[hash(commentId) % pool.length]!.replace("{ans}", quiz?.label(key) ?? "").replace("{how}", quiz?.how ?? "");
   const tail = platform === "youtube" ? (kind === "correct" || kind === "wrong" ? "\n🔔 Subscribe karo — roz naya challenge!" : "") : `\n▶️ Roz naya video YouTube pe: ${handle}`;
   return base + tail;
 }
@@ -119,7 +143,7 @@ async function graph(path: string, token: string, init?: { method: "POST"; body:
   return j;
 }
 
-interface Target { platform: Platform; n: number; comments: () => Promise<ViewerComment[]>; reply: (commentId: string, text: string) => Promise<string>; hide: (commentId: string) => Promise<void> }
+interface Target { platform: Platform; n: number; comments: () => Promise<ViewerComment[]>; like?: (commentId: string) => Promise<void>; reply: (commentId: string, text: string) => Promise<string>; hide: (commentId: string) => Promise<void> }
 
 async function metaTargets(id: ChannelId, cfg: ChannelConfig, posts: LedgerPost[]): Promise<Target[]> {
   const m = await metaCreds(id, cfg);
@@ -137,8 +161,9 @@ async function metaTargets(id: ChannelId, cfg: ChannelConfig, posts: LedgerPost[
     });
     if (fb?.ok && fb.id && m.pageId) out.push({
       platform: "facebook", n: p.n,
-      comments: async () => ((await graph(`${fb.id}/comments?fields=id,message,from{id},created_time&filter=toplevel&limit=50`, token)).data as { id: string; message?: string; from?: { id?: string }; created_time: string }[] ?? [])
-        .filter((c) => c.from?.id !== m.pageId).map((c) => ({ id: c.id, text: c.message ?? "", at: Date.parse(c.created_time) })),
+      comments: async () => ((await graph(`${fb.id}/comments?fields=id,message,from{id},created_time,user_likes&filter=toplevel&limit=50`, token)).data as { id: string; message?: string; from?: { id?: string }; created_time: string; user_likes?: boolean }[] ?? [])
+        .filter((c) => c.from?.id !== m.pageId).map((c) => ({ id: c.id, text: c.message ?? "", at: Date.parse(c.created_time), liked: !!c.user_likes })),
+      like: async (cid) => { await graph(`${cid}/likes`, token, { method: "POST", body: {} }); },
       reply: async (cid, text) => String((await graph(`${cid}/comments`, token, { method: "POST", body: { message: text } })).id ?? ""),
       hide: async (cid) => { await graph(cid, token, { method: "POST", body: { is_hidden: "true" } }); }
     });
@@ -159,10 +184,10 @@ async function youtubeTargets(cfg: ChannelConfig, days: number): Promise<{ targe
   const ids = (items.data.items ?? []).map((i) => i.contentDetails?.videoId).filter((v): v is string => !!v);
   if (!ids.length) return { targets: [], publicNs: [] };
   const vids = (await yt.videos.list({ part: ["snippet", "status"], id: ids })).data.items ?? [];
-  const pub = vids.filter((v) => v.status?.privacyStatus === "public" && Number.isFinite(postNo(v.snippet?.title ?? "")));
+  const pub = vids.filter((v) => v.status?.privacyStatus === "public" && (!cfg.quiz || Number.isFinite(postNo(v.snippet?.title ?? ""))));
   const since = Date.now() - days * 24 * HOUR;
   const targets = pub.filter((v) => Date.parse(v.status?.publishAt ?? v.snippet?.publishedAt ?? "") >= since).map((v): Target => ({
-    platform: "youtube", n: postNo(v.snippet!.title!),
+    platform: "youtube", n: postNo(v.snippet!.title!) || 0,
     comments: async () => ((await yt.commentThreads.list({ part: ["snippet"], videoId: v.id!, maxResults: 100, order: "time", textFormat: "plainText" })).data.items ?? [])
       .map((t) => t.snippet?.topLevelComment).filter((c) => c?.id && c.snippet?.authorChannelId?.value !== me.id)
       .map((c) => ({ id: c!.id!, text: c!.snippet?.textOriginal ?? c!.snippet?.textDisplay ?? "", at: Date.parse(c!.snippet?.publishedAt ?? "") })),
@@ -170,14 +195,13 @@ async function youtubeTargets(cfg: ChannelConfig, days: number): Promise<{ targe
     // "Held for review": hidden from viewers, reversible in YouTube Studio → Comments → Held for review.
     hide: async (cid) => { await yt.comments.setModerationStatus({ id: [cid], moderationStatus: "heldForReview" }); }
   }));
-  return { targets, publicNs: pub.map((v) => postNo(v.snippet!.title!)) };
+  return { targets, publicNs: pub.map((v) => postNo(v.snippet!.title!)).filter(Number.isFinite) };
 }
 
 async function run(id: ChannelId, opts: { dry: boolean; days: number }, budget: { youtube: number }) {
   const cfg = CHANNELS[id] as ChannelConfig;
-  if (!cfg.quiz) return;
-  const settings = (await rpc<{ channel: string; settings: { auto_reply?: boolean; moderate?: boolean; blocked_words?: string[] } }[]>("videobot_channel_settings_list", {})).find((s) => s.channel === id)?.settings ?? {};
-  const replyOn = settings.auto_reply !== false, hideOn = settings.moderate !== false;
+  const settings = (await rpc<{ channel: string; settings: { auto_reply?: boolean; auto_like?: boolean; moderate?: boolean; blocked_words?: string[] } }[]>("videobot_channel_settings_list", {})).find((s) => s.channel === id)?.settings ?? {};
+  const replyOn = settings.auto_reply !== false, hideOn = settings.moderate !== false, likeOn = settings.auto_like !== false;
   if (!replyOn && !hideOn) { console.log(`[${cfg.name}] auto-reply + moderation off (dashboard)`); return; }
   const extra = Array.isArray(settings.blocked_words) ? settings.blocked_words.filter((w) => typeof w === "string") : [];
   const posts = await rpc<LedgerPost[]>("videobot_channel_posts_recent", { p_channel: id, p_days: opts.days + 1 });
@@ -186,15 +210,22 @@ async function run(id: ChannelId, opts: { dry: boolean; days: number }, budget: 
   const revealed = revealedFn([...posts.map((p) => ({ n: p.n, live: !!(p.social?.instagram?.ok || p.social?.facebook?.ok) })), ...yt.publicNs.map((n) => ({ n, live: true }))], cfg.answerInNextFrom);
   const sent: Record<string, number> = {};
   for (const t of [...yt.targets, ...meta]) {
-    const key = cfg.quiz.key(t.n);
+    const key = cfg.quiz?.key(t.n) ?? [];
     let comments: ViewerComment[];
     try { comments = await t.comments(); } catch (e) { console.warn(`[${cfg.name}] ${t.platform} #${t.n}: ${(e as Error).message}`); continue; }
     if (!comments.length) continue;
     const done = new Set(await rpc<string[]>("videobot_comment_replied", { p_platform: t.platform, p_ids: comments.map((c) => c.id) }));
     for (const c of comments) {
       if (done.has(c.id)) continue;
-      const kind = decide(c, cfg.quiz, key, revealed(t.n), Date.now(), extra);
+      const now = Date.now();
+      const kind = cfg.quiz ? decide(c, cfg.quiz, key, revealed(t.n), now, extra) : decideGeneric(c, now, extra);
       if (!kind || (kind === "hide" ? !hideOn : !replyOn)) continue;
+      // Like after 30 min (where the platform allows it), reply after 60 min. Abuse is hidden immediately.
+      if (kind !== "hide" && t.like && likeOn && !c.liked && likeDue(c, now)) {
+        console.log(`[${cfg.name}] ${t.platform} #${t.n} like${opts.dry ? " (dry)" : ""}`);
+        if (!opts.dry) await t.like(c.id).catch((e: Error) => console.warn(`[${cfg.name}] ${t.platform} like failed: ${e.message}`));
+      }
+      if (kind !== "hide" && !replyDue(c, now)) continue;
       if ((sent[t.platform] ?? 0) >= CAP.perRun) break;
       if (t.platform === "youtube" && budget.youtube <= 0) break;
       // Abusive text is not echoed into the logs.
