@@ -6,7 +6,7 @@
  * Honest alibis list the rules they would ALSO break (`breaks`) so the generator never picks them for that rule —
  * that is what guarantees exactly one liar (tests/liar-lineup.test.ts checks every day).
  */
-import type { PresetId } from "@visuals/rig/presets";
+import type { CastId as PresetId } from "@visuals/rig/cast";
 
 export interface Bi { r: string; d: string }
 export type SetKey = "haveli" | "village" | "flat";

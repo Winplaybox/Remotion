@@ -6,6 +6,7 @@
  * Every case is generated from engines/liar-lineup/src/content.ts: one RULE (clue) makes exactly one alibi impossible.
  * The timeline (`liarBeats`) is derived from the voice text lengths so the video, voice and captions never drift apart.
  */
+import { genderOf } from "../../../packages/visuals/src/rig/cast";
 import { random } from "remotion";
 import { z } from "zod";
 import { AskOutroSchema, askOutro, askOutroSeconds, askOutroVoice } from "../../ask-outro";
@@ -87,7 +88,7 @@ export function liarCase(day: number) {
   let hi = 0;
   const suspects: Suspect[] = roles.map((role, i) => {
     const preset = role.preset;
-    const gender = (["bahu", "beti", "dadi", "kaamwali"] as string[]).includes(preset) ? "f" : "m";
+    const gender = genderOf(preset);
     const names = shuffle(NAMES[gender], `${seed}-names-${i}`);
     const name = names.find((n) => !used.has(n.r)) ?? names[0]!;
     used.add(name.r);

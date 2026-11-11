@@ -7,7 +7,7 @@ import { PrevAnswerCard } from "@visuals/PrevAnswer";
 import { AskOutro } from "@visuals/AskOutro";
 import { Character, type Pose } from "@visuals/rig/Character";
 import { SetBackground } from "@visuals/rig/Sets";
-import type { PresetId } from "@visuals/rig/presets";
+import type { CastId as PresetId } from "@visuals/rig/cast";
 import { Caption, CaseStamp, ClueNote, CountdownRing, SpeechBubble, Spotlight } from "@visuals/StoryKit";
 import { askOutroSfx, followTapAt } from "../../ask-outro";
 import { introLength, liarBeats, outroStart, type LiarLineup } from "./model";
