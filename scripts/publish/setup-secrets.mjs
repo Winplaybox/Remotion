@@ -9,6 +9,7 @@
  *     [--ebs-client C:/path/client_secret.json]    # OR: fresh OAuth for EpicBharatSaga (sign in as epicbharat.official)
  *     [--ebs-token C:/path/token.json]             # OR: reuse colab-YT's EpicBharatSaga token.json (google-auth authorized_user)
  *     [--only-ebs]                                 # skip the puzzle channels
+ *     [--only-jasoos --client C:/path/client_secret.json]   # connect ONLY Jasoos Bhai Cases -> YT_TOKEN_LIAR_LINEUP (pick @JasoosBhaiCases)
  *     [--ebs-silent]                               # let EpicBharatSaga post with captions until IndicF5 narration exists
  *
  * For each puzzle channel a browser opens: sign in as dailysnapdose@gmail.com and pick the channel it names.
@@ -65,6 +66,18 @@ function consent(clientJson, expected, port, account = "dailysnapdose@gmail.com"
 
 async function main() {
   gh(["auth", "status"]);
+  if (flag("only-jasoos")) {
+    const clientPath = arg("client");
+    if (!clientPath) throw new Error("--client path/to/client_secret.json is required");
+    const clientJson = fs.readFileSync(clientPath, "utf8");
+    clientOf(clientJson);
+    let tokens = null;
+    for (let attempt = 0; attempt < 3 && !tokens; attempt++) tokens = await consent(clientJson, "Jasoos Bhai", 53682 + attempt);
+    if (!tokens) throw new Error("Could not connect Jasoos Bhai Cases");
+    setSecret("YT_TOKEN_LIAR_LINEUP", JSON.stringify(tokens));
+    console.log("\nDone: YT_TOKEN_LIAR_LINEUP set. Next: set repo variables START_LIAR_LINEUP and LIVE_LIAR_LINEUP=true.");
+    return;
+  }
   if (!flag("only-ebs")) {
     const clientPath = arg("client");
     if (!clientPath) throw new Error("--client path/to/client_secret.json is required");
