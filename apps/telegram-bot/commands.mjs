@@ -63,7 +63,7 @@ const helpText = (style) => `🙏 Namaste! Main video bot hoon. /menu se sab kuc
 /preview [narrator] <topic> — pehle script dekho, phir ▶️ Render
 /script [narrator] [enhance] + agli lines mein apni script (ya .txt file, caption /script)
 ${style ? `🎨 Video ke caption mein: /style cartoon  (${STYLES.join(", ")})\n` : ""}
-✂️ /shorts — lambi video (caption) ya link se 3 Shorts
+✂️ /shorts — lambi video (caption) ya link se best 10 viral Shorts + best-of reel
 📊 /status — job ka haal · /history — purane projects · /cancel — job roko
 ⚙️ /settings — narrator, bhasha, length, 9:16/16:9
 🎙️ /narrators · 🆔 /myid`;
@@ -174,9 +174,9 @@ export async function handle(update, ctx) {
     const vid = videoOf(msg) || videoOf(msg.reply_to_message);
     const url = (shortsCmd.args.match(/https?:\/\/\S+/) || [""])[0];
     const nums = shortsCmd.args.replace(url, "").match(/\d+/g)?.map(Number) ?? [];
-    const count = Math.max(1, Math.min(5, nums.find((n) => n <= 5) ?? 3));
+    const count = Math.max(1, Math.min(10, nums.find((n) => n <= 10) ?? 10));
     const seconds = Math.max(20, Math.min(60, nums.find((n) => n >= 15) ?? 45));
-    if (!vid && !url) return { replies: [{ text: "✂️ Lambi video bhejo (caption: /shorts 3) ya link: /shorts https://… 3\n3 = kitne Shorts, 45 = har Short ke second." }] };
+    if (!vid && !url) return { replies: [{ text: "✂️ Lambi video bhejo (caption: /shorts 3) ya link: /shorts https://… 3\n10 = kitne best Shorts (max 10, default 10), 45 = har Short ke second.\nAakhir mein 🏆 Top-10 best-of reel + thumbnail bhi milegi." }] };
     if (!allowed) return addIdea(S, `[shorts] ${url || "video"}`, "🔒 Shorts banana abhi sirf invited users ke liye hai. Aapka request idea ke roop mein save ho gaya ✅");
     if (vid && (vid.file_size || 0) > MAX_VIDEO_MB * 1024 * 1024) return { replies: [{ text: `📦 Telegram bot sirf ${MAX_VIDEO_MB} MB tak ki video le sakta hai. Badi video ke liye link bhejo: /shorts https://… 3` }] };
     return startJob(S, "shorts", { ...(vid ? { fileId: vid.file_id } : { url }), count, seconds, language: prefs.language }, "tg-shorts");

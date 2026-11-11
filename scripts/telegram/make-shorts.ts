@@ -9,27 +9,45 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { ShortClipSchema } from "../../engines/short-clip/src/model";
-import { ClipsSchema, cleanClips, clipWords, fallbackClips, highlightsPrompt, type Clip, type Segment } from "./shorts";
-import { renderComposition } from "./render";
-import { downloadFile, sendMessage, sendVideo } from "./telegram";
+import { HighlightReelSchema, ShortClipSchema } from "../../engines/short-clip/src/model";
+import { ClipsSchema, cleanClips, clipWords, fallbackClips, highlightsPrompt, rankClips, reelPlan, type Clip, type Segment } from "./shorts";
+import { renderComposition, renderStillComposition } from "./render";
+import { downloadFile, sendMessage, sendPhoto, sendVideo } from "./telegram";
 import { JobCancelled, jobTracker } from "./jobs";
 import { storeFile } from "./storage";
 import { normalizeLoudness } from "./loudness";
 
-interface Job { fileId?: string; url?: string; chatId: string | number; messageId?: number; jobCode?: string; statusMessageId?: number; count?: number; seconds?: number; language?: string; user?: { name?: string } }
+interface Job { fileId?: string; url?: string; chatId: string | number; messageId?: number; jobCode?: string; statusMessageId?: number; count?: number; seconds?: number; language?: string; user?: { name?: string }; brand?: { name?: string; logo?: string; accent?: string; handle?: string }; reel?: boolean }
 
 const args = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
 const local = arg("local");
 const job = (local ? { chatId: 0, count: Number(arg("count") ?? 2), seconds: Number(arg("seconds") ?? 40) } : JSON.parse(process.env.PAYLOAD || "{}")) as Job;
-const count = Math.max(1, Math.min(5, Number(job.count) || 3));
+const count = Math.max(1, Math.min(10, Number(job.count) || 10));
 const target = Math.max(20, Math.min(60, Number(job.seconds) || 45));
 const root = process.cwd();
 const jobId = `s${Date.now().toString(36)}`;
 const dir = path.join(root, "public", "tg", jobId);
 const py = process.env.PYTHON || "python3";
 const MAX_SECONDS = 60 * 60;
+const brand = { name: job.brand?.name ?? process.env.BRAND_NAME ?? "", logo: job.brand?.logo ?? "", accent: job.brand?.accent ?? "#FFD23F", handle: job.brand?.handle ?? process.env.BRAND_HANDLE ?? "" };
+const wantReel = job.reel !== false;
+const hindi = (job.language ?? "hinglish") !== "english";
+
+/** AI voice-over line -> mp3 (Edge TTS, free). Returns { file (under /public), seconds } or null when TTS is unavailable. */
+function tts(text: string, name: string): { file: string; seconds: number } | null {
+  if (local && !process.env.TTS_LOCAL) return null;
+  const out = path.join(dir, name);
+  const voice = hindi ? "hi-IN-MadhurNeural" : "en-US-GuyNeural";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      execFileSync(py, ["-m", "edge_tts", "--voice", voice, "--rate=+6%", "--text", text, "--write-media", out], { stdio: "ignore", timeout: 60_000 });
+      return { file: `tg/${jobId}/${name}`, seconds: Number(probe(out, "format=duration")) + 0.3 };
+    } catch { Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 1500 * attempt); }
+  }
+  console.warn(`[tts] ${name} failed — reel continues without that voice line`);
+  return null;
+}
 
 const run = (cmd: string, a: string[]) => execFileSync(cmd, a, { stdio: ["ignore", "pipe", "inherit"] }).toString();
 const probe = (f: string, entries: string, stream = "") => run("ffprobe", ["-v", "error", ...(stream ? ["-select_streams", stream] : []), "-show_entries", entries, "-of", "csv=p=0", f]).trim();
@@ -135,19 +153,48 @@ async function pickClips(segs: Segment[], duration: number): Promise<Clip[]> {
     if (!clips.length) throw new Error("Achhe hisse nahi mile");
     console.log(`[shorts] ${clips.length} clips: ${clips.map((c) => `${c.start}-${c.end}`).join(", ")}`);
 
-    const delivered: { title: string; start: number; end: number; file: string; hashtags: string[] }[] = [];
-    for (const [i, c] of clips.entries()) {
-      if (!local) await track.step("RENDERING", 40 + Math.floor((i / clips.length) * 50), `short ${i + 1}/${clips.length}`);
-      const props = ShortClipSchema.parse({ src: `tg/${jobId}/src.mp4`, start: c.start, end: c.end, width: w, height: h, framing: "fit", words: clipWords(tr.segments, c), hook: c.hook.toUpperCase(), handle: "" });
+    const ranked = rankClips(clips);
+    const delivered: { rank: number; score: number; title: string; start: number; end: number; file: string; hashtags: string[] }[] = [];
+    for (const [i, c] of ranked.entries()) {
+      if (!local) await track.step("RENDERING", 40 + Math.floor((i / (ranked.length + (wantReel ? 2 : 0))) * 50), `short ${i + 1}/${ranked.length}`);
+      const props = ShortClipSchema.parse({ src: `tg/${jobId}/src.mp4`, start: c.start, end: c.end, width: w, height: h, framing: "fit", words: clipWords(tr.segments, c), hook: c.hook.toUpperCase(), handle: brand.handle, brand: brand.name, logo: brand.logo, accent: brand.accent, badge: `#${i + 1}` });
       const file = await renderComposition("ShortClip", props, path.join(root, "output", "tg", `${jobId}-${i + 1}.mp4`), 23);
       normalizeLoudness(file);
-      console.log(`[shorts] ${file}`);
+      console.log(`[shorts] #${i + 1} score ${c.score} ${file}`);
       if (local) continue;
-      await sendVideo(job.chatId, file, `✂️ Short ${i + 1}/${clips.length}: ${c.title}\n${c.hashtags.join(" ")}\n⏱ ${Math.round(c.start)}s–${Math.round(c.end)}s`, i === 0 ? job.messageId : undefined);
-      delivered.push({ title: c.title, start: c.start, end: c.end, hashtags: c.hashtags, file: await storeFile(file, `jobs/${job.jobCode ?? jobId}/short-${i + 1}.mp4`) });
+      await sendVideo(job.chatId, file, `✂️ #${i + 1}/${ranked.length} 🔥 Viral score ${c.score}/100: ${c.title}${c.reason ? `\n💡 ${c.reason}` : ""}\n${c.hashtags.join(" ")}\n⏱ ${Math.round(c.start)}s–${Math.round(c.end)}s`, i === 0 ? job.messageId : undefined);
+      delivered.push({ rank: i + 1, score: c.score, title: c.title, start: c.start, end: c.end, hashtags: c.hashtags, file: await storeFile(file, `jobs/${job.jobCode ?? jobId}/short-${i + 1}.mp4`) });
+    }
+
+    // Best-of countdown reel: voice-over intros (AI script + TTS), rank badges, branding, thumbnail.
+    let reelFile = "", reelThumb = "", reelMeta = { title: "", description: "" };
+    if (wantReel && ranked.length >= 3) {
+      if (!local) await track.step("RENDERING", 85, "best-of reel");
+      const plan = reelPlan(ranked, tr.segments);
+      const topic = ranked[0]!.title.replace(/#\w+/g, "").trim();
+      const clipsProps = plan.map((e) => {
+        const line = e.clip.intro || (hindi ? `Number ${e.rank}: ${e.clip.hook || e.clip.title}` : `Number ${e.rank}: ${e.clip.hook || e.clip.title}`);
+        const v = tts(line, `v${e.rank}.mp3`);
+        return ShortClipSchema.parse({ src: `tg/${jobId}/src.mp4`, start: e.start, end: e.end, width: w, height: h, framing: "fit", words: clipWords(tr.segments, e), hook: "", handle: brand.handle, accent: brand.accent, badge: `#${e.rank}`, voice: v?.file ?? "", voiceSeconds: v?.seconds ?? 0 });
+      });
+      const title = `TOP ${plan.length} MOMENTS`;
+      const introVoice = tts(hindi ? `Ye hain sabse zabardast ${plan.length} pal. Number ${plan.length} se shuru karte hain!` : `Here are the ${plan.length} best moments. Let's count down!`, "intro.mp3");
+      const reelProps = HighlightReelSchema.parse({ title, subtitle: topic.slice(0, 70), intro: introVoice?.file ?? "", introSeconds: introVoice?.seconds ?? 0, cta: hindi ? "Aur dekhne ke liye follow karo" : "Follow for more", clips: clipsProps, accent: brand.accent, brand: brand.name, logo: brand.logo });
+      reelFile = await renderComposition("HighlightReel", reelProps, path.join(root, "output", "tg", `${jobId}-reel.mp4`), 23);
+      normalizeLoudness(reelFile);
+      reelThumb = await renderStillComposition("ShortThumbnail", { src: `tg/${jobId}/src.mp4`, at: ranked[0]!.start + 1, width: w, height: h, title: ranked[0]!.hook || ranked[0]!.title, accent: brand.accent, brand: brand.name, logo: brand.logo, badge: `TOP ${plan.length}` }, path.join(root, "output", "tg", `${jobId}-reel-thumb.jpg`)).catch((e: Error) => { console.warn(`[thumb] ${e.message}`); return ""; });
+      const tags = [...new Set(ranked.flatMap((c) => c.hashtags))].slice(0, 8);
+      reelMeta = { title: `${topic} — Top ${plan.length} Moments 🔥 #shorts`.slice(0, 100), description: `${plan.slice().reverse().map((e) => `#${e.rank} ${e.clip.title}`).join("\n")}\n\n${tags.join(" ")}` };
+      console.log(`[reel] ${reelFile}${reelThumb ? ` + ${reelThumb}` : ""}`);
+      if (!local) {
+        await sendVideo(job.chatId, reelFile, `🏆 Best-of reel: ${reelMeta.title}\n\n${reelMeta.description}`);
+        if (reelThumb) await sendPhoto(job.chatId, reelThumb, "🖼️ Thumbnail").catch((e: Error) => console.warn(`[thumb] ${e.message}`));
+      }
     }
     if (local) return;
-    await track.done({ title: `${delivered.length} Shorts`, shorts: delivered, language: tr.language });
+    const reel = reelFile ? await storeFile(reelFile, `jobs/${job.jobCode ?? jobId}/reel.mp4`) : "";
+    const thumb = reelThumb ? await storeFile(reelThumb, `jobs/${job.jobCode ?? jobId}/thumb.jpg`, "image/jpeg") : "";
+    await track.done({ title: reelMeta.title || `${delivered.length} Shorts`, description: reelMeta.description, shorts: delivered, reel, thumb, language: tr.language });
   } catch (e) {
     if (e instanceof JobCancelled) { console.log(`[job] ${(e as Error).message}`); return; }
     console.error(e);

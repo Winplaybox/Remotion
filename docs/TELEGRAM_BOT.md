@@ -23,7 +23,7 @@ Pressing Topic / Script / Idea asks for the text in the next message (10 min).
 | `/preview [narrator] <topic>` | same | the script comes first (numbered beats) with ▶️ Render / 🛑 Cancel; send an edited `/script` to change it |
 | `/script [narrator] [enhance]` + script on the next lines, or a `.txt`/`.md` file with caption `/script` | same | keeps the user's words and dialogue by default; `enhance` lets the AI tighten it (no new facts) |
 | video with caption `/style cartoon` | same, only when `TG_STYLE_ENABLED=true` | off by default |
-| long video with caption `/shorts [count] [seconds]` (or reply, or `/shorts <link> 3`) | allowlist + admin | 1–5 vertical Shorts (20–60 s), cut on sentence boundaries, word-by-word captions, hook, original audio, each with title + hashtags |
+| long video with caption `/shorts [count] [seconds]` (or reply, or `/shorts <link> 10`) | allowlist + admin | the **best 1–10 viral Shorts** (default 10, 20–60 s), ranked by a 0–100 virality score, cut on sentence boundaries, word-by-word captions, hook, rank badge, branding, original audio, each with title + hashtags + "why it works"; then a **🏆 Top-N countdown reel** (AI voice-over intros + TTS, ≤ 3 min) and its **thumbnail** |
 | `/status [JOB]`, `/history`, `/cancel [JOB]` | everyone (own jobs) | progress, past videos + ideas, stop a job (the worker stops at its next step) |
 | `/settings`, `/narrators` | everyone | narrator, Hinglish/हिंदी/English, 9:16/16:9, ~30/50/90 s — used for the next video |
 | `/myid`, `/help` | everyone | |
@@ -54,6 +54,10 @@ API (admin session cookie only): `GET /admin/api/overview`, `/admin/api/list?ent
 Every action runs as the admin's own bot command, so it is also logged in the admin's Telegram chat.
 
 ## Long video → Shorts (engines/short-clip)
+
+**Viral picking:** Gemini scores every candidate moment 0–100 (hook in 2 s, emotion, curiosity gap, punchline, standalone payoff) and returns candidates; the top N win overlaps and the count. Without Gemini, `viralScore()` (hook words, questions, numbers, exclamations, speech density) ranks dense-speech windows. Clips are delivered best first (#1 …).
+**Best-of reel (`HighlightReel`):** title card → clips #N…#1 (each ≤ 15 s on a sentence end, total ≤ 165 s) with rank badge, flash cuts, branding pill, Gemini-written one-line intros spoken by Edge TTS (original audio ducked while the voice talks) → CTA outro. **Thumbnail (`ShortThumbnail`):** frame of the #1 moment + big title + brand.
+**Branding:** payload `brand: { name, logo?, accent?, handle }` (or env `BRAND_NAME`, `BRAND_HANDLE`); `reel: false` skips the reel.
 
 Worker `scripts/telegram/make-shorts.ts` (GitHub job `shorts`, up to 90 min): normalise → faster-whisper (`small`, CPU int8,
 model cached) word timestamps → Gemini picks highlights (fallback: dense-speech windows) → every clip is snapped to whole

@@ -25,8 +25,8 @@ import { NarratorThumbnail } from "../../../../engines/narrator-video/src/Narrat
 import { NarratorVideoComposition } from "../../../../engines/narrator-video/src/NarratorVideoComposition";
 import { TOON_DEMO, TOON_STYLE_IDS, ToonVideoSchema, toonVideoDuration, type ToonVideo } from "../../../../engines/toon-video/src/model";
 import { ToonVideoComposition } from "../../../../engines/toon-video/src/ToonVideoComposition";
-import { SHORT_CLIP_DEMO, ShortClipSchema, shortClipDuration, type ShortClip } from "../../../../engines/short-clip/src/model";
-import { ShortClipComposition } from "../../../../engines/short-clip/src/ShortClipComposition";
+import { HighlightReelSchema, REEL_INTRO, REEL_OUTRO, SHORT_CLIP_DEMO, ShortClipSchema, ShortThumbSchema, reelDuration, shortClipDuration, type HighlightReel, type ShortClip } from "../../../../engines/short-clip/src/model";
+import { HighlightReelComposition, ShortClipComposition, ShortThumbnail } from "../../../../engines/short-clip/src/ShortClipComposition";
 import { LiarLineupSchema, liarLineupDuration, liarLineupForDay, type LiarLineup } from "../../../../engines/liar-lineup/src/model";
 import { LiarLineupComposition } from "../../../../engines/liar-lineup/src/LiarLineupComposition";
 import { withSpokenDurations } from "../../../../engines/liar-lineup/src/metadata";
@@ -90,6 +90,9 @@ export const Root: React.FC = () => (
     <Folder name="ShortClip">
       <Composition id="ShortClip" component={ShortClipComposition} schema={ShortClipSchema} {...video} durationInFrames={shortClipDuration(SHORT_CLIP_DEMO)} defaultProps={SHORT_CLIP_DEMO}
         calculateMetadata={({ props }: { props: ShortClip }) => ({ durationInFrames: shortClipDuration(props) })} />
+      <Composition id="HighlightReel" component={HighlightReelComposition} schema={HighlightReelSchema} {...video} durationInFrames={Math.round((REEL_INTRO + REEL_OUTRO + 6) * 30)} defaultProps={{ ...HighlightReelSchema.parse({ clips: [SHORT_CLIP_DEMO] }) }}
+        calculateMetadata={({ props }: { props: HighlightReel }) => ({ durationInFrames: reelDuration(props) })} />
+      <Still id="ShortThumbnail" component={ShortThumbnail} {...video} schema={ShortThumbSchema} defaultProps={ShortThumbSchema.parse({ src: SHORT_CLIP_DEMO.src, title: "YE SACH HAI?", badge: "#1" })} />
     </Folder>
     <Folder name="ToonVideo">
       <Composition id="ToonVideo" component={ToonVideoComposition} schema={ToonVideoSchema} {...video} durationInFrames={toonVideoDuration(TOON_DEMO)} defaultProps={TOON_DEMO}
