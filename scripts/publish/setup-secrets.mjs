@@ -75,7 +75,9 @@ async function main() {
     for (let attempt = 0; attempt < 3 && !tokens; attempt++) tokens = await consent(clientJson, "Jasoos Bhai", 53682 + attempt);
     if (!tokens) throw new Error("Could not connect Jasoos Bhai Cases");
     setSecret("YT_TOKEN_LIAR_LINEUP", JSON.stringify(tokens));
-    console.log("\nDone: YT_TOKEN_LIAR_LINEUP set. Next: set repo variables START_LIAR_LINEUP and LIVE_LIAR_LINEUP=true.");
+    // The refresh token only works with the OAuth client that issued it, so store that client next to it.
+    setSecret("YT_TOKEN_LIAR_LINEUP_CLIENT", clientJson);
+    console.log("\nDone: YT_TOKEN_LIAR_LINEUP and YT_TOKEN_LIAR_LINEUP_CLIENT set. Next: set repo variables START_LIAR_LINEUP and LIVE_LIAR_LINEUP=true.");
     return;
   }
   if (!flag("only-ebs")) {

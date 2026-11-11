@@ -7,7 +7,7 @@ const checks = [
   ["YT_TOKEN_KAALI_PEELI_CHASE", "YT_CLIENT_SECRET_JSON", "Kaali Peeli Chase"],
   // Optional until the switch-over from colab-YT (LIVE_EPICBHARATSAGA=true).
   ["YT_TOKEN_EPICBHARATSAGA", "YT_TOKEN_EPICBHARATSAGA_CLIENT", "Epic Bharat", process.env.LIVE_EPICBHARATSAGA !== "true"],
-  ["YT_TOKEN_LIAR_LINEUP", "YT_CLIENT_SECRET_JSON", "Jasoos Bhai", process.env.LIVE_LIAR_LINEUP !== "true"]
+  ["YT_TOKEN_LIAR_LINEUP", "YT_TOKEN_LIAR_LINEUP_CLIENT", "Jasoos Bhai", process.env.LIVE_LIAR_LINEUP !== "true"]
 ];
 let bad = 0;
 for (const [tokenVar, clientVar, expected, optional] of checks) {
