@@ -30,15 +30,15 @@ const QUIZ_HOST: VoiceProfile = {
 };
 const CHASE_COMMENTATOR: VoiceProfile = {
   engines: CHAIN, kokoro: "hm_psi", kokoroSpeed: 1.08, gemini: "Fenrir",
-  geminiStyle: "Say this in Hindi like an excited street-race commentator — high energy, punchy, building suspense", edge: "hi-IN-MadhurNeural", edgeRate: "+8%"
+  geminiStyle: "Say this in Hindi like an excited street-race commentator — high energy, punchy, building suspense", edge: "hi-IN-MadhurNeural", edgeRate: "+5%"
 };
 const KATHAVACHAK: VoiceProfile = {
   engines: CHAIN, kokoro: "hm_omega", kokoroSpeed: 0.92, gemini: "Charon",
-  geminiStyle: "Say this in Hindi like a calm, deep, devotional storyteller (kathavachak) — warm, unhurried, reverent", edge: "hi-IN-MadhurNeural", edgeRate: "+0%"
+  geminiStyle: "Say this in Hindi like a calm, deep, devotional storyteller (kathavachak) — warm, unhurried, reverent", edge: "hi-IN-MadhurNeural", edgeRate: "+5%"
 };
 const DETECTIVE: VoiceProfile = {
   engines: CHAIN, kokoro: "hm_omega", kokoroSpeed: 1.0, gemini: "Algenib",
-  geminiStyle: "Say this in Hindi like a witty desi detective revealing clues — low, suspenseful, a little playful", edge: "hi-IN-MadhurNeural", edgeRate: "+3%"
+  geminiStyle: "Say this in Hindi like a witty desi detective revealing clues — low, suspenseful, a little playful", edge: "hi-IN-MadhurNeural", edgeRate: "+5%"
 };
 const CODE_HOST_EN: VoiceProfile = {
   engines: CHAIN, kokoro: "af_heart", kokoroSpeed: 1.0, gemini: "Kore",

@@ -10,7 +10,7 @@ on:
       lines: { description: "lines per channel", required: false, default: "3" }
 
 permissions:
-  contents: read
+  contents: write  # samples are also pushed to the voice-samples branch (easy to fetch and play)
 
 jobs:
   samples:
@@ -42,3 +42,9 @@ jobs:
       - run: npx ts-node scripts/narration/samples.ts --lines "${{ inputs.lines || '3' }}"
       - uses: actions/upload-artifact@v4
         with: { name: voice-samples, path: out/voice-samples, retention-days: 14 }
+      - name: Push samples to the voice-samples branch
+        run: |
+          cd out/voice-samples
+          git init -q -b voice-samples && git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "voice samples ${{ github.sha }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" voice-samples
