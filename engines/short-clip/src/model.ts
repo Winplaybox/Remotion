@@ -27,7 +27,9 @@ export const ShortClipSchema = z.object({
   voice: z.string().default(""),
   voiceSeconds: z.number().min(0).default(0),
   /** Fade-in flash on the first frames (used between reel clips). */
-  flash: z.boolean().default(false)
+  flash: z.boolean().default(false),
+  /** Sound effect from public/sfx played at the start ("whoosh" | "ding" | "pop"); empty = none. */
+  sfx: z.enum(["", "whoosh", "ding", "pop"]).default("")
 });
 export type ShortClip = z.infer<typeof ShortClipSchema>;
 
@@ -68,5 +70,5 @@ export function captionPages(words: ShortClip["words"], size = 4) {
 export const SHORT_CLIP_DEMO: ShortClip = {
   src: "tg/demo/in.mp4", start: 0, end: 6, width: 1920, height: 1080, framing: "fit",
   words: [{ start: 0.2, end: 0.6, word: "Kya" }, { start: 0.6, end: 1.0, word: "aapko" }, { start: 1.0, end: 1.4, word: "pata" }, { start: 1.4, end: 1.9, word: "hai?" }, { start: 2.3, end: 2.8, word: "Ye" }, { start: 2.8, end: 3.4, word: "sach" }, { start: 3.4, end: 4.0, word: "hai!" }],
-  hook: "YE SACH HAI?", handle: "", accent: "#FFD23F", brand: "", logo: "", badge: "", voice: "", voiceSeconds: 0, flash: false
+  hook: "YE SACH HAI?", handle: "", accent: "#FFD23F", brand: "", logo: "", badge: "", voice: "", voiceSeconds: 0, flash: false, sfx: ""
 };

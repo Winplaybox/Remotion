@@ -56,6 +56,7 @@ export const ShortClipComposition: React.FC<ShortClip> = (p) => {
 
       {p.handle ? <div style={{ position: "absolute", bottom: 230, width: "100%", textAlign: "center", fontFamily: FONT.mono, fontWeight: 700, fontSize: 30, color: "#fff", textShadow: "0 2px 6px #000" }}>{p.handle}</div> : null}
       {p.voice ? <Audio src={asset(p.voice)} /> : null}
+      {p.sfx ? <Audio src={staticFile(`sfx/${p.sfx}.mp3`)} volume={0.55} /> : null}
       {p.brand || p.logo ? (
         <div style={{ position: "absolute", top: 70, left: 50, display: "flex", alignItems: "center", gap: 14, background: "rgba(0,0,0,.55)", padding: "10px 22px 10px 12px", borderRadius: 999, border: `3px solid ${p.accent}` }}>
           {p.logo ? <Img src={asset(p.logo)} style={{ width: 54, height: 54, borderRadius: 27, objectFit: "cover" }} /> : null}
@@ -92,7 +93,7 @@ export const HighlightReelComposition: React.FC<HighlightReel> = (r) => {
   let at = intro;
   const seqs = r.clips.map((c, i) => {
     const d = Math.max(1, Math.round((c.end - c.start) * FPS)), from = at; at += d;
-    return <Sequence key={i} from={from} durationInFrames={d}><ShortClipComposition {...c} accent={r.accent} brand={r.brand} logo={r.logo} flash={i > 0} /></Sequence>;
+    return <Sequence key={i} from={from} durationInFrames={d}><ShortClipComposition {...c} accent={r.accent} brand={r.brand} logo={r.logo} flash={i > 0} sfx={i === r.clips.length - 1 ? "ding" : i > 0 ? "whoosh" : ""} /></Sequence>;
   });
   return (
     <AbsoluteFill style={{ background: "#000" }}>
