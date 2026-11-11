@@ -34,6 +34,12 @@ import { ActionSheet, CharacterSheet } from "@visuals/rig/CharacterSheet";
 import { StyleShowcase } from "@visuals/styles";
 import { SPRITE, SpriteFrame } from "@visuals/rig/SpriteFrame";
 import { JasoosBanner, JasoosLogo } from "../../../../engines/liar-lineup/src/BrandArt";
+import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from "../../../../engines/code-lock/src/model";
+// Remotion 4 expects a ZodObject for its `schema` prop. CodeLockSchema adds
+// cross-field validation with superRefine(), which wraps the object in ZodEffects.
+// Keep the refined schema for generation/QA and expose its underlying object here.
+const CodeLockRemotionSchema = CodeLockSchema._def.schema;
+import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -45,9 +51,14 @@ const STORY_DEMO = epicBharatSagaForDay(1);
 const video = { fps: MASTER_VIDEO.fps, width: MASTER_VIDEO.width, height: MASTER_VIDEO.height };
 
 const TEMPLATE_DEMO = templateForDay(1);
+const CODE_LOCK_DEMO = codeLockForDay(1);
 
 export const Root: React.FC = () => (
   <>
+    <Folder name="DimaagLock">
+      <Composition id="CodeLock" component={CodeLockComposition} schema={CodeLockRemotionSchema} {...video} durationInFrames={codeLockDuration(CODE_LOCK_DEMO)} defaultProps={CODE_LOCK_DEMO}
+        calculateMetadata={({ props }: { props: CodeLock }) => ({ durationInFrames: codeLockDuration(props) })} />
+    </Folder>
         <Folder name="LiarLineup">
       <Composition id="LiarLineup" component={LiarLineupComposition} schema={LiarLineupSchema} {...video} durationInFrames={liarLineupDuration(liarLineupForDay(1))} defaultProps={liarLineupForDay(1)}
         calculateMetadata={async ({ props }: { props: LiarLineup }) => {

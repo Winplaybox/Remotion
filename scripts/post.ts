@@ -52,6 +52,7 @@ async function main() {
   }
 
   const props = cfg.resolve(n) as Record<string, unknown>;
+  const edgeVoice = (cfg as { voiceName?: string }).voiceName || process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural";
   if (cfg.narrated && !prerendered) {
     const story = props as { scenes: { audio?: string; narration: string }[] };
     const audioDir = path.join("public", "audio", channel, tag);
@@ -63,7 +64,7 @@ async function main() {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       console.log(`[narration] generating ${missing()} missing scene(s) with Edge TTS`);
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", ...(flag("refresh-narration") ? [] : ["--missing-only"]), "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", ...(flag("refresh-narration") ? [] : ["--missing-only"]), "--edge-voice", edgeVoice], { stdio: "inherit" });
       } catch (e) {
         console.warn(`[narration] Edge TTS failed: ${(e as Error).message}`);
       }
@@ -82,7 +83,7 @@ async function main() {
     if (flag("auto-narrate")) {
       const py = process.env.PYTHON || (process.platform === "win32" ? "python" : "python3");
       try {
-        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural"], { stdio: "inherit" });
+        execFileSync(py, ["scripts/narration/narrate.py", "--channel", channel, "--n", String(n), "--engine", "edge", "--missing-only", "--edge-voice", edgeVoice], { stdio: "inherit" });
       } catch (e) {
         console.warn(`[voice] Edge TTS failed, posting without voice: ${(e as Error).message}`);
       }

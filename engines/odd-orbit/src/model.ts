@@ -103,9 +103,9 @@ const LEVELS = [
 
 /**
  * From this post on puzzles are harder: more elements, a subtler odd one, less time.
- * Posts before it are already rendered/published — never change what they produce (answers + auto-replies depend on it).
+ * Posts before it are already published — never change what they produce (answers + auto-replies depend on it).
  */
-export const HARD_FROM = 19;
+export const HARD_FROM = 10;
 export const HARD_LEVELS = [
   { difficulty: "easy", cols: 7, count: 63, jitter: 0.12, strength: 0.7 },
   { difficulty: "medium", cols: 8, count: 88, jitter: 0.16, strength: 0.58 },

@@ -1,0 +1,108 @@
+name: Workflow Dispatcher
+
+# One manual entry point for dispatching supported workflows in this repository.
+# The target workflow must declare workflow_dispatch.
+on:
+  workflow_dispatch:
+    inputs:
+      workflow_file:
+        description: "Pipeline to trigger"
+        required: true
+        type: choice
+        options:
+          - bot-maintenance.yml
+          - prepare-voice.yml
+          - publish-bot.yml
+          - publish-channels.yml
+          - render-engine-artifact.yml
+          - verify-secrets.yml
+          - voice-bakeoff.yml
+      target_ref:
+        description: "Branch or tag to run the selected workflow from"
+        required: true
+        default: main
+        type: string
+      inputs_json:
+        description: 'Target workflow inputs as a JSON object, e.g. {"channel":"epicbharatsaga","n":"3","date":"2026-11-10","slot":"0","youtube":true,"meta":false}'
+        required: false
+        default: "{}"
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: workflow-dispatcher-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate request
+        id: request
+        env:
+          TARGET_WORKFLOW: ${{ inputs.workflow_file }}
+          TARGET_REF: ${{ inputs.target_ref }}
+          INPUTS_JSON: ${{ inputs.inputs_json }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          case "$TARGET_WORKFLOW" in
+            bot-maintenance.yml|prepare-voice.yml|publish-bot.yml|publish-channels.yml|render-engine-artifact.yml|verify-secrets.yml|voice-bakeoff.yml)
+              ;;
+            *)
+              echo "::error::Target workflow is not in the approved allowlist."
+              exit 1
+              ;;
+          esac
+
+          if [[ -z "$TARGET_REF" ]]; then
+            echo "::error::target_ref cannot be empty."
+            exit 1
+          fi
+
+          if ! printf '%s' "$INPUTS_JSON" | jq -e '
+            type == "object" and
+            all(to_entries[]; (.key | type == "string" and length > 0) and
+              (.value | (type == "string" or type == "boolean" or type == "number")))
+          ' >/dev/null; then
+            echo "::error::inputs_json must be a JSON object containing only string, boolean, or number values."
+            exit 1
+          fi
+
+          echo "workflow=$TARGET_WORKFLOW" >> "$GITHUB_OUTPUT"
+          echo "ref=$TARGET_REF" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch selected workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          TARGET_WORKFLOW: ${{ steps.request.outputs.workflow }}
+          TARGET_REF: ${{ steps.request.outputs.ref }}
+          INPUTS_JSON: ${{ inputs.inputs_json }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          payload="$(jq -cn --arg ref "$TARGET_REF" --argjson inputs "$INPUTS_JSON" '{ref: $ref, inputs: $inputs}')"
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --output "$response_file" --write-out '%{http_code}' \
+            --request POST \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --header "Content-Type: application/json" \
+            --data "$payload" \
+            "https://api.github.com/repos/$REPOSITORY/actions/workflows/$TARGET_WORKFLOW/dispatches")"
+
+          if [[ "$status" != "204" ]]; then
+            echo "::error::GitHub rejected the dispatch (HTTP $status)."
+            cat "$response_file"
+            exit 1
+          fi
+
+          echo "Successfully dispatched $TARGET_WORKFLOW from ref $TARGET_REF."
+          echo "GitHub Actions accepted the dispatch request. Open the Actions tab to monitor the new run."
