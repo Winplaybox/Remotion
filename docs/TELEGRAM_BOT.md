@@ -57,6 +57,7 @@ Every action runs as the admin's own bot command, so it is also logged in the ad
 
 **Viral picking:** Gemini scores every candidate moment 0–100 (hook in 2 s, emotion, curiosity gap, punchline, standalone payoff) and returns candidates; the top N win overlaps and the count. Without Gemini, `viralScore()` (hook words, questions, numbers, exclamations, speech density) ranks dense-speech windows. Clips are delivered best first (#1 …).
 **Best-of reel (`HighlightReel`):** title card → clips #N…#1 (each ≤ 15 s on a sentence end, total ≤ 165 s) with rank badge, flash cuts, branding pill, Gemini-written one-line intros spoken by Edge TTS (original audio ducked while the voice talks) → CTA outro. **Thumbnail (`ShortThumbnail`):** frame of the #1 moment + big title + brand.
+**Voice-over (Kokoro-82M, free):** `scripts/telegram/kokoro.py`; default `hm_omega` (Hindi male) / `af_heart` (English); override with env `KOKORO_VOICE` (hm_psi, hf_alpha, hf_beta…). Hindi voices need Devanagari text, so Gemini writes the intros in Devanagari. Falls back to Edge TTS (`TTS_ENGINE=edge` forces it).
 **Branding:** payload `brand: { name, logo?, accent?, handle }` (or env `BRAND_NAME`, `BRAND_HANDLE`); `reel: false` skips the reel.
 
 Worker `scripts/telegram/make-shorts.ts` (GitHub job `shorts`, up to 90 min): normalise → faster-whisper (`small`, CPU int8,
