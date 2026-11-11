@@ -210,7 +210,9 @@ test("/shorts from a video caption, a reply, or a link; limits and defaults", as
   assert.equal(cap.dispatch.event, "tg-shorts");
   assert.deepEqual([cap.dispatch.payload.fileId, cap.dispatch.payload.count, cap.dispatch.payload.seconds], ["L1", 2, 30]);
   const link = await handle(msg("/shorts https://example.com/talk.mp4", CREATOR), c);
-  assert.deepEqual([link.dispatch.payload.url, link.dispatch.payload.count, link.dispatch.payload.seconds], ["https://example.com/talk.mp4", 3, 45]);
+  assert.deepEqual([link.dispatch.payload.url, link.dispatch.payload.count, link.dispatch.payload.seconds], ["https://example.com/talk.mp4", 10, 45]); // default: best 10 viral clips
+  const capped = await handle(msg("/shorts https://example.com/talk.mp4 10 60", CREATOR), c);
+  assert.deepEqual([capped.dispatch.payload.count, capped.dispatch.payload.seconds], [10, 60]);
   const big = await handle(msg(undefined, CREATOR, { video: { file_id: "L", file_size: 80_000_000 }, caption: "/shorts" }), c);
   assert.match(big.replies[0].text, /link bhejo/);
   assert.match((await handle(msg("/shorts", CREATOR), c)).replies[0].text, /Lambi video/);
