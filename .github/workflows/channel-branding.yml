@@ -1,0 +1,39 @@
+name: Channel Branding
+
+# Sets YouTube description, keywords, banner and watermark from channels/branding.ts (country left blank).
+# The profile picture is not settable through the API: download the "branding" files and upload logo.png in Studio.
+on:
+  workflow_dispatch:
+    inputs:
+      channel: { description: "one channel id (empty = all in channels/branding.ts)", required: false, default: "" }
+      apply: { description: "apply on YouTube (false = only render the files)", type: boolean, default: true }
+
+permissions:
+  contents: write
+
+jobs:
+  branding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
+      YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+      YT_TOKEN_DIMAAG_LOCK: ${{ secrets.YT_TOKEN_DIMAAG_LOCK }}
+      YT_TOKEN_DIMAAG_LOCK_CLIENT: ${{ secrets.YT_TOKEN_DIMAAG_LOCK_CLIENT }}
+      YT_TOKEN_LIAR_LINEUP: ${{ secrets.YT_TOKEN_LIAR_LINEUP }}
+      YT_TOKEN_LIAR_LINEUP_CLIENT: ${{ secrets.YT_TOKEN_LIAR_LINEUP_CLIENT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      - run: npx ts-node scripts/publish/branding.ts ${{ inputs.apply && '--apply' || '' }} ${{ inputs.channel && format('--channel {0}', inputs.channel) || '' }}
+      - name: Push files to the branding branch (logo.png to upload in YouTube Studio)
+        if: always()
+        run: |
+          cd out/branding && rm -f .props-*.json
+          git init -q -b branding && git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "branding $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" branding

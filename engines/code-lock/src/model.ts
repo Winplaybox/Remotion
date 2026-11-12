@@ -13,6 +13,8 @@ export const CodeLockSchema = z.object({
   voice: z.array(z.object({ src: z.string(), at: z.number().min(0) })).default([]),
   sound: z.boolean().default(true),
   brand: z.string(),
+  /** Look from the style catalogue (packages/visuals/src/styles), "" = plain. */
+  style: z.string().default(""),
   handle: z.string(),
   postNo: z.number().int().min(1),
   title: z.string(),
@@ -76,7 +78,7 @@ export function codeLockForDay(day: number): CodeLock {
   const playSeconds = 17;
   const palette = PALETTES[(d - 1) % PALETTES.length]!;
   return {
-    voice: [], sound: true, brand: "DIMAAG LOCK", handle: "@DimaagLock", postNo: d,
+    voice: [], sound: true, style: "sci-fi-hud", brand: "DIMAAG LOCK", handle: "@DimaagLock", postNo: d,
     title: "CRACK THE CODE", subtitle: `${digits} digits. 5 clues. One secret code.`,
     digits, code: generated.code, clues: generated.clues, seed: generated.seed, playSeconds,
     introSeconds: previous ? 2.6 : 0, prevAnswer: previous ? `THE CODE WAS ${previous}` : "",
@@ -101,7 +103,9 @@ export function codeLockVoiceLines(p: CodeLock) {
   return [
     ...(start ? [{ file: "prev.wav", at: 0.2, text: `The previous code was ${p.prevAnswer.replace("THE CODE WAS ", "")}.` }] : []),
     { file: "hook.wav", at: start + 0.25, text: `Can you crack this ${p.digits} digit code? Study all five clues.` },
-    ...p.clues.map((c, i) => ({ file: `clue-${i + 1}.wav`, at: start + 2.1 + i * 2.15, text: `Clue ${i + 1}. ${c.guess.split("").join(" ")}. ${c.correct} digits are correct, and ${c.rightPlace} are in the right position.` })),
+    // Viewers read the clues on screen; reading every clue aloud ran longer than the clue timing and voices overlapped.
+    { file: "rule.wav", at: start + 3.4, text: "Each clue shows how many digits are correct, and how many are in the right place." },
+    { file: "think.wav", at: start + 9.5, text: "Only one code fits every clue. Find it!" },
     { file: "hurry.wav", at: start + p.playSeconds - 2.5, text: "Time is almost up. Lock in your answer." },
     ...askOutroVoice(p.askOutro, start + p.playSeconds)
   ];

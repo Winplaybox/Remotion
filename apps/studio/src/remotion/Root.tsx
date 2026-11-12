@@ -34,6 +34,7 @@ import { ActionSheet, CharacterSheet } from "@visuals/rig/CharacterSheet";
 import { StyleShowcase } from "@visuals/styles";
 import { SPRITE, SpriteFrame } from "@visuals/rig/SpriteFrame";
 import { JasoosBanner, JasoosLogo } from "../../../../engines/liar-lineup/src/BrandArt";
+import { ChannelArt, type ChannelArtProps } from "@visuals/ChannelArt";
 import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from "../../../../engines/code-lock/src/model";
 // Remotion 4 expects a ZodObject for its `schema` prop. CodeLockSchema adds
 // cross-field validation with superRefine(), which wraps the object in ZodEffects.
@@ -75,6 +76,9 @@ export const Root: React.FC = () => (
       <Still id="SpriteFrame" component={SpriteFrame} width={SPRITE.width} height={SPRITE.height} defaultProps={{ id: "jasoos" as const, action: "idle" as const, frame: 0 }} />
       <Still id="JasoosLogo" component={JasoosLogo} width={800} height={800} />
       <Still id="JasoosBanner" component={JasoosBanner} width={2560} height={1440} />
+      <Still id="ChannelBanner" component={ChannelArt as unknown as React.FC<Record<string, unknown>>} width={2560} height={1440} defaultProps={{ kind: "banner", title: "CHAKRA PUZZLE", tagline: "Kitna tez hai tumhara dimaag?", handle: "@ChakraPuzzle", schedule: "Roz 3 puzzles", colors: { bg1: "#120B33", bg2: "#3B1C7A", accent: "#FFD23F", text: "#FFFFFF" }, icon: "chakra" } satisfies ChannelArtProps as unknown as Record<string, unknown>} />
+      <Still id="ChannelLogo" component={ChannelArt as unknown as React.FC<Record<string, unknown>>} width={800} height={800} defaultProps={{ ...{ kind: "banner", title: "CHAKRA PUZZLE", tagline: "Kitna tez hai tumhara dimaag?", handle: "@ChakraPuzzle", schedule: "Roz 3 puzzles", colors: { bg1: "#120B33", bg2: "#3B1C7A", accent: "#FFD23F", text: "#FFFFFF" }, icon: "chakra" } satisfies ChannelArtProps, kind: "logo" } as unknown as Record<string, unknown>} />
+      <Still id="ChannelWatermark" component={ChannelArt as unknown as React.FC<Record<string, unknown>>} width={300} height={300} defaultProps={{ ...{ kind: "banner", title: "CHAKRA PUZZLE", tagline: "Kitna tez hai tumhara dimaag?", handle: "@ChakraPuzzle", schedule: "Roz 3 puzzles", colors: { bg1: "#120B33", bg2: "#3B1C7A", accent: "#FFD23F", text: "#FFFFFF" }, icon: "chakra" } satisfies ChannelArtProps, kind: "watermark" } as unknown as Record<string, unknown>} />
       <Composition id="CharacterSheetMotion" component={CharacterSheet} {...video} durationInFrames={150} defaultProps={{ category: "detective" as const, action: "talk" as const }} />
     </Folder>
 {/* @engine-builder:compositions */}
