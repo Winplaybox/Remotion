@@ -1,0 +1,39 @@
+name: Channel Stats
+
+# YouTube performance per channel (Data + Analytics API) -> branch channel-stats (report.md, stats.json).
+on:
+  schedule:
+    - cron: "17 2 * * *" # daily ~07:47 IST
+  pull_request:
+    paths: ["scripts/publish/stats.ts", ".github/workflows/channel-stats.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      YT_TOKEN_CHAKRA_PUZZLE: ${{ secrets.YT_TOKEN_CHAKRA_PUZZLE }}
+      YT_TOKEN_KAALI_PEELI_CHASE: ${{ secrets.YT_TOKEN_KAALI_PEELI_CHASE }}
+      YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}
+      YT_TOKEN_EPICBHARATSAGA_CLIENT: ${{ secrets.YT_TOKEN_EPICBHARATSAGA_CLIENT }}
+      YT_TOKEN_DIMAAG_LOCK: ${{ secrets.YT_TOKEN_DIMAAG_LOCK }}
+      YT_TOKEN_DIMAAG_LOCK_CLIENT: ${{ secrets.YT_TOKEN_DIMAAG_LOCK_CLIENT }}
+      YT_TOKEN_LIAR_LINEUP: ${{ secrets.YT_TOKEN_LIAR_LINEUP }}
+      YT_TOKEN_LIAR_LINEUP_CLIENT: ${{ secrets.YT_TOKEN_LIAR_LINEUP_CLIENT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+      - run: npx ts-node scripts/publish/stats.ts --days 28
+      - name: Push report to the channel-stats branch
+        run: |
+          cd out/channel-stats
+          git init -q -b channel-stats && git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -qm "stats $(date -u +%FT%TZ)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" channel-stats

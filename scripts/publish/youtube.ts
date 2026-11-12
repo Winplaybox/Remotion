@@ -6,6 +6,11 @@ interface UploadArgs { video: string; meta: PostMeta; publishAt: string; tokenJs
 
 /** Upload as private + scheduled publishAt, then read back to verify the schedule. Returns the video ID. */
 export function youtubeClient(tokenJson?: string, clientSecretJson?: string) {
+  return google.youtube({ version: "v3", auth: youtubeAuth(tokenJson, clientSecretJson) });
+}
+
+/** OAuth client for a channel token (also used for YouTube Analytics). */
+export function youtubeAuth(tokenJson?: string, clientSecretJson?: string) {
   if (!tokenJson) throw new Error("YouTube: missing the channel token secret");
   const t = JSON.parse(tokenJson);
   // Python google-auth "authorized_user" tokens (colab-YT) carry their own client_id/client_secret.
@@ -15,7 +20,7 @@ export function youtubeClient(tokenJson?: string, clientSecretJson?: string) {
   const auth = new google.auth.OAuth2(c.client_id, c.client_secret, "http://localhost");
   const access = t.access_token ?? (typeof t.token === "string" ? t.token : undefined);
   auth.setCredentials({ refresh_token: t.refresh_token, access_token: access, token_type: "Bearer" });
-  return google.youtube({ version: "v3", auth });
+  return auth;
 }
 
 /** Slot time, or ~15 min from now when the slot has already passed (YouTube needs publishAt in the future). */
