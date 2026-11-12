@@ -1,6 +1,6 @@
 /**
  * Channel branding: renders banner / logo / watermark (channels/branding.ts) and, with --apply, sets on YouTube:
- * description, keywords, default language (country left blank), banner and watermark.
+ * description, keywords, default language, banner and watermark. Country and other channel settings are kept as they are.
  * The profile picture cannot be set through the API — upload out/branding/<channel>/logo.png in YouTube Studio.
  *
  *   npx ts-node scripts/publish/branding.ts [--apply] [--channel dimaag-lock]
@@ -62,8 +62,8 @@ async function apply(id: string, b: ChannelBrand, dir: string) {
   if (!ch?.id) throw new Error(`${id}: no channel for ${b.tokenSecret}`);
   const bannerFile = fs.existsSync(path.join(dir, "banner.jpg")) ? path.join(dir, "banner.jpg") : path.join(dir, "banner.png");
   const banner = await yt.channelBanners.insert({ media: { mimeType: bannerFile.endsWith(".jpg") ? "image/jpeg" : "image/png", body: fs.createReadStream(bannerFile) } });
+  // Everything else on the channel (country, trailer, …) is sent back unchanged — never touched here.
   const channel = { ...(ch.brandingSettings?.channel ?? {}), description: b.description, keywords: keywordField(b.keywords), defaultLanguage: b.language };
-  delete (channel as { country?: string }).country; // blank on purpose
   await yt.channels.update({ part: ["brandingSettings"], requestBody: { id: ch.id, brandingSettings: { channel, image: { bannerExternalUrl: banner.data.url! } } } });
   await yt.watermarks.set({ channelId: ch.id, requestBody: { position: { type: "corner", cornerPosition: "topRight" }, timing: { type: "offsetFromStart", offsetMs: "0" } },
     media: { mimeType: "image/png", body: fs.createReadStream(path.join(dir, "watermark.png")) } });

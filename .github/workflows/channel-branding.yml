@@ -1,6 +1,6 @@
 name: Channel Branding
 
-# Sets YouTube description, keywords, banner and watermark from channels/branding.ts (country left blank).
+# Sets YouTube description, keywords, banner and watermark from channels/branding.ts (country is never changed).
 # The profile picture is not settable through the API: download the "branding" files and upload logo.png in Studio.
 on:
   workflow_dispatch:
