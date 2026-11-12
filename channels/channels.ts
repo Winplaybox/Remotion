@@ -245,11 +245,10 @@ export const CHANNELS = {
   "liar-lineup": {
     name: "Jasoos Bhai",
     composition: "LiarLineup",
-    // Disabled until approved: set repo variables START_LIAR_LINEUP=<date> and LIVE_LIAR_LINEUP=true.
-    startDate: "2099-01-01",
+    startDate: "2026-11-12",
     slots: ["07:15", "13:15", "20:15"],
     narrated: false,
-    autoPublish: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_LIAR_LINEUP",
     metaSecretPrefix: "META_LIAR_LINEUP",
     youtubeHandle: "@JasoosBhaiCases",
