@@ -18,6 +18,7 @@ import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId, type Voice
 import { uploadYouTube } from "./publish/youtube";
 import { fanout } from "./publish/social";
 import { narrateArgs } from "../channels/voices";
+import { spaceCues } from "./voice-timing";
 import { ledgerEnabled, ledgerRecord, ledgerSocial, ledgerStatus } from "./ledger";
 
 const args = process.argv.slice(2);
@@ -88,7 +89,14 @@ async function main() {
         console.warn(`[voice] TTS failed, posting without voice: ${(e as Error).message}`);
       }
     }
-    const cues = lines.filter((l) => fs.existsSync(path.join(audioDir, l.file))).map((l) => ({ src: `audio/${channel}/${tag}/${l.file}`, at: l.at }));
+    const seconds = (f: string) => { try { return Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f]).toString().trim()) || 0; } catch { return 0; } };
+    const timed = lines.filter((l) => fs.existsSync(path.join(audioDir, l.file)))
+      .map((l) => ({ src: `audio/${channel}/${tag}/${l.file}`, at: l.at, dur: seconds(path.join(audioDir, l.file)) }));
+    // Never two voice clips at once: a clip that would start before the previous one ends is moved after it.
+    const spaced = spaceCues(timed);
+    const moved = spaced.filter((c) => c.at - (timed.find((t) => t.src === c.src)?.at ?? c.at) > 0.05);
+    if (moved.length) console.log(`[voice] moved ${moved.length} clip(s) so voices never overlap: ${moved.map((c) => `${path.basename(c.src)}→${c.at}s`).join(", ")}`);
+    const cues = spaced.map(({ src, at }) => ({ src, at }));
     (props as { voice?: unknown }).voice = cues;
     voiced = cues.length > 0;
     console.log(`[voice] ${cues.length}/${lines.length} clips`);

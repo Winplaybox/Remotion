@@ -5,6 +5,7 @@ import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
 import { PrevAnswerCard } from "@visuals/PrevAnswer";
 import { AskOutro } from "@visuals/AskOutro";
+import { StyledScene } from "@visuals/styles";
 import { askOutroSfx, followTapAt } from "../../ask-outro";
 import type { CodeLock } from "./model";
 
@@ -25,10 +26,8 @@ export const CodeLockComposition: React.FC<CodeLock> = (p) => {
     ...askOutroSfx(p.askOutro, p.introSeconds + p.playSeconds)
   ];
   const clueY = (i: number) => 590 + i * 164;
-  return (
+  const scene = (
     <AbsoluteFill style={{ background: `radial-gradient(ellipse at 50% 35%, ${p.palette.panel}, ${p.palette.bgTop} 62%, ${p.palette.bgBottom})` }}>
-      <VoiceCues cues={p.voice} />
-      {p.sound ? <SoundBed music="sfx/music_puzzle.mp3" musicVolume={0.15} duck={duckFromCues(p.voice)} sfx={sfx} /> : null}
       <div style={{ position: "absolute", top: 58, left: 54, right: 54, display: "flex", justifyContent: "space-between", alignItems: "center", color: "#fff", fontFamily: FONT.ui, fontWeight: 900, fontSize: 29 }}>
         <span style={{ letterSpacing: 3 }}>{p.brand}</span>
         <span style={{ color: p.palette.gold, fontFamily: FONT.display, fontSize: 44 }}>#{String(p.postNo).padStart(3, "0")}</span>
@@ -61,6 +60,14 @@ export const CodeLockComposition: React.FC<CodeLock> = (p) => {
       <div style={{ position: "absolute", top: 1400, right: 82, color: p.palette.accent, fontFamily: FONT.mono, fontWeight: 800, fontSize: 22, letterSpacing: 1, opacity: 0.72, textShadow: `0 0 12px ${p.palette.accent}99` }}>@DimaagLock</div>
       <AskOutro from={introFrames + p.playSeconds * fps} a={p.askOutro} accent={p.palette.accent} tapAt={followTapAt(p.askOutro)} />
       {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PREVIOUS PUZZLE #${String(p.postNo - 1).padStart(3, "0")} ANSWER`} answer={p.prevAnswer} accent={p.palette.accent} bg={`linear-gradient(180deg, ${p.palette.bgTop}, ${p.palette.bgBottom})`} /> : null}
+    </AbsoluteFill>
+  );
+  return (
+    <AbsoluteFill>
+      <VoiceCues cues={p.voice} />
+      {p.sound ? <SoundBed music="sfx/music_puzzle.mp3" musicVolume={0.15} duck={duckFromCues(p.voice)} sfx={sfx} /> : null}
+      {/* Channel look from the code-only style catalogue (e.g. sci-fi-hud: vault / hacker HUD). */}
+      {p.style ? <StyledScene style={p.style}>{scene}</StyledScene> : scene}
     </AbsoluteFill>
   );
 };
