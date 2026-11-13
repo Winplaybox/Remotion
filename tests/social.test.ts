@@ -24,14 +24,17 @@ describe("social copy", () => {
 
 describe("social fan-out", () => {
   const env = { ...process.env };
+  const realFetch = global.fetch;
   beforeEach(() => {
+    // Meta token check (metaTokenAlive): the token is alive.
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({ id: "1" }))) as unknown as typeof fetch;
     jest.useFakeTimers({ doNotFake: ["nextTick", "setImmediate"] });
     jest.setSystemTime(Date.parse("2026-11-09T01:00:00Z"));
     Object.assign(process.env, { META_CHAKRA_PAGE_TOKEN: "t", META_CHAKRA_IG_USER_ID: "ig", META_CHAKRA_PAGE_ID: "pg" });
     delete process.env.PINTEREST_APP_ID;
     jest.clearAllMocks();
   });
-  afterEach(() => { jest.useRealTimers(); process.env = { ...env }; });
+  afterEach(() => { jest.useRealTimers(); process.env = { ...env }; global.fetch = realFetch; });
 
   it("posts Instagram at +5 and Facebook teaser at +10 min after YouTube, records each, skips Pinterest without secrets", async () => {
     const recorded: [Platform, SocialResult][] = [];
