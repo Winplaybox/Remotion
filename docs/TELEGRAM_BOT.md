@@ -180,3 +180,14 @@ Free Render plan sleeps after 15 min idle: the first message after a pause takes
 npm run test:bot                                  # command parsing
 PAYLOAD='{"kind":"topic","narrator":"jasoos","text":"x","chatId":"1"}' npm run bot:video -- --dry   # demo render, no AI/TTS/Telegram
 ```
+
+## Cold starts (Render free tier)
+
+Render's free service sleeps after 15 min idle and takes ~50–60 s to boot. Telegram's webhook call times out during
+that boot and Telegram backs off, so messages went unanswered until someone opened the dashboard. Fix: an always-on
+relay, `supabase/functions/tg-relay`, answers Telegram at once, shows "typing…", and keeps forwarding the update to
+Render until it is awake (the bot dedupes by `update_id`, so retries are safe). No 24/7 keep-alive ping.
+
+1. `supabase secrets set TELEGRAM_BOT_TOKEN=... BOT_URL=https://bot.winplaybox.in` (plus `TG_WEBHOOK_SECRET` if the bot uses one)
+2. `supabase functions deploy tg-relay --no-verify-jwt`
+3. On Render set `TG_WEBHOOK_URL=https://<project-ref>.supabase.co/functions/v1/tg-relay` — the bot points the webhook there on its next boot.
