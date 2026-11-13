@@ -1,6 +1,6 @@
 /**
  * Credentials for a channel's Instagram/Facebook/Pinterest.
- * 1. GitHub secrets (META_<X>_*, PINTEREST_<X>_*) if set — manual override.
+ * 1. GitHub secrets (META_<X>_*, PINTEREST_<X>_*) if set — manual override (an expired Meta secret is skipped).
  * 2. Otherwise the accounts connected in the admin dashboard (videobot.social_accounts), decrypted with the key
  *    derived from SUPABASE_SERVICE_ROLE_KEY (same as apps/telegram-bot/social-connect.mjs).
  * Pinterest access tokens expire (~30 days): when one is close to expiry the bot server refreshes it
@@ -31,12 +31,42 @@ async function row(channel: string, platform: "meta" | "pinterest"): Promise<Row
   return (await r.json()) as Row | null;
 }
 
+/**
+ * True unless Meta says the token itself is dead (expired / revoked: OAuthException 190 or 102). A network or Graph
+ * outage counts as alive, so a hiccup never hides a working account.
+ */
+export async function metaTokenAlive(token: string): Promise<boolean> {
+  const v = process.env.META_GRAPH_API_VERSION ?? "v25.0";
+  try {
+    const r = await fetch(`https://graph.facebook.com/${v}/me?fields=id&access_token=${encodeURIComponent(token)}`, { signal: AbortSignal.timeout(20_000) });
+    if (r.ok) return true;
+    const d = (await r.json().catch(() => ({}))) as { error?: { code?: number; type?: string } };
+    return !(d.error?.code === 190 || d.error?.code === 102);
+  } catch { return true; }
+}
+
+/**
+ * Secrets first (manual override), then the dashboard connection — but a secret token Meta has expired is skipped,
+ * so an old secret can never shadow a fresh dashboard connection. If no live token is left, nothing is posted and
+ * the log says why (instead of waiting for the slot and then failing).
+ */
 export async function metaCreds(channel: string, cfg: Pick<ChannelConfig, "metaSecretPrefix">): Promise<MetaCreds> {
   const p = cfg.metaSecretPrefix;
-  if (process.env[`${p}_PAGE_TOKEN`]) return { pageId: process.env[`${p}_PAGE_ID`], igUserId: process.env[`${p}_IG_USER_ID`], pageToken: process.env[`${p}_PAGE_TOKEN`], source: "secrets" };
+  const dead: string[] = [];
+  const secret = process.env[`${p}_PAGE_TOKEN`];
+  if (secret) {
+    if (await metaTokenAlive(secret)) return { pageId: process.env[`${p}_PAGE_ID`], igUserId: process.env[`${p}_IG_USER_ID`], pageToken: secret, source: "secrets" };
+    console.warn(`[social] ${p}_PAGE_TOKEN secret has expired — trying the dashboard connection`);
+    dead.push("secret");
+  }
   const r = await row(channel, "meta").catch((e: Error) => { console.warn(`[social] ${e.message}`); return null; });
-  if (!r?.token_enc) return { source: "none" };
-  return { pageId: r.page_id || undefined, igUserId: r.ig_user_id || undefined, pageToken: unseal(r.token_enc), source: "dashboard" };
+  if (r?.token_enc) {
+    const token = unseal(r.token_enc);
+    if (await metaTokenAlive(token)) return { pageId: r.page_id || undefined, igUserId: r.ig_user_id || undefined, pageToken: token, source: "dashboard" };
+    console.warn(`[social] dashboard Meta connection for ${channel} has expired — reconnect it (dashboard → Social)`);
+    dead.push("dashboard");
+  }
+  return { source: dead.length ? `none (${dead.join(" + ")} token expired)` : "none" };
 }
 
 const botUrl = () => (process.env.BOT_PUBLIC_URL || "https://telegram-video-bot-quth.onrender.com").replace(/\/$/, "");
