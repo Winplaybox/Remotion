@@ -107,6 +107,17 @@ function nextScene(season: Season, local: number, narration: string, caption: st
 }
 
 const V = SEASONS[0]!;
+const S = SEASONS[1]!;
+
+const SHIVA = { robe: "#8A5A2E", skin: "#7FA7D9", head: "jata", sash: "#3E7A3A", moon: true };
+const SATI = { robe: "#D6336C", head: "bun", item: "namaste", sash: "#F6B93B" };
+const PARVATI = { robe: "#D6336C", head: "bun", sash: "#F6B93B" };
+const DAKSH = { robe: "#F28C28", head: "crown", item: "abhaya" };
+const BRAHMA = { robe: "#C9861A", head: "crown", heads: 4, item: "kamandalu", sash: "#F0533F" };
+const VISHNU = { robe: "#F6B93B", skin: "#4A78B8", head: "crown", item: "abhaya", sash: "#F0533F" };
+const BHAGIRATH = { robe: "#F28C28", head: "crown", item: "namaste" };
+const YAMA = { robe: "#1C1A17", skin: "#3E4656", head: "crown", glowEyes: true, sash: "#8A2A2A" };
+const MARKANDEYA = { robe: "#E06A1B", head: "child", item: "namaste" };
 
 /** Fully authored episodes, keyed by GLOBAL episode number. */
 const EPISODES: Record<number, Ep> = {
@@ -841,7 +852,479 @@ const EPISODES: Record<number, Ep> = {
         layers: [tracker(V, 10)]
       }
     ]
+  }  ,
+  // ---------------- SHIV SEASON (EP11–EP17) ----------------
+
+  // EP11 Neelkanth. Source: Bhagavata Purana 8.7 (halahala at the churning; Shiva drinks it, holds it in his throat, neck turns blue).
+  11: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "SHIV SEASON · AARAMBH", sky: NIGHT_SKY, particles: "stars",
+        narration: "महादेव को नीलकंठ क्यों कहते हैं? क्योंकि उन्होंने पूरी दुनिया का ज़हर पी लिया था।",
+        caption: "Mahadev ko Neelkanth kyun kehte hain? Kyunki unhone poori duniya ka zehar pee liya tha.",
+        headlines: [
+          { at: 0, lines: [{ text: "MAHADEV KA" }, { text: "NEELA GALA?", tone: "accent2" }] },
+          { at: 2.8, lines: [{ text: "NAAM PADA:" }, { text: "NEELKANTH", tone: "accent2" }] }
+        ],
+        layers: [
+          P("moon", 760, 820, { depth: 0.1, idle: "pulse" }),
+          P("mountain", 540, 1500, { depth: 0.3, scale: 1.3, data: { color: "#5E6A86", trees: false } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.6, enter: "rise", data: { ...SHIVA, pose: "seated", item: "abhaya", halo: true } })
+        ]
+      },
+      {
+        id: "manthan", seconds: 6.5, location: "KSHEER SAGAR · MANTHAN", sky: OCEAN_SKY, particles: "bubbles",
+        narration: "समुद्र मंथन चल रहा था। मंदराचल पर्वत की मथानी, वासुकि नाग की रस्सी, और एक तरफ़ देवता, दूसरी तरफ़ असुर।",
+        caption: "Samudra manthan chal raha tha. Mandarachal ki mathani, Vasuki ki rassi, ek taraf devta, doosri taraf asur.",
+        headlines: [{ at: 0, lines: [{ text: "SAMUDRA" }, { text: "MANTHAN", tone: "accent2" }] }],
+        layers: [
+          P("churning", 540, 1460, { depth: 0.9, at: 0.3, enter: "rise", scale: 0.95 }),
+          P("water", 540, 1560, { depth: 0.6, data: { amp: 2, pads: false } })
+        ],
+        labels: [{ text: "VASUKI NAAG", x: 540, y: 980, toX: 540, toY: 1150, at: 2.4 }]
+      },
+      {
+        id: "halahal", seconds: 6.5, location: "PEHLE NIKLA · HALAHAL", sky: FIRE_SKY, particles: "embers",
+        narration: "पर अमृत से पहले निकला, हलाहल विष। उसकी जलन से तीनों लोक काँप उठे।",
+        caption: "Par amrit se pehle nikla HALAHAL vish. Uski jalan se teenon lok kaanp uthe.",
+        headlines: [{ at: 0, lines: [{ text: "AMRIT SE PEHLE" }, { text: "HALAHAL VISH", tone: "accent" }] }],
+        layers: [
+          P("clouds", 540, 980, { depth: 0.3, idle: "drift", data: { count: 5, spread: 280, color: "#3E5A3A" } }),
+          P("water", 540, 1560, { depth: 0.6, data: { amp: 3, pads: false, c1: "#2F4A3A", c2: "#26402F", c3: "#1C3024" } })
+        ]
+      },
+      {
+        id: "drink", seconds: 7, location: "KAILASH · KARUNA", sky: NIGHT_SKY, particles: "stars",
+        narration: "देवता और असुर दोनों महादेव की शरण में गए। करुणा से शिव ने वह विष हथेली में लिया, और पी गए।",
+        caption: "Devta aur asur dono Mahadev ki sharan mein gaye. Karuna se Shiv ne woh vish hatheli mein liya aur pee gaye.",
+        headlines: [{ at: 0, lines: [{ text: "SHIV NE" }, { text: "VISH PEE LIYA", tone: "accent2" }] }],
+        layers: [
+          P("mountain", 540, 1500, { depth: 0.2, scale: 1.2, data: { color: "#4E5876", trees: false } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.4, enter: "rise", data: { ...SHIVA, item: "abhaya", halo: true } }),
+          P("figure", 180, 1580, { depth: 0.8, at: 1.2, enter: "slideRight", scale: 0.6, data: DEVA }),
+          P("figure", 900, 1580, { depth: 0.8, at: 1.4, enter: "slideLeft", scale: 0.6, flip: true, data: ASURA })
+        ]
+      },
+      {
+        id: "neelkanth", seconds: 7.5, location: "NEELKANTH MAHADEV", sky: ["#1B2A4A", "#2F4F7A"], particles: "fireflies",
+        narration: "विष को उन्होंने न अंदर जाने दिया, न बाहर आने दिया। गले में ही रोक लिया। गला नीला हो गया, और नाम पड़ा, नीलकंठ।",
+        caption: "Vish ko na andar jaane diya, na baahar. Gale mein hi rok liya. Gala neela ho gaya, naam pada NEELKANTH.",
+        headlines: [{ at: 0, lines: [{ text: "GALE MEIN" }, { text: "ROKA VISH", tone: "accent3" }] }],
+        layers: [
+          P("figure", 300, 1580, { depth: 1, at: 0.3, enter: "rise", scale: 0.85, data: { ...SHIVA, pose: "seated", item: "trishul", halo: true } }),
+          P("noteCard", 720, 1080, { depth: 0.7, at: 1.2, enter: "drop", scale: 0.8, data: { title: "NEELKANTH:", items: ["VISH GALE MEIN", "DUNIYA BACH GAYI"] } })
+        ]
+      },
+      nextScene(S, 1, "कल देखिए, सती की कहानी, जिसने पिता के यज्ञ में सब बदल दिया। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: SATI ki kahani. Follow kijiye Epic Bharat Saga.", "SATI")
+    ]
+  },
+
+  // EP12 Sati. Source: Bhagavata Purana 4.2–4.7 (Daksha's yajna; Sati gives up her body by yogic fire 4.4; Virabhadra 4.5; Daksha revived with a goat's head 4.7).
+  12: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "DAKSH PRAJAPATI KA GHAR", sky: DAWN_SKY, tone: "dark", particles: "petals",
+        narration: "सती, शिव की पत्नी, और राजा दक्ष की बेटी। पिता के यज्ञ में ऐसा क्या हुआ कि सब बदल गया?",
+        caption: "Sati, Shiv ki patni aur Raja Daksh ki beti. Pita ke yagya mein aisa kya hua?",
+        headlines: [
+          { at: 0, lines: [{ text: "DAKSH KI BETI" }, { text: "SATI", tone: "accent" }] },
+          { at: 2.8, lines: [{ text: "PITA KA" }, { text: "YAGYA…", tone: "accent" }] }
+        ],
+        layers: [
+          P("sun", 540, 900, { depth: 0.1, idle: "pulse", data: { color: "#FFF1C9" } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.5, enter: "rise", data: SATI })
+        ]
+      },
+      {
+        id: "yagya", seconds: 6.5, location: "DAKSH KA MAHAYAGYA", sky: DAWN_SKY, tone: "dark", particles: "embers",
+        narration: "दक्ष ने बड़ा यज्ञ किया। सारे देवता बुलाए गए, पर अपने दामाद शिव को नहीं।",
+        caption: "Daksh ne bada yagya kiya. Saare devta bulaaye, par apne damaad Shiv ko nahi.",
+        headlines: [{ at: 0, lines: [{ text: "SABKO BULAYA," }, { text: "SHIV KO NAHI", tone: "accent" }] }],
+        layers: [
+          P("temple", 780, 1480, { depth: 0.3, scale: 0.8 }),
+          P("diyaRow", 540, 1640, { depth: 0.6 }),
+          P("figure", 330, 1580, { depth: 1, at: 0.4, enter: "slideRight", data: DAKSH })
+        ]
+      },
+      {
+        id: "apmaan", seconds: 7, location: "YAGYA SABHA", sky: FIRE_SKY, particles: "embers",
+        narration: "शिव ने रोका, फिर भी सती पिता के घर गईं। वहाँ सबके सामने दक्ष ने शिव का अपमान किया।",
+        caption: "Shiv ne roka, phir bhi Sati pita ke ghar gayin. Wahan sabke saamne Daksh ne Shiv ka apmaan kiya.",
+        headlines: [{ at: 0, lines: [{ text: "SABHA MEIN" }, { text: "SHIV KA APMAAN", tone: "accent" }] }],
+        layers: [
+          P("figure", 300, 1580, { depth: 1, at: 0.3, enter: "rise", data: DAKSH }),
+          P("figure", 780, 1580, { depth: 1, at: 0.8, enter: "slideLeft", flip: true, data: SATI })
+        ]
+      },
+      {
+        id: "tyaag", seconds: 7, location: "YOG AGNI", sky: FIRE_SKY, particles: "embers", camera: "still",
+        narration: "पति का अपमान सती सह न सकीं। उन्होंने योग की अग्नि से अपना शरीर त्याग दिया।",
+        caption: "Pati ka apmaan Sati seh na sakin. Unhone yog ki agni se apna shareer tyaag diya.",
+        headlines: [{ at: 0, lines: [{ text: "YOG AGNI SE" }, { text: "SATI KA TYAAG", tone: "accent2" }] }],
+        layers: [
+          P("sun", 540, 1200, { depth: 0.2, idle: "pulse", data: { color: "#FFB36B" } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.3, enter: "fade", data: { ...SATI, pose: "seated", halo: true } })
+        ]
+      },
+      {
+        id: "veerbhadra", seconds: 7, location: "KAILASH · KRODH", sky: STORM_SKY, particles: "rain",
+        narration: "क्रोधित शिव ने अपनी जटा से वीरभद्र को प्रकट किया, और वीरभद्र ने दक्ष का यज्ञ नष्ट कर दिया।",
+        caption: "Krodhit Shiv ne apni jata se Veerbhadra ko prakat kiya, aur Veerbhadra ne Daksh ka yagya nasht kar diya.",
+        headlines: [{ at: 0, lines: [{ text: "JATA SE" }, { text: "VEERBHADRA", tone: "accent" }] }],
+        layers: [
+          P("clouds", 540, 860, { depth: 0.2, idle: "drift", data: { count: 4, spread: 260, color: "#4A5262" } }),
+          P("figure", 540, 1600, { depth: 1, at: 0.4, enter: "rise", scale: 1.15, data: { robe: "#3A2A2A", skin: "#4A4660", head: "jata", item: "sword", glowEyes: true } })
+        ]
+      },
+      {
+        id: "shaant", seconds: 6.5, location: "YAGYA POORA", sky: DAWN_SKY, tone: "dark", particles: "petals",
+        narration: "बाद में देवताओं की प्रार्थना पर शिव शांत हुए। दक्ष को बकरे का सिर देकर जीवन दिया, और यज्ञ पूरा हुआ।",
+        caption: "Devtaon ki prarthana par Shiv shaant hue. Daksh ko bakre ka sir dekar jeevan diya, aur yagya poora hua.",
+        headlines: [{ at: 0, lines: [{ text: "SHIV SHAANT," }, { text: "YAGYA POORA", tone: "accent" }] }],
+        layers: [
+          P("sun", 540, 900, { depth: 0.1, idle: "pulse", data: { color: "#FFF1C9" } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.4, enter: "rise", data: { ...SHIVA, item: "abhaya", halo: true } })
+        ]
+      },
+      nextScene(S, 2, "कल देखिए, गंगा शिव की जटाओं में क्यों आईं। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: Ganga Shiv ki jataon mein kyun aayin? Follow kijiye Epic Bharat Saga.", "GANGADHAR")
+    ]
+  },
+
+  // EP13 Gangadhar. Source: Valmiki Ramayana Bala Kanda 1.40–1.44 (Sagara's sons burnt by Kapila; Bhagiratha's tapas;
+  // Shiva holds Ganga in his jata 1.43.7–9; releases her to Bindusaras, seven streams 1.43.10–14; name Bhagirathi 1.44).
+  13: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "SWARG SE DHARTI", sky: ["#2A4A6E", "#5A8AB0"], particles: "rain",
+        narration: "गंगा धरती पर आईं, पर सबसे पहले गिरीं, शिव की जटाओं में। ऐसा क्यों?",
+        caption: "Ganga dharti par aayin, par sabse pehle giri Shiv ki jataon mein. Aisa kyun?",
+        headlines: [
+          { at: 0, lines: [{ text: "GANGA PEHLE" }, { text: "JATA MEIN?", tone: "accent2" }] },
+          { at: 2.8, lines: [{ text: "SHIV BANE:" }, { text: "GANGADHAR", tone: "accent2" }] }
+        ],
+        layers: [
+          P("clouds", 540, 860, { depth: 0.2, idle: "drift", data: { count: 3, spread: 220, color: "#C9D6E6" } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.5, enter: "rise", data: { ...SHIVA, item: "abhaya", halo: true } })
+        ]
+      },
+      {
+        id: "sagar", seconds: 7, location: "KAPIL MUNI KA ASHRAM", sky: FIRE_SKY, particles: "embers",
+        narration: "राजा सगर के साठ हज़ार पुत्र, कपिल मुनि के क्रोध से भस्म हो गए। उनकी मुक्ति सिर्फ़ गंगा के जल से हो सकती थी।",
+        caption: "Raja Sagar ke saath hazaar putra Kapil muni ke krodh se bhasm ho gaye. Mukti sirf Ganga jal se.",
+        headlines: [{ at: 0, lines: [{ text: "60,000 PUTRA" }, { text: "BHASM", tone: "accent" }] }],
+        layers: [
+          P("hills", 540, 1400, { depth: 0.2, data: { color: "#5A3A2A" } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.4, enter: "rise", data: { ...SAGE, pose: "seated" } })
+        ],
+        labels: [{ text: "KAPIL MUNI", x: 830, y: 1120, toX: 640, toY: 1300, at: 2.2 }]
+      },
+      {
+        id: "tap", seconds: 7, location: "HIMALAYA · BHAGIRATH KA TAP", sky: DAWN_SKY, tone: "dark", particles: "none",
+        narration: "उनके वंशज भगीरथ ने कठोर तप किया। ब्रह्मा बोले, गंगा का वेग धरती नहीं सह पाएगी। उसे सिर्फ़ शिव सह सकते हैं।",
+        caption: "Unke vanshaj Bhagirath ne kathor tap kiya. Brahma bole: Ganga ka veg dharti nahi seh paayegi, sirf Shiv seh sakte hain.",
+        headlines: [{ at: 0, lines: [{ text: "BHAGIRATH" }, { text: "KA TAP", tone: "accent" }] }],
+        layers: [
+          P("mountain", 540, 1460, { depth: 0.2, scale: 1.2, data: { color: "#8A8FA0", trees: false } }),
+          P("figure", 540, 1580, { depth: 1, at: 0.4, enter: "rise", data: BHAGIRATH })
+        ]
+      },
+      {
+        id: "jata", seconds: 7.5, location: "SHIV KI JATA", sky: ["#1E3A5A", "#3A6A8E"], particles: "rain", camera: "push",
+        narration: "शिव ने गंगा को सिर पर धारण किया। गंगा को अपने वेग पर घमंड था, तो शिव ने उन्हें जटाओं में ही बाँध लिया। बरसों तक गंगा वहीं घूमती रहीं।",
+        caption: "Shiv ne Ganga ko sir par dhaaran kiya. Ganga ko veg ka ghamand tha, to Shiv ne unhe jataon mein hi baandh liya.",
+        headlines: [{ at: 0, lines: [{ text: "JATA MEIN" }, { text: "BANDH GAYIN", tone: "accent2" }] }],
+        layers: [
+          P("clouds", 540, 760, { depth: 0.3, idle: "drift", data: { count: 4, spread: 240, color: "#9FB6CC" } }),
+          P("figure", 540, 1600, { depth: 1, at: 0.3, enter: "rise", scale: 1.15, data: { ...SHIVA, item: "trishul", halo: true } })
+        ],
+        labels: [{ text: "GANGA", x: 820, y: 900, toX: 600, toY: 1040, at: 2.6 }]
+      },
+      {
+        id: "bindusar", seconds: 7, location: "BINDUSAR · SAAT DHARAYEN", sky: DAWN_SKY, tone: "dark", particles: "petals",
+        narration: "भगीरथ ने फिर तप किया। तब शिव ने गंगा को बिंदुसर की ओर छोड़ा, और वो सात धाराओं में बह निकलीं।",
+        caption: "Bhagirath ne phir tap kiya. Tab Shiv ne Ganga ko Bindusar ki or chhoda, aur woh saat dharaon mein beh nikli.",
+        headlines: [{ at: 0, lines: [{ text: "BINDUSAR SE" }, { text: "7 DHARAYEN", tone: "accent" }] }],
+        layers: [
+          P("hills", 540, 1300, { depth: 0.2, data: { color: "#7A8A6A" } }),
+          P("water", 540, 1480, { depth: 0.5, data: { pads: false } }),
+          P("noteCard", 540, 1060, { depth: 0.7, at: 1, enter: "drop", scale: 0.85, data: { title: "SAAT DHARAYEN:", items: ["3 POORAB", "3 PASHCHIM", "1 BHAGIRATH KE SAATH"] } })
+        ]
+      },
+      {
+        id: "bhagirathi", seconds: 6.5, location: "SAGAR TAK", sky: OCEAN_SKY, particles: "bubbles", camera: "panRight",
+        narration: "गंगा भगीरथ के रथ के पीछे चलीं, और सगर के पुत्रों को मुक्ति मिली। इसीलिए गंगा का एक नाम है, भागीरथी।",
+        caption: "Ganga Bhagirath ke rath ke peeche chalin, aur Sagar-putron ko mukti mili. Isliye Ganga ka naam: BHAGIRATHI.",
+        headlines: [{ at: 0, lines: [{ text: "ISILIYE NAAM:" }, { text: "BHAGIRATHI", tone: "accent2" }] }],
+        layers: [
+          P("water", 540, 1440, { depth: 0.6, data: { amp: 2.4, pads: true } }),
+          P("lotus", 540, 1420, { depth: 0.9, at: 0.6, enter: "rise", scale: 1.1 })
+        ]
+      },
+      nextScene(S, 3, "कल देखिए, आधे शिव, आधी शक्ति, अर्धनारीश्वर। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: aadha Shiv, aadhi Shakti. Follow kijiye Epic Bharat Saga.", "ARDHANARISHWAR")
+    ]
+  },
+
+  // EP14 Ardhanarishwar. Source: Shiva Purana, Shatarudra Samhita ch. 3 (Brahma's creation stalls; Shiva appears as
+  // Ardhanarishvara and separates Shakti, after which creation proceeds). Other Puranas tell variants; we follow Shiva Purana.
+  14: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "SHIV SEASON · EP 04", sky: NIGHT_SKY, particles: "stars",
+        narration: "आधा शिव, आधी शक्ति। अर्धनारीश्वर रूप का असली मतलब क्या है?",
+        caption: "Aadha Shiv, aadhi Shakti. Ardhanarishwar roop ka asli matlab kya hai?",
+        headlines: [
+          { at: 0, lines: [{ text: "AADHA SHIV," }, { text: "AADHI SHAKTI", tone: "accent2" }] },
+          { at: 2.6, lines: [{ text: "YE ROOP HAI:" }, { text: "ARDHANARISHWAR", tone: "accent2" }] }
+        ],
+        layers: [
+          P("moon", 540, 860, { depth: 0.1, idle: "pulse" }),
+          P("figure", 450, 1580, { depth: 1, at: 0.4, enter: "slideRight", data: { ...SHIVA, item: "trishul" } }),
+          P("figure", 640, 1580, { depth: 1, at: 0.6, enter: "slideLeft", flip: true, data: { ...PARVATI, item: "abhaya" } })
+        ]
+      },
+      {
+        id: "brahma", seconds: 6.5, location: "SRISHTI KA AARAMBH", sky: DAWN_SKY, tone: "dark", particles: "none",
+        narration: "शिव पुराण कहता है, ब्रह्मा सृष्टि रच रहे थे, पर सृष्टि अपने आप आगे नहीं बढ़ रही थी।",
+        caption: "Shiv Puran kehta hai: Brahma srishti rach rahe the, par srishti aage nahi badh rahi thi.",
+        headlines: [{ at: 0, lines: [{ text: "BRAHMA KI" }, { text: "MUSHKIL", tone: "accent" }] }],
+        layers: [
+          P("lotus", 540, 1500, { depth: 0.6, at: 0.2, enter: "rise", scale: 1.2 }),
+          P("figure", 540, 1420, { depth: 1, at: 0.5, enter: "rise", scale: 0.8, data: BRAHMA })
+        ]
+      },
+      {
+        id: "prakat", seconds: 7, location: "TAP KA PHAL", sky: ["#3A2A5A", "#7A4A7A"], particles: "fireflies",
+        narration: "ब्रह्मा ने शिव का ध्यान किया। तब शिव प्रकट हुए, एक ही शरीर में, आधे पुरुष, आधी नारी।",
+        caption: "Brahma ne Shiv ka dhyaan kiya. Tab Shiv prakat hue: ek hi shareer mein aadhe purush, aadhi naari.",
+        headlines: [{ at: 0, lines: [{ text: "EK SHAREER," }, { text: "DO ROOP", tone: "accent2" }] }],
+        layers: [
+          P("sun", 545, 1150, { depth: 0.2, idle: "pulse", data: { color: "#FFE3A3" } }),
+          P("figure", 470, 1580, { depth: 1, at: 0.3, enter: "rise", data: { ...SHIVA, item: "trishul", halo: true } }),
+          P("figure", 620, 1580, { depth: 1, at: 0.3, enter: "rise", flip: true, data: { ...PARVATI, item: "abhaya", halo: true } })
+        ]
+      },
+      {
+        id: "shakti", seconds: 7, location: "SHAKTI SE SRISHTI", sky: DAWN_SKY, tone: "dark", particles: "petals",
+        narration: "फिर शिव ने अपने शरीर से शक्ति को अलग किया। शक्ति से ही सृष्टि आगे बढ़ी।",
+        caption: "Phir Shiv ne apne shareer se Shakti ko alag kiya. Shakti se hi srishti aage badhi.",
+        headlines: [{ at: 0, lines: [{ text: "SHAKTI SE" }, { text: "SRISHTI", tone: "accent" }] }],
+        layers: [
+          P("figure", 300, 1580, { depth: 1, at: 0.2, enter: "slideLeft", data: { ...SHIVA, item: "abhaya" } }),
+          P("figure", 780, 1580, { depth: 1, at: 0.4, enter: "slideRight", flip: true, data: { ...PARVATI, item: "namaste", halo: true } }),
+          P("tree", 540, 1640, { depth: 0.5, at: 1.6, enter: "rise", scale: 0.8 })
+        ]
+      },
+      {
+        id: "sandesh", seconds: 7, location: "SANDESH", sky: NIGHT_SKY, particles: "stars",
+        narration: "संदेश साफ़ है। शिव और शक्ति अलग नहीं। एक के बिना दूसरा अधूरा है।",
+        caption: "Sandesh saaf hai: Shiv aur Shakti alag nahi. Ek ke bina doosra adhoora hai.",
+        headlines: [{ at: 0, lines: [{ text: "SHIV + SHAKTI" }, { text: "= POORNA", tone: "accent2" }] }],
+        layers: [P("noteCard", 540, 1120, { depth: 0.7, at: 0.4, enter: "drop", data: { title: "SANDESH:", items: ["SHIV AUR SHAKTI", "ALAG NAHI", "EK HI SATYA"] } })]
+      },
+      nextScene(S, 4, "कल देखिए, आग का वो खंभा, जिसका न आदि मिला, न अंत। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: aag ka khamba jiska na aadi mila, na ant. Follow kijiye Epic Bharat Saga.", "JYOTIRLINGA")
+    ]
+  },
+
+  // EP15 Jyotirlinga. Source: Shiva Purana, Vidyeshvara Samhita ch. 6–8 (Brahma–Vishnu dispute; endless pillar of fire;
+  // Vishnu as boar goes down, Brahma as swan goes up; Ketaki false witness; Shiva rebukes Brahma, honours Vishnu).
+  // Twelve Jyotirlingas: Shiva Purana, Shatarudra Samhita 42.2–4; Kotirudra Samhita ch. 14–33.
+  15: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "SHIV SEASON · EP 05", sky: NIGHT_SKY, particles: "stars",
+        narration: "ब्रह्मा और विष्णु में बहस, सबसे बड़ा कौन? जवाब आया, आग के एक खंभे से।",
+        caption: "Brahma aur Vishnu mein behas: sabse bada kaun? Jawab aaya aag ke ek khambe se.",
+        headlines: [
+          { at: 0, lines: [{ text: "SABSE BADA" }, { text: "KAUN?", tone: "accent2" }] },
+          { at: 2.6, lines: [{ text: "JAWAB:" }, { text: "AGNI STAMBH", tone: "accent2" }] }
+        ],
+        layers: [
+          P("figure", 230, 1580, { depth: 1, at: 0.3, enter: "slideRight", scale: 0.8, data: BRAHMA }),
+          P("figure", 850, 1580, { depth: 1, at: 0.5, enter: "slideLeft", scale: 0.8, flip: true, data: VISHNU })
+        ]
+      },
+      {
+        id: "stambh", seconds: 6.5, location: "ANANT AGNI STAMBH", sky: ["#14121E", "#3A1E2A"], particles: "embers",
+        narration: "तभी दोनों के बीच प्रकट हुआ, आग का एक अनंत खंभा। न उसकी शुरुआत दिखे, न अंत।",
+        caption: "Tabhi dono ke beech prakat hua aag ka ek anant khamba. Na shuruaat dikhe, na ant.",
+        headlines: [{ at: 0, lines: [{ text: "NA AADI," }, { text: "NA ANT", tone: "accent" }] }],
+        layers: [
+          P("firePillar", 540, 1700, { depth: 0.8, at: 0.3, enter: "none" }),
+          P("figure", 180, 1620, { depth: 1, scale: 0.6, data: BRAHMA }),
+          P("figure", 900, 1620, { depth: 1, scale: 0.6, flip: true, data: VISHNU })
+        ]
+      },
+      {
+        id: "khoj", seconds: 7, location: "KHOJ · UPAR AUR NEECHE", sky: ["#14121E", "#3A1E2A"], particles: "embers", camera: "still",
+        narration: "विष्णु वराह बनकर नीचे गए, जड़ ढूँढने। ब्रह्मा हंस बनकर ऊपर उड़े, शिखर ढूँढने।",
+        caption: "Vishnu Varaha bankar neeche gaye, jad dhoondhne. Brahma hans bankar upar ude, shikhar dhoondhne.",
+        headlines: [{ at: 0, lines: [{ text: "VISHNU: NEECHE" }, { text: "BRAHMA: UPAR", tone: "accent2" }] }],
+        layers: [
+          P("firePillar", 540, 1700, { depth: 0.8, enter: "none" }),
+          P("varaha", 280, 1680, { depth: 1, at: 0.4, enter: "rise", scale: 0.45, data: { earth: false } })
+        ],
+        labels: [{ text: "VARAHA (VISHNU)", x: 260, y: 1300, toX: 280, toY: 1520, at: 1.2 }, { text: "HANS (BRAHMA)", x: 820, y: 760, toX: 660, toY: 640, at: 2 }]
+      },
+      {
+        id: "ketaki", seconds: 7.5, location: "SACH YA JHOOTH?", sky: NIGHT_SKY, particles: "stars",
+        narration: "विष्णु लौटे और सच बोले, अंत नहीं मिला। पर ब्रह्मा ने केतकी के फूल को गवाह बनाकर कहा, मैंने शिखर देख लिया।",
+        caption: "Vishnu laute aur sach bole: ant nahi mila. Par Brahma ne Ketaki phool ko gawah banakar kaha: maine shikhar dekh liya.",
+        headlines: [{ at: 0, lines: [{ text: "SACH YA" }, { text: "JHOOTH?", tone: "accent" }] }],
+        layers: [P("noteCard", 540, 1120, { depth: 0.7, at: 0.4, enter: "drop", data: { title: "KAUN SACHCHA?", items: ["VISHNU: NAHI MILA", "BRAHMA: MIL GAYA", "GAWAH: KETAKI"] } })]
+      },
+      {
+        id: "shiv", seconds: 7, location: "STAMBH SE SHIV", sky: FIRE_SKY, particles: "embers",
+        narration: "तब खंभे से शिव प्रकट हुए। सच बोलने के लिए विष्णु का सम्मान हुआ, और झूठ की वजह से केतकी शिव पूजा से बाहर हो गई।",
+        caption: "Tab khambe se Shiv prakat hue. Sach ke liye Vishnu ka samman hua, aur jhooth ki wajah se Ketaki Shiv pooja se baahar.",
+        headlines: [{ at: 0, lines: [{ text: "SACH KI JEET" }, { text: "JHOOTH BAAHAR", tone: "accent3" }] }],
+        layers: [
+          P("firePillar", 540, 1700, { depth: 0.6, enter: "none" }),
+          P("figure", 540, 1600, { depth: 1, at: 0.6, enter: "pop", data: { ...SHIVA, item: "abhaya", halo: true } })
+        ]
+      },
+      {
+        id: "baarah", seconds: 7, location: "12 JYOTIRLINGA", sky: DAWN_SKY, tone: "dark", particles: "petals",
+        narration: "यही प्रकाश स्तंभ, ज्योतिर्लिंग कहलाया। शिव पुराण में बारह ज्योतिर्लिंग गिनाए गए हैं, सोमनाथ से केदारनाथ तक।",
+        caption: "Yahi prakash stambh Jyotirlinga kehlaya. Shiv Puran mein 12 Jyotirlinga ginaaye gaye hain, Somnath se Kedarnath tak.",
+        headlines: [{ at: 0, lines: [{ text: "12" }, { text: "JYOTIRLINGA", tone: "accent" }] }],
+        layers: [
+          P("shivling", 280, 1620, { depth: 1, at: 0.3, enter: "rise", scale: 0.8 }),
+          P("noteCard", 700, 1100, { depth: 0.7, at: 0.8, enter: "drop", scale: 0.8, data: { title: "KUCH NAAM:", items: ["SOMNATH", "MAHAKAL", "KASHI VISHWANATH", "KEDARNATH"] } })
+        ]
+      },
+      nextScene(S, 5, "कल देखिए, एक तीर और तीन शहर, त्रिपुरारी। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: ek teer, teen shehar. Follow kijiye Epic Bharat Saga.", "TRIPURARI")
+    ]
+  },
+
+  // EP16 Tripurari. Sources: Mahabharata Karna Parva 33–34 (Tripura of Tarakasura's sons; chariot of all the gods;
+  // Vishnu, Agni and Soma as the arrow; one shot); Shiva Purana Rudra Samhita, Yuddha Khanda 1–10. Versions differ on the
+  // bow (Karna Parva: the Year; Puranas: Meru with Vasuki as string), so the narration names only the shared elements.
+  16: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "SHIV SEASON · EP 06", sky: NIGHT_SKY, particles: "stars",
+        narration: "एक तीर, तीन शहर। शिव को त्रिपुरारी क्यों कहते हैं?",
+        caption: "Ek teer, teen shehar. Shiv ko Tripurari kyun kehte hain?",
+        headlines: [
+          { at: 0, lines: [{ text: "EK TEER," }, { text: "TEEN SHEHAR", tone: "accent2" }] },
+          { at: 2.4, lines: [{ text: "SHIV KA NAAM:" }, { text: "TRIPURARI", tone: "accent2" }] }
+        ],
+        layers: [P("tripura", 540, 1150, { depth: 0.7, at: 0.3, enter: "pop", data: { align: 0 } })]
+      },
+      {
+        id: "nagar", seconds: 7, location: "TEEN UDTE NAGAR", sky: ["#1E1A3A", "#3A2A5A"], particles: "stars",
+        narration: "तारकासुर के तीन बेटों के लिए, मय दानव ने तीन उड़ते नगर बनाए। एक सोने का, एक चाँदी का, एक लोहे का।",
+        caption: "Tarakasur ke teen beton ke liye Maya danav ne teen udte nagar banaye: sone, chaandi aur lohe ke.",
+        headlines: [{ at: 0, lines: [{ text: "SONA, CHAANDI," }, { text: "LOHA", tone: "accent2" }] }],
+        layers: [P("tripura", 540, 1150, { depth: 0.7, data: { align: 0 } })],
+        labels: [{ text: "SONA", x: 200, y: 820, toX: 240, toY: 960, at: 1.6 }, { text: "LOHA", x: 900, y: 1450, toX: 840, toY: 1250, at: 2.2 }]
+      },
+      {
+        id: "vardaan", seconds: 6.5, location: "VARDAAN KI SHART", sky: FIRE_SKY, particles: "embers",
+        narration: "उनका वरदान था, ये नगर तभी नष्ट होंगे, जब तीनों एक सीध में हों, और एक ही तीर से।",
+        caption: "Vardaan tha: ye nagar tabhi nasht honge jab teenon ek seedh mein hon, aur ek hi teer se.",
+        headlines: [{ at: 0, lines: [{ text: "SHART:" }, { text: "SIRF EK TEER", tone: "accent" }] }],
+        layers: [P("noteCard", 540, 1120, { depth: 0.7, at: 0.4, enter: "drop", data: { title: "VARDAAN:", items: ["TEENON EK SEEDH MEIN", "SIRF EK TEER"] } })]
+      },
+      {
+        id: "rath", seconds: 7.5, location: "SARVA-DEVMAYA RATH", sky: DAWN_SKY, tone: "dark", particles: "none",
+        narration: "जब उन्होंने अधर्म फैलाया, तो देवताओं ने शिव के लिए रथ बनाया। धरती बनी रथ, ब्रह्मा बने सारथी, और बाण में स्वयं विष्णु।",
+        caption: "Devtaon ne Shiv ke liye rath banaya: dharti bani rath, Brahma bane saarathi, aur baan mein swayam Vishnu.",
+        headlines: [{ at: 0, lines: [{ text: "DEVTAON KA" }, { text: "RATH", tone: "accent" }] }],
+        layers: [P("noteCard", 540, 1120, { depth: 0.7, at: 0.4, enter: "drop", data: { title: "SHIV KA RATH:", items: ["DHARTI = RATH", "BRAHMA = SAARATHI", "VISHNU = BAAN"] } })]
+      },
+      {
+        id: "teer", seconds: 7, location: "EK PAL · EK SEEDH", sky: ["#1E1A3A", "#3A2A5A"], particles: "stars", camera: "still",
+        narration: "फिर वो एक पल आया, जब तीनों नगर एक सीध में आए। शिव ने एक ही तीर चलाया।",
+        caption: "Phir woh ek pal aaya jab teenon nagar ek seedh mein aaye. Shiv ne ek hi teer chalaaya.",
+        headlines: [{ at: 0, lines: [{ text: "EK PAL," }, { text: "EK TEER", tone: "accent2" }] }],
+        layers: [
+          P("tripura", 700, 1000, { depth: 0.6, data: { align: 0, alignSpeed: 0.35 } }),
+          P("figure", 250, 1620, { depth: 1, at: 0.3, enter: "rise", scale: 0.85, data: { ...SHIVA, item: "bow" } })
+        ]
+      },
+      {
+        id: "dahan", seconds: 6, location: "TRIPUR DAHAN", sky: FIRE_SKY, particles: "embers",
+        narration: "तीनों नगर एक साथ जलकर राख हो गए। तभी से शिव कहलाए, त्रिपुरारी।",
+        caption: "Teenon nagar ek saath jalkar raakh ho gaye. Tabhi se Shiv kehlaaye: TRIPURARI.",
+        headlines: [{ at: 0, lines: [{ text: "TRIPUR DAHAN" }, { text: "TRIPURARI", tone: "accent" }] }],
+        layers: [P("tripura", 540, 1150, { depth: 0.7, data: { align: 1, burnAt: 0.6 } })]
+      },
+      nextScene(S, 6, "कल देखिए, सोलह साल का बालक, और सामने यमराज। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: 16 saal ka baalak aur saamne Yamraj. Follow kijiye Epic Bharat Saga.", "MARKANDEYA")
+    ]
+  },
+
+  // EP17 Markandeya. Sources: Markandeya legend as told in the Puranas and the Thirukkadaiyur/Thrikkadavoor temple traditions
+  // (Mrikandu's choice; Yama's noose falls on the linga; Shiva as Kalantaka; Markandeya remains sixteen). Details vary by
+  // tradition (e.g. whether Yama is slain and revived), so the narration keeps to the common core.
+  17: {
+    scenes: [
+      {
+        id: "hook", seconds: 5, location: "SHIV SEASON · EP 07", sky: STORM_SKY, particles: "rain",
+        narration: "सोलह साल का बालक, और सामने खुद यमराज। फिर शिवलिंग से कौन प्रकट हुआ?",
+        caption: "16 saal ka baalak aur saamne khud Yamraj. Phir Shivling se kaun prakat hua?",
+        headlines: [
+          { at: 0, lines: [{ text: "16 SAAL KA" }, { text: "BAALAK", tone: "accent2" }] },
+          { at: 2.6, lines: [{ text: "SAAMNE:" }, { text: "YAMRAJ", tone: "accent" }] }
+        ],
+        layers: [
+          P("shivling", 700, 1620, { depth: 0.9, at: 0.3, enter: "rise", scale: 0.8 }),
+          P("figure", 480, 1620, { depth: 1, at: 0.6, enter: "rise", scale: 0.7, data: MARKANDEYA })
+        ]
+      },
+      {
+        id: "vardaan", seconds: 7, location: "RISHI MRIKANDU KA TAP", sky: DAWN_SKY, tone: "dark", particles: "none",
+        narration: "ऋषि मृकंडु ने संतान के लिए शिव का तप किया। शिव ने पूछा, लंबी उम्र वाला साधारण पुत्र चाहिए, या सोलह साल का गुणी पुत्र?",
+        caption: "Rishi Mrikandu ne santaan ke liye tap kiya. Shiv ne poocha: lambi umar ka saadharan putra, ya 16 saal ka guni putra?",
+        headlines: [{ at: 0, lines: [{ text: "KAUN SA" }, { text: "PUTRA?", tone: "accent" }] }],
+        layers: [
+          P("figure", 250, 1600, { depth: 1, at: 0.3, enter: "rise", scale: 0.8, data: { ...SAGE, item: "namaste" } }),
+          P("noteCard", 700, 1100, { depth: 0.7, at: 1, enter: "drop", scale: 0.8, data: { title: "VIKALP:", items: ["LAMBI UMAR, SAADHARAN", "16 SAAL, GUNI"] } })
+        ]
+      },
+      {
+        id: "bhakt", seconds: 6.5, location: "MARKANDEYA · SHIV BHAKT", sky: DAWN_SKY, tone: "dark", particles: "petals",
+        narration: "उन्होंने गुणी पुत्र चुना। मार्कंडेय बड़े होकर शिव के परम भक्त बने।",
+        caption: "Unhone guni putra chuna. Markandeya bade hokar Shiv ke param bhakt bane.",
+        headlines: [{ at: 0, lines: [{ text: "PARAM BHAKT" }, { text: "MARKANDEYA", tone: "accent" }] }],
+        layers: [
+          P("diyaRow", 540, 1660, { depth: 0.6 }),
+          P("shivling", 680, 1600, { depth: 0.9, scale: 0.8 }),
+          P("figure", 420, 1620, { depth: 1, at: 0.4, enter: "rise", scale: 0.75, data: { ...MARKANDEYA, pose: "seated" } })
+        ]
+      },
+      {
+        id: "yam", seconds: 7, location: "SOLAHVAN SAAL", sky: STORM_SKY, particles: "rain", camera: "still",
+        narration: "सोलहवें साल यमराज खुद आए, और अपना पाश फेंका। मार्कंडेय ने शिवलिंग को कसकर पकड़ लिया।",
+        caption: "Solahven saal Yamraj khud aaye aur apna paash phenka. Markandeya ne Shivling ko kaskar pakad liya.",
+        headlines: [{ at: 0, lines: [{ text: "YAMRAJ KA" }, { text: "PAASH", tone: "accent" }] }],
+        layers: [
+          P("figure", 220, 1620, { depth: 1, at: 0.3, enter: "slideRight", data: YAMA }),
+          P("shivling", 760, 1620, { depth: 0.9, scale: 0.8 }),
+          P("figure", 600, 1620, { depth: 1, scale: 0.7, data: MARKANDEYA })
+        ]
+      },
+      {
+        id: "kaalantak", seconds: 7.5, location: "SHIVLING SE SHIV", sky: FIRE_SKY, particles: "embers",
+        narration: "पाश शिवलिंग पर जा गिरा, और शिव प्रकट हुए। उन्होंने यम को रोक दिया, और मार्कंडेय सदा के लिए सोलह साल के ही रह गए।",
+        caption: "Paash Shivling par gira aur Shiv prakat hue. Unhone Yam ko rok diya, aur Markandeya sada 16 saal ke reh gaye.",
+        headlines: [{ at: 0, lines: [{ text: "SADA KE LIYE" }, { text: "16 SAAL", tone: "accent3" }] }],
+        layers: [
+          P("figure", 640, 1620, { depth: 1, at: 0.3, enter: "pop", scale: 1.1, data: { ...SHIVA, item: "trishul", halo: true } }),
+          P("figure", 220, 1640, { depth: 0.9, scale: 0.8, data: YAMA })
+        ]
+      },
+      {
+        id: "naam", seconds: 6.5, location: "KAALANTAK", sky: NIGHT_SKY, particles: "stars",
+        narration: "इसीलिए शिव कहलाए, कालांतक, यानी काल का भी अंत करने वाले। परंपरा महामृत्युंजय मंत्र को भी मार्कंडेय से जोड़ती है।",
+        caption: "Isliye Shiv kehlaaye KAALANTAK, kaal ka bhi ant karne waale. Parampara Mahamrityunjay mantra ko Markandeya se jodti hai.",
+        headlines: [{ at: 0, lines: [{ text: "SHIV KA NAAM:" }, { text: "KAALANTAK", tone: "accent2" }] }],
+        layers: [P("noteCard", 540, 1120, { depth: 0.7, at: 0.4, enter: "drop", data: { title: "KAALANTAK:", items: ["KAAL KA BHI ANT", "MAHAMRITYUNJAY"] } })]
+      },
+      nextScene(S, 7, "कल देखिए, जब शिव शिकारी बनकर अर्जुन से लड़े। फॉलो कीजिए, एपिक भारत सागा।", "Kal dekhiye: jab Shiv kiraat banke Arjun se lade. Follow kijiye Epic Bharat Saga.", "KIRAT ARJUN")
+    ]
   }
+
 };
 
 /** Channel day N -> global episode N. Throws if that episode is not written yet (fail closed). */

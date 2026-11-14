@@ -19,7 +19,7 @@ const GOLD_DARK = "#C9861A";
 /**
  * Generic paper figure, ~420px tall standing (~280 seated). Origin = feet.
  * data: robe, skin, sash, head ("plain"|"crown"|"feather"|"sage"|"jata"|"child"|"bun"),
- * item ("none"|"bow"|"axe"|"flute"|"umbrella"|"sword"|"kamandalu"|"basket"|"lift"|"abhaya"|"namaste"),
+ * item ("none"|"bow"|"axe"|"flute"|"umbrella"|"sword"|"kamandalu"|"basket"|"lift"|"abhaya"|"namaste"|"trishul"), moon (bool, crescent on "jata"),
  * pose ("stand"|"seated"), horns (bool), heads (number, Ravana = 10), halo (bool), glowEyes (bool).
  */
 const Figure: React.FC<PropCtx> = ({ lf, data }) => {
@@ -48,6 +48,7 @@ const Figure: React.FC<PropCtx> = ({ lf, data }) => {
           <path d="M -36 14 Q 0 110 36 14 Q 0 34 -36 14 Z" fill="#F2F2F2" />
         </>
       ) : null}
+      {head === "jata" && data.moon === true ? <path d="M 30 -78 A 26 26 0 1 1 6 -40 A 20 20 0 1 0 30 -78 Z" fill="#FFF3D1" /> : null}
       {head === "crown" || head === "feather" ? (
         <g filter={SHADOW}>
           <path d="M -40 -30 L -40 -74 L -20 -58 L 0 -96 L 20 -58 L 40 -74 L 40 -30 Z" fill={GOLD} />
@@ -154,6 +155,16 @@ const Figure: React.FC<PropCtx> = ({ lf, data }) => {
           <path d="M -6 -330 L 0 -360 L 6 -330 Z" fill="#DCE3EA" />
           <rect x={-34} y={-34} width={68} height={12} rx={4} fill={GOLD} />
           <rect x={-7} y={-24} width={14} height={40} fill="#5E3015" />
+        </g>
+      ) : null}
+      {item === "trishul" ? (
+        <g transform={`translate(140 ${top + 200})`} filter={SHADOW}>
+          <rect x={-7} y={-380} width={14} height={420} rx={6} fill="#6B6F78" />
+          <path d="M -60 -380 Q -64 -440 -40 -470 Q -44 -420 -10 -400 L 0 -470 L 10 -400 Q 44 -420 40 -470 Q 64 -440 60 -380 Z" fill="#C9CED6" stroke="#8C939E" strokeWidth={4} />
+          <g transform={`translate(0 -330) rotate(${Math.sin(lf / 8) * 8})`}>
+            <path d="M -26 -26 L 26 26 M -26 26 L 26 -26" stroke="#8A4B24" strokeWidth={6} />
+            <path d="M -30 -30 Q 0 -10 30 -30 L 30 30 Q 0 10 -30 30 Z" fill="#B5864A" />
+          </g>
         </g>
       ) : null}
       {item === "kamandalu" ? (
@@ -454,8 +465,69 @@ const Horse: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
   );
 };
 
+
+/* ---------- Shiv season ---------- */
+
+/** Shivling on a yoni pedestal. data.glow (bool). Origin = base. */
+const Shivling: React.FC<PropCtx> = ({ lf, data }) => (
+  <g>
+    {data.glow !== false ? <circle cy={-200} r={240} fill="url(#sd-sunglow)" opacity={0.55 + Math.sin(lf / 14) * 0.1} /> : null}
+    <g filter={SHADOW}>
+      <path d="M -200 0 L -180 -60 L 180 -60 L 200 0 Z" fill="#6B6458" />
+      <path d="M -170 -60 Q -170 -110 0 -110 Q 170 -110 170 -60 Z" fill="#7E776A" />
+      <path d="M 160 -86 L 270 -80 L 270 -64 L 160 -66 Z" fill="#7E776A" />
+      <path d="M -70 -100 L -70 -250 Q -70 -330 0 -330 Q 70 -330 70 -250 L 70 -100 Z" fill="#4A4640" />
+      {[-268, -252, -236].map((y) => <line key={y} x1={-52} x2={52} y1={y} y2={y} stroke="#FFF3D1" strokeWidth={6} />)}
+      <circle cy={-290} r={9} fill="#F0533F" />
+    </g>
+  </g>
+);
+
+/** Endless pillar of fire (Lingodbhava). Origin = bottom; data.height (default 1100) keeps it below the headline. */
+const FirePillar: React.FC<PropCtx> = ({ lf, fps, data }) => {
+  const grow = spring({ frame: lf, fps, config: { damping: 20 } });
+  const h = num(data.height, 1100) * grow;
+  return (
+    <g>
+      <rect x={-210} y={-h} width={420} height={h} fill="url(#sd-flameglow)" opacity={0.6} />
+      <rect x={-110} y={-h} width={220} height={h} fill="#F6B93B" />
+      <rect x={-60} y={-h} width={120} height={h} fill="#FFF1C9" />
+      {[0, 1, 2, 3, 4, 5].map((i) => {
+        const y = -((lf * 9 + i * 240) % 1400);
+        return y > -h ? <path key={i} d={`M ${i % 2 ? 110 : -110} ${y} q ${i % 2 ? 50 : -50} -40 0 -100`} fill="none" stroke="#F0533F" strokeWidth={10} strokeLinecap="round" /> : null;
+      })}
+    </g>
+  );
+};
+
+/** Three flying cities (gold / silver / iron). data.align 0..1 lines them up; data.burnAt seconds sets them on fire. Origin = centre. */
+const Tripura: React.FC<PropCtx> = ({ lf, fps, data }) => {
+  const align = clamp01(num(data.align, 0) + (lf / fps) * num(data.alignSpeed, 0));
+  const burn = clamp01((lf - num(data.burnAt, 999) * fps) / 12);
+  const cities = [{ c: "#F6B93B", d: "#C9861A" }, { c: "#D7DCE2", d: "#9AA2AC" }, { c: "#6E7480", d: "#4A4F58" }];
+  return (
+    <g>
+      {cities.map((k, i) => {
+        const x = (i - 1) * 300 * (1 - align) + (i - 1) * 40 * align;
+        const y = (i - 1) * 320 * align + Math.sin(lf / 16 + i * 2) * 20 * (1 - align) + (1 - align) * [-60, 80, -20][i]!;
+        return (
+          <g key={i} transform={`translate(${x} ${y}) scale(0.62)`}>
+            {burn > 0 ? <circle r={220 * burn} fill="url(#sd-flameglow)" /> : null}
+            <g filter={SHADOW} opacity={1 - burn * 0.6}>
+              <path d="M -180 40 Q 0 140 180 40 Z" fill={k.d} />
+              <rect x={-150} y={-60} width={300} height={100} fill={k.c} />
+              {[-110, -40, 30, 100].map((tx, j) => <path key={tx} d={`M ${tx - 24} -60 L ${tx - 24} ${-120 - (j % 2) * 40} L ${tx} ${-160 - (j % 2) * 40} L ${tx + 24} ${-120 - (j % 2) * 40} L ${tx + 24} -60 Z`} fill={k.c} stroke={k.d} strokeWidth={4} />)}
+            </g>
+          </g>
+        );
+      })}
+    </g>
+  );
+};
+
 export const AVATAR_PROPS = {
   figure: Figure, tortoise: Tortoise, mountain: Mountain, churning: Churning, kalash: Kalash,
   earth: Earth, varaha: Varaha, pillar: Pillar, narasimha: Narasimha, boonList: BoonList,
-  threeSteps: ThreeSteps, greatBow: GreatBow, setu: Setu, feather: Feather, horse: Horse
+  threeSteps: ThreeSteps, greatBow: GreatBow, setu: Setu, feather: Feather, horse: Horse,
+  shivling: Shivling, firePillar: FirePillar, tripura: Tripura
 } as const;

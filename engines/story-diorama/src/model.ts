@@ -6,7 +6,8 @@ export const PROP_NAMES = [
   "lotus", "water", "tree", "temple", "sun", "noteCard", "festivalTracker", "progress", "monthCalendar",
   "fish", "boat", "kamandalu", "growthSteps", "towing", "vedas",
   "figure", "tortoise", "mountain", "churning", "kalash", "earth", "varaha", "pillar", "narasimha", "boonList",
-  "threeSteps", "greatBow", "setu", "feather", "horse"
+  "threeSteps", "greatBow", "setu", "feather", "horse",
+  "shivling", "firePillar", "tripura"
 ] as const;
 export type PropName = (typeof PROP_NAMES)[number];
 
