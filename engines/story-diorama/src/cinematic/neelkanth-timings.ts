@@ -1,0 +1,2 @@
+/** Word start times (s, from each line WAV start) — generated from public/audio/poc-neelkanth/timings.json (Edge TTS word boundaries). */
+export const NEELKANTH_WORD_STARTS: Record<string, number[]> = {"l1": [0.095, 0.418, 0.586, 0.932, 1.557, 2.014], "l2": [0.095, 0.608, 0.854, 1.322, 1.613], "l3": [0.095, 0.284, 0.854, 1.144, 1.568, 1.836, 2.282, 2.416], "l4": [0.095, 0.418, 0.575, 1.133, 1.333, 1.613]};
