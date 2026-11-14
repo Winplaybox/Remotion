@@ -70,11 +70,14 @@ export function makeTeaser(video: string, out: string): string {
  * Long video -> vertical teaser for Instagram / Facebook: the middle (puzzle) column of the 16:9 frame, cropped to
  * 738x1080 and scaled to fill 1080 wide, with a header and a "watch the rest on YouTube" footer.
  */
-export function makeLongTeaser(video: string, out: string, t: { start: number; length: number; banner: string }, handle: string): string {
+export function makeLongTeaser(video: string, out: string, t: { start: number; length: number; banner: string; header?: string; crop?: { w: number; x: number } }, handle: string): string {
   const len = Math.min(t.length, 85);
   const font = FONT ? `fontfile='${FONT.replace(/:/g, "\\:")}':` : "";
   const text = (s: string, y: number, size: number, color: string) => (FONT ? `,drawtext=${font}text='${esc(s)}':fontcolor=${color}:fontsize=${size}:x=(w-text_w)/2:y=${y}` : "");
-  const vf = `crop=738:1080:591:0,scale=1080:1580,pad=1080:1920:0:170:0x0B1024${text("IQ MARATHON - 25 PUZZLES + BONUS", 64, 44, "0xFFD23F")}` +
+  // Full-height portrait column (e.g. EpicBharatSaga long: the Short itself) fills the frame; text only at the bottom.
+  const head = t.crop ? `crop=${t.crop.w}:1080:${t.crop.x}:0,scale=1080:1920,drawbox=y=1740:w=iw:h=180:color=black@0.55:t=fill`
+    : `crop=738:1080:591:0,scale=1080:1580,pad=1080:1920:0:170:0x0B1024${text(t.header ?? "IQ MARATHON - 25 PUZZLES + BONUS", 64, 44, "0xFFD23F")}`;
+  const vf = `${head}` +
     `${text(t.banner, 1768, 44, "0xFFFFFF")}${text(`YouTube: ${handle}`, 1840, 40, "0xFFD23F")}` +
     `,fade=t=out:st=${len - 0.6}:d=0.6`;
   const audio = hasAudio(video);
