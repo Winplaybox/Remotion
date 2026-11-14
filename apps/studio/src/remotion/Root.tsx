@@ -148,7 +148,7 @@ export const Root: React.FC = () => (
         }} />
       {/* PROOF OF CONCEPT (isolated, Studio only — no channel uses it): Cinematic 2.5D, EP11 Neelkanth, 10 s */}
       <Composition id="NeelkanthCinematicPOC" component={NeelkanthCinematicPOC} fps={POC_FPS} width={1080} height={1920} durationInFrames={POC_FRAMES} />
-      <Composition id="NeelkanthCinematicPOC2" component={NeelkanthCinematicPOC2} fps={POC2_FPS} width={1080} height={1920} durationInFrames={POC2_FRAMES} defaultProps={{ voice: false }} />
+      <Composition id="NeelkanthCinematicPOC2" component={NeelkanthCinematicPOC2} fps={POC2_FPS} width={1080} height={1920} durationInFrames={POC2_FRAMES} defaultProps={{ voice: true }} />
       <Composition id="EpicBharatSagaLong" component={SagaLongComposition} schema={SagaLongSchema} fps={30} width={SAGA_W} height={SAGA_H}
         durationInFrames={sagaLongDuration(SAGA_LONG_DEMO)} defaultProps={SAGA_LONG_DEMO}
         calculateMetadata={async ({ props }: { props: SagaLong }) => {
