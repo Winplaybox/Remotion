@@ -38,7 +38,14 @@ jobs:
               dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f"out/{l['id']}.wav"]).decode().strip())
               timings[l["id"]] = {"duration": dur, "words": words}
           async def main():
-              for l in cfg["lines"]: await one(l)
+              for l in cfg["lines"]:
+                  for attempt in range(5):
+                      try:
+                          await one(l); break
+                      except edge_tts.exceptions.NoAudioReceived:
+                          print("retry", l["id"], attempt); await asyncio.sleep(3)
+                  else:
+                      raise SystemExit(f"no audio for {l['id']}")
           asyncio.run(main())
           json.dump(timings, open("out/timings.json", "w"), ensure_ascii=False, indent=1)
           print(json.dumps({k: v["duration"] for k, v in timings.items()}))
