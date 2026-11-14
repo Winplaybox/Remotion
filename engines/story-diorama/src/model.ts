@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { AskOutroSchema } from "../../ask-outro";
 
 /** Built-in paper-cutout props drawn in SVG (props.tsx). Use `image` layers for AI-generated character cutouts. */
 export const PROP_NAMES = [
@@ -70,7 +71,12 @@ export const StoryDioramaSchema = z.object({
   showCaptions: z.boolean().default(true),
   palette: z.object({ paper: z.string(), ink: z.string(), accent: z.string(), accent2: z.string(), accent3: z.string() }),
   transitionFrames: z.number().int().min(0).max(30),
-  scenes: z.array(SceneSchema).min(1)
+  scenes: z.array(SceneSchema).min(1),
+  /**
+   * Optional shared "comment karo + FOLLOW" ending (engines/ask-outro) over the LAST scene, e.g. Dharm Sankat debates.
+   * That scene's narration should speak voiceQuestion + voiceCta; its headline and captions are hidden under the outro.
+   */
+  ask: AskOutroSchema.optional()
 });
 
 export type StoryLayer = z.infer<typeof LayerSchema>;

@@ -3,6 +3,7 @@ import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo, SEASONS } from "../content/epicbharatsaga/vishnu-season";
 import { seasonLongForPost, SEASON_LONG_DATES } from "../content/epicbharatsaga/season-long";
+import { dharmSankatForDay, dharmSankatMeta } from "../content/dharm-sankat/questions";
 import { SAGA_TEASER_CROP } from "../engines/story-diorama/src/saga-long-teaser";
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
@@ -210,6 +211,23 @@ export const CHANNELS = {
     }
   },
   // Long video (16:9) for watch hours. Same YouTube channel + Instagram/Facebook as Kaali Peeli Chase.
+  // Dharm Sankat: mythology + logic debate Shorts ("Karna ya Arjun?"), a second daily slot on EpicBharatSaga.
+  // Story-diorama engine + the shared AskOutro ending. Disabled until a human sets LIVE_DHARM_SANKAT=true.
+  "dharm-sankat": {
+    name: "Dharm Sankat (EpicBharatSaga)",
+    composition: "EpicBharatSaga",
+    startDate: "2026-11-16",
+    slots: ["08:30"],
+    socialAccount: "epicbharatsaga",
+    narrated: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
+    metaSecretPrefix: "META_EBS",
+    youtubeHandle: "@EpicBharatSaga",
+    pinterestSecretPrefix: "PINTEREST_EBS",
+    resolve: (n) => dharmSankatForDay(n),
+    meta: (n) => dharmSankatMeta(n)
+  },
   // Long video (16:9) for watch hours: a whole EpicBharatSaga season in one video, the Sunday after the season ends.
   // Same YouTube channel + Instagram/Facebook as epicbharatsaga. Narrated scene by scene like the Shorts.
   "ebs-season-long": {

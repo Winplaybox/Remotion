@@ -1,6 +1,8 @@
 import React from "react";
 import { AbsoluteFill, Audio, Img, interpolate, random, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { SoundBed, type Sfx } from "@visuals/Sound";
+import { AskOutro } from "@visuals/AskOutro";
+import { askOutroSfx, followTapAt } from "../../ask-outro";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { FPS, type StoryDiorama, type StoryLayer, type StoryScene } from "./model";
 import { PROPS, PropDefs } from "./props";
@@ -229,7 +231,7 @@ const PaperFinish: React.FC = () => (
 
 /* ---------- scene ---------- */
 
-const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean; captions: boolean }> = ({ scene, pal, tf, first, captions }) => {
+const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean; captions: boolean; headline?: boolean }> = ({ scene, pal, tf, first, captions, headline = true }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const dur = scene.seconds * fps;
@@ -247,7 +249,7 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean;
         <span>{scene.location}</span><span>{scene.fig}</span>
       </div>
       <div style={{ position: "absolute", top: 196, left: 62, right: 62, height: 2, background: base, opacity: 0.35 }} />
-      <Headline scene={scene} frame={frame} fps={fps} pal={pal} base={base} />
+      {headline ? <Headline scene={scene} frame={frame} fps={fps} pal={pal} base={base} /> : null}
       {captions ? <Captions text={scene.caption} frame={frame} fps={fps} seconds={scene.seconds} pal={pal} /> : null}
       {!first && wipe < 1 ? <div style={{ position: "absolute", left: 0, right: 0, top: `${(1 - wipe) * 100}%`, height: 14, background: pal.paper, boxShadow: "0 -8px 20px rgba(0,0,0,.4)" }} /> : null}
     </AbsoluteFill>
@@ -268,6 +270,8 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
     scene.sfx.forEach((name, k) => sfx.push({ src: `sfx/${name}.mp3`, at: at + 0.4 + k * 0.6, volume: 0.35 }));
     at += scene.seconds;
   });
+  const askAt = p.ask ? p.scenes.slice(0, -1).reduce((a, s) => a + s.seconds, 0) : 0;
+  if (p.ask) sfx.push(...askOutroSfx(p.ask, askAt));
   return (
     <AbsoluteFill style={{ background: "#111" }}>
       <SoundBed music={p.music || undefined} musicVolume={0.08} sfx={sfx} />
@@ -277,12 +281,13 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
         const len = Math.round(scene.seconds * FPS) + (i < p.scenes.length - 1 ? p.transitionFrames : 0);
         return (
           <Sequence key={scene.id} from={from} durationInFrames={len} name={scene.id}>
-            <Scene scene={scene} pal={p.palette} tf={p.transitionFrames} first={i === 0} captions={p.showCaptions} />
+            <Scene scene={scene} pal={p.palette} tf={p.transitionFrames} first={i === 0} captions={p.showCaptions && !(p.ask && i === p.scenes.length - 1)} headline={!(p.ask && i === p.scenes.length - 1)} />
             {scene.audio ? <Audio src={staticFile(scene.audio)} /> : null}
           </Sequence>
         );
       })}
       <SeriesHeader brand={p.brand} tag={p.tag} accent={p.tagAccent} pal={p.palette} />
+      {p.ask ? <AskOutro from={Math.round(askAt * FPS)} a={p.ask} accent={p.palette.accent2} tapAt={followTapAt(p.ask)} /> : null}
       <PaperFinish />
     </AbsoluteFill>
   );
