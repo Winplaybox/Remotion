@@ -53,6 +53,7 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "kpc-championship": CHASE_COMMENTATOR,
   epicbharatsaga: KATHAVACHAK,
   "ebs-season-long": KATHAVACHAK,
+  "dharm-sankat": KATHAVACHAK,
   "liar-lineup": DETECTIVE,
   "dimaag-lock": CODE_HOST_EN
 };
