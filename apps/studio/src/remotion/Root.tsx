@@ -19,6 +19,7 @@ import { epicBharatSagaForDay } from "../../../../content/epicbharatsaga/vishnu-
 import { withNarrationDurations } from "../../../../engines/story-diorama/src/metadata";
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
 import { NeelkanthCinematicPOC, POC_FPS, POC_FRAMES } from "../../../../engines/story-diorama/src/cinematic/NeelkanthPOC";
+import { NeelkanthCinematicPOC2, POC2_FPS, POC2_FRAMES } from "../../../../engines/story-diorama/src/cinematic/NeelkanthPOC2";
 import { SagaLongComposition } from "../../../../engines/story-diorama/src/SagaLongComposition";
 import { SagaLongSchema, SAGA_W, SAGA_H, sagaLongDuration, type SagaLong } from "../../../../engines/story-diorama/src/saga-long-model";
 import { seasonLongForPost } from "../../../../content/epicbharatsaga/season-long";
@@ -147,6 +148,7 @@ export const Root: React.FC = () => (
         }} />
       {/* PROOF OF CONCEPT (isolated, Studio only — no channel uses it): Cinematic 2.5D, EP11 Neelkanth, 10 s */}
       <Composition id="NeelkanthCinematicPOC" component={NeelkanthCinematicPOC} fps={POC_FPS} width={1080} height={1920} durationInFrames={POC_FRAMES} />
+      <Composition id="NeelkanthCinematicPOC2" component={NeelkanthCinematicPOC2} fps={POC2_FPS} width={1080} height={1920} durationInFrames={POC2_FRAMES} defaultProps={{ voice: false }} />
       <Composition id="EpicBharatSagaLong" component={SagaLongComposition} schema={SagaLongSchema} fps={30} width={SAGA_W} height={SAGA_H}
         durationInFrames={sagaLongDuration(SAGA_LONG_DEMO)} defaultProps={SAGA_LONG_DEMO}
         calculateMetadata={async ({ props }: { props: SagaLong }) => {

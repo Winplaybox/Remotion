@@ -14,21 +14,21 @@ export const POC_FPS = 30;
 export const POC_FRAMES = 300;
 const W = 1080, H = 1920;
 
-const PAL = { paper: "#F5EEDF", ink: "#1C1A17", accent: "#F0533F", accent2: "#F6B93B", accent3: "#5BD17A" };
-const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
-const lin = (f: number, a: number, b: number, v0: number, v1: number) => interpolate(f, [a, b], [v0, v1], clamp);
+export const PAL = { paper: "#F5EEDF", ink: "#1C1A17", accent: "#F0533F", accent2: "#F6B93B", accent3: "#5BD17A" };
+export const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
+export const lin = (f: number, a: number, b: number, v0: number, v1: number) => interpolate(f, [a, b], [v0, v1], clamp);
 
 // ---------- cast (existing rig, custom looks) ----------
 const SHIVA: Look = { label: "Shiva", gender: "m", skin: "#6E9BD1", hair: "jata", hairColor: "#2A1E14", headwear: "none", headwearColor: "#000000", facialHair: "none",
   top: "vest", topColor: "#C9822E", trim: "#6B3A12", bottom: "dhoti", bottomColor: "#B9772A", shoes: "#6E9BD1", accessories: ["tripund", "rudraksha"], height: 1.05, build: "normal", eyes: "narrow", brow: "thick" };
-const DEVA: Look = { label: "Deva", gender: "m", skin: "#E8B98A", hair: "topknot", hairColor: "#2A1E14", headwear: "none", headwearColor: "#000000", facialHair: "mustache",
+export const DEVA: Look = { label: "Deva", gender: "m", skin: "#E8B98A", hair: "topknot", hairColor: "#2A1E14", headwear: "none", headwearColor: "#000000", facialHair: "mustache",
   top: "sherwani", topColor: "#F6B93B", trim: "#C9861A", bottom: "dhoti", bottomColor: "#FFF3D1", shoes: "#8A5A2E", accessories: ["tilak"], height: 1, build: "normal" };
-const DEVA2: Look = { ...DEVA, label: "Deva 2", topColor: "#F28C28", facialHair: "none", hair: "long" };
-const ASURA: Look = { label: "Asura", gender: "m", skin: "#6A4E7A", hair: "messy", hairColor: "#1C1420", headwear: "none", headwearColor: "#000000", facialHair: "bigMustache",
+export const DEVA2: Look = { ...DEVA, label: "Deva 2", topColor: "#F28C28", facialHair: "none", hair: "long" };
+export const ASURA: Look = { label: "Asura", gender: "m", skin: "#6A4E7A", hair: "messy", hairColor: "#1C1420", headwear: "none", headwearColor: "#000000", facialHair: "bigMustache",
   top: "vest", topColor: "#7A1F2A", trim: "#3A0E14", bottom: "dhoti", bottomColor: "#3A2A4A", shoes: "#2A1E14", accessories: ["scar"], height: 1.08, build: "stout", brow: "bushy" };
 
 /** A rig character placed with its feet at (x, y), scale s. */
-const Actor: React.FC<{ look: Look; x: number; y: number; s: number; f: number; action?: React.ComponentProps<typeof Character>["action"]; pose?: React.ComponentProps<typeof Character>["pose"];
+export const Actor: React.FC<{ look: Look; x: number; y: number; s: number; f: number; action?: React.ComponentProps<typeof Character>["action"]; pose?: React.ComponentProps<typeof Character>["pose"];
   expression?: React.ComponentProps<typeof Character>["expression"]; facing?: 1 | -1; lean?: number; seed: string }> = ({ look, x, y, s, f, action, pose, expression, facing = 1, lean = 0, seed }) => (
   <g transform={`translate(${x} ${y}) rotate(${lean}) scale(${s})`}>
     <Character look={look} frame={f} facing={facing} seed={seed} {...(action ? { action } : {})} {...(pose ? { pose } : {})} {...(expression ? { expression } : {})} />
@@ -43,7 +43,7 @@ const ShivaMoon: React.FC<{ sx: number; sy: number; s: number }> = ({ sx, sy, s 
 );
 
 // ---------- atmosphere ----------
-const Sky: React.FC<{ top: string; bottom: string; sun?: { x: number; y: number; r: number; color: string } }> = ({ top, bottom, sun }) => (
+export const Sky: React.FC<{ top: string; bottom: string; sun?: { x: number; y: number; r: number; color: string } }> = ({ top, bottom, sun }) => (
   <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
     <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={top} /><stop offset="1" stopColor={bottom} /></linearGradient>
       <radialGradient id="sunglow"><stop offset="0" stopColor={sun?.color ?? "#FFF"} stopOpacity={0.9} /><stop offset="1" stopColor={sun?.color ?? "#FFF"} stopOpacity={0} /></radialGradient></defs>
@@ -52,14 +52,14 @@ const Sky: React.FC<{ top: string; bottom: string; sun?: { x: number; y: number;
   </svg>
 );
 
-const Ridges: React.FC<{ y: number; color: string; seed: string; amp?: number }> = ({ y, color, seed, amp = 160 }) => {
+export const Ridges: React.FC<{ y: number; color: string; seed: string; amp?: number }> = ({ y, color, seed, amp = 160 }) => {
   const pts: string[] = [`-200,${H}`];
   for (let i = 0; i <= 14; i++) pts.push(`${-200 + i * 110},${y - random(`${seed}${i}`) * amp - (i % 3 === 1 ? amp * 0.6 : 0)}`);
   pts.push(`1400,${H}`);
   return <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}><polygon points={pts.join(" ")} fill={color} /></svg>;
 };
 
-const Fog: React.FC<{ f: number; y: number; color: string; opacity: number; seed: string }> = ({ f, y, color, opacity, seed }) => (
+export const Fog: React.FC<{ f: number; y: number; color: string; opacity: number; seed: string }> = ({ f, y, color, opacity, seed }) => (
   <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
     <defs><filter id={`fog-${seed}`} x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="40" /></filter></defs>
     <g filter={`url(#fog-${seed})`} opacity={opacity}>
@@ -71,7 +71,7 @@ const Fog: React.FC<{ f: number; y: number; color: string; opacity: number; seed
   </svg>
 );
 
-const GodRays: React.FC<{ f: number; x: number; y: number; color: string; opacity: number }> = ({ f, x, y, color, opacity }) => (
+export const GodRays: React.FC<{ f: number; x: number; y: number; color: string; opacity: number }> = ({ f, x, y, color, opacity }) => (
   <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible", mixBlendMode: "screen" }}>
     <defs><linearGradient id="ray" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={color} stopOpacity={0.75} /><stop offset="1" stopColor={color} stopOpacity={0} /></linearGradient></defs>
     <g opacity={opacity} transform={`rotate(${Math.sin(f / 50) * 3} ${x} ${y})`}>
@@ -84,7 +84,7 @@ const GodRays: React.FC<{ f: number; x: number; y: number; color: string; opacit
 );
 
 /** Deterministic particles: snow drifts down, embers rise, spray bursts. */
-const Particles: React.FC<{ f: number; n: number; kind: "snow" | "embers" | "spray"; color: string; seed: string; area?: [number, number, number, number] }> = ({ f, n, kind, color, seed, area = [0, 0, W, H] }) => {
+export const Particles: React.FC<{ f: number; n: number; kind: "snow" | "embers" | "spray"; color: string; seed: string; area?: [number, number, number, number] }> = ({ f, n, kind, color, seed, area = [0, 0, W, H] }) => {
   const [ax, ay, aw, ah] = area;
   return (
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
@@ -103,7 +103,7 @@ const Particles: React.FC<{ f: number; n: number; kind: "snow" | "embers" | "spr
 };
 
 /** Halahal: rising, turbulent poison smoke (SVG turbulence displacement, animated by frame -> deterministic). */
-const Poison: React.FC<{ f: number; x: number; y: number; scale: number; opacity: number; id: string }> = ({ f, x, y, scale, opacity, id }) => (
+export const Poison: React.FC<{ f: number; x: number; y: number; scale: number; opacity: number; id: string }> = ({ f, x, y, scale, opacity, id }) => (
   <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}>
     <defs>
       <filter id={`tox-${id}`} x="-60%" y="-60%" width="220%" height="220%">
@@ -123,20 +123,20 @@ const Poison: React.FC<{ f: number; x: number; y: number; scale: number; opacity
   </svg>
 );
 
-const Grade: React.FC<{ color: string; opacity: number; mode?: React.CSSProperties["mixBlendMode"] }> = ({ color, opacity, mode = "soft-light" }) =>
+export const Grade: React.FC<{ color: string; opacity: number; mode?: React.CSSProperties["mixBlendMode"] }> = ({ color, opacity, mode = "soft-light" }) =>
   <AbsoluteFill style={{ background: color, opacity, mixBlendMode: mode }} />;
-const Vignette: React.FC<{ strength: number }> = ({ strength }) =>
+export const Vignette: React.FC<{ strength: number }> = ({ strength }) =>
   <AbsoluteFill style={{ background: `radial-gradient(ellipse 75% 60% at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,${strength}) 100%)` }} />;
 const Letterbox: React.FC = () => <AbsoluteFill style={{ boxShadow: "inset 0 0 0 1px rgba(0,0,0,.4)" }} />;
 
 /** One depth plane: everything inside is laid out in 1080x1920 screen space and moved by the camera. */
-const Plane: React.FC<{ cam: Cam; d: number; f: number; children: React.ReactNode; opacity?: number }> = ({ cam, d, f, children, opacity = 1 }) => {
+export const Plane: React.FC<{ cam: Cam; d: number; f: number; children: React.ReactNode; opacity?: number }> = ({ cam, d, f, children, opacity = 1 }) => {
   const st = planeStyle(cam, d, f);
   return <AbsoluteFill style={{ transform: st.transform, filter: st.filter, opacity, transformOrigin: "0 0" }}>{children}</AbsoluteFill>;
 };
-const Svg: React.FC<{ children: React.ReactNode }> = ({ children }) =>
+export const Svg: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ overflow: "visible" }}><PropDefs />{children}</svg>;
-const prop = (name: keyof typeof PROPS, f: number, data: Record<string, unknown> = {}) => {
+export const prop = (name: keyof typeof PROPS, f: number, data: Record<string, unknown> = {}) => {
   const C = PROPS[name];
   return <C lf={f} fps={POC_FPS} data={data} pal={PAL} />;
 };
