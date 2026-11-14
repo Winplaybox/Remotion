@@ -3,7 +3,8 @@ import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo, SEASONS } from "../content/epicbharatsaga/vishnu-season";
 import { seasonLongForPost, SEASON_LONG_DATES } from "../content/epicbharatsaga/season-long";
-import { dharmSankatForDay, dharmSankatMeta } from "../content/dharm-sankat/questions";
+import { dharmSankatForDay, dharmSankatMeta, dharmSankatQuestion } from "../content/dharm-sankat/questions";
+import { dharmSankatWeekLong, DS_LONG_DATES, DS_WEEK } from "../content/dharm-sankat/weekly-long";
 import { SAGA_TEASER_CROP } from "../engines/story-diorama/src/saga-long-teaser";
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
@@ -227,6 +228,44 @@ export const CHANNELS = {
     pinterestSecretPrefix: "PINTEREST_EBS",
     resolve: (n) => dharmSankatForDay(n),
     meta: (n) => dharmSankatMeta(n)
+  },
+  // #20 Dharm Sankat weekly long (16:9): the week's 7 debates in one video, Sunday 18:30 IST from 22 Nov. Disabled until LIVE_DHARM_SANKAT_LONG=true.
+  "dharm-sankat-long": {
+    name: "Dharm Sankat — Weekly (long)",
+    composition: "EpicBharatSagaLong",
+    startDate: DS_LONG_DATES[0]!,
+    dates: DS_LONG_DATES,
+    slots: ["18:30"],
+    longForm: true,
+    socialAccount: "epicbharatsaga",
+    narrated: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
+    metaSecretPrefix: "META_EBS",
+    youtubeHandle: "@EpicBharatSaga",
+    pinterestSecretPrefix: "PINTEREST_EBS",
+    resolve: (n) => dharmSankatWeekLong(n),
+    meta: (n) => {
+      const p = dharmSankatWeekLong(n);
+      const qs = Array.from({ length: DS_WEEK }, (_, i) => dharmSankatQuestion((n - 1) * DS_WEEK + i + 1));
+      const introSec = p.scenes.slice(0, p.introScenes).reduce((a, s) => a + s.seconds, 0);
+      const firstLen = p.scenes.slice(p.chapters[0]!.startScene, p.chapters[1]!.startScene).reduce((a, s) => a + s.seconds, 0);
+      return {
+        title: `Mahabharat aur Ramayan ke 7 Sabse Bade Sawaal — Faisla Aapka 🤔 | Dharm Sankat Hafta ${n}`,
+        description: [
+          "Har sawaal ke dono paksh, granthon se. Faisla aapka — comment mein sawaal number + jawab likhiye (jaise 1A, 2B).",
+          "", "Is video mein:", ...qs.map((q, i) => `${i + 1}. ${q.title}`), "",
+          "Sources:", ...qs.map((q, i) => `${i + 1}. ${q.sources}`), "",
+          "Roz subah naya Dharm Sankat Shorts pe — subscribe @EpicBharatSaga",
+          "#mahabharat #ramayan #dharmsankat #sanatandharma #hindumythology"
+        ].join("\n"),
+        tags: ["dharm sankat", "mahabharat", "ramayan", "mahabharat ke sawaal", "hindu mythology", "sanatan dharma", "epic bharat saga", ...qs.map((q) => q.leftName.toLowerCase())].slice(0, 30),
+        caption: "Is hafte ke 7 Dharm Sankat — pehla yahan, baaki sab YouTube pe! 🤔\n#mahabharat #ramayan #dharmsankat #reels",
+        teaser: { start: introSec, length: firstLen, banner: "Baaki 6 sawaal YouTube pe", crop: SAGA_TEASER_CROP },
+        language: "hi",
+        categoryId: "27"
+      };
+    }
   },
   // Long video (16:9) for watch hours: a whole EpicBharatSaga season in one video, the Sunday after the season ends.
   // Same YouTube channel + Instagram/Facebook as epicbharatsaga. Narrated scene by scene like the Shorts.
