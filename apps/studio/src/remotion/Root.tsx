@@ -154,6 +154,10 @@ export const Root: React.FC = () => (
           return { durationInFrames: sagaLongDuration(timed), props: timed };
         }} />
     </Folder>
+    <Folder name="Visual Proofs">
+      <Composition id="EpicBharatSaga-ITER3-Proof" component={Iter3ProofComposition} schema={StoryDioramaSchema} {...video}
+        durationInFrames={iter3ProofDuration()} defaultProps={ITER3_DEMO} />
+    </Folder>
     <Folder name="BrandArt">
       <Still id="ChakraPuzzle-Avatar" component={BrandArt} width={800} height={800} defaultProps={{ channel: "chakra" as const, kind: "avatar" as const }} />
       <Still id="ChakraPuzzle-Banner" component={BrandArt} width={2560} height={1440} defaultProps={{ channel: "chakra" as const, kind: "banner" as const }} />
