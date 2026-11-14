@@ -7,7 +7,7 @@ content to copy — every engine writes its own stories, art and audio. Each ide
 Build one with: `npm run engine:new -- <slug> <Pascal> --channel "<Name>"`, then give an AI agent the prompt in
 `docs/NEW_ENGINE.md` plus the section below.
 
-**Status (14 Nov 2026):** ✅ Done 2 / 20 engines — #1 Code Cracker (`engines/code-lock`), #2 Jhooth Kaun? (`engines/liar-lineup`). Baki 18. Next: #19 Dharm Sankat (best data signal), then #8 Spot the Liar 17s.
+**Status (14 Nov 2026, shaam):** ✅ Done 4 / 23 — #1 Code Cracker, #2 Jhooth Kaun?, #19 Dharm Sankat (`content/dharm-sankat`), #21 Season Long (`ebs-season-long`). Baki 19. Next: #20 Dharm Sankat Top 10 (long), #22 Kaun Hoon Main?, #8 Spot the Liar 17s.
 
 ## What all 13 references have in common
 
@@ -116,8 +116,11 @@ judgement angle on a famous episode. Normal storytelling uploads average ~131 vi
 
 | Status | # | Engine (slug) | Format | Content | Answer / options chips | Effort | Notes |
 |---|---|---|---|---|---|---|---|
-| ⬜ Baki | 19 | **Dharm Sankat** (`dharm-sankat`) | 35–50 s: hook question (≤1.5 s) → context in 3 beats → Side A with its text reference → Side B with its reference → "Aap kya kehte ho? [A] [B]" | Reviewed bank of 120+ questions, each with both sides + source (Valmiki Ramayan kanda, Mahabharat parva, Ramcharitmanas) | `[A] KARNA` `[B] ARJUN`, `HAAN / NAHI` | M | Next video opens with "Kal ka sawaal: 63% ne A kaha" (from real comments via `answer-comments.ts`) + what the text says |
+| ✅ Done | 19 | **Dharm Sankat** (`dharm-sankat`) | 35–50 s: hook question (≤1.5 s) → context in 3 beats → Side A with its text reference → Side B with its reference → "Aap kya kehte ho? [A] [B]" | Reviewed bank of 120+ questions, each with both sides + source (Valmiki Ramayan kanda, Mahabharat parva, Ramcharitmanas) | `[A] KARNA` `[B] ARJUN`, `HAAN / NAHI` | M | Next video opens with "Kal ka sawaal: 63% ne A kaha" (from real comments via `answer-comments.ts`) + what the text says |
 | ⬜ Baki | 20 | **Sabse Bada Sawaal — Top 10** (`dharm-sankat-long`) | 8–10 min 16:9: 10 questions from the week's Shorts, with comment results + deeper context | Built from #19's bank + vote results | chapters per question | S (after #19) | For the 8,000 watch-hour target |
+| ✅ Done | 21 | **Season Long** (`ebs-season-long`) | 16:9, ~7–8 min: one whole EpicBharatSaga season (intro + every episode + outro), chapter list left, now-playing + progress + subscribe right | Built from authored episodes | chapters | S | Posts the Sunday after each season ends (Vishnu 15 Nov, Shiv 29 Nov…); IG/FB get the centre column as a vertical teaser |
+| ⬜ Baki | 22 | **Kaun Hoon Main?** (`myth-guess`) | 3 clues appear one by one ("Mera janm ghade se hua… main 100 bhaiyon mein bada nahi… mera guru mera pita jaisa") → guess the character | Reviewed bank of 150+ characters, each clue cited | `[A] [B] [C] [D]` names | M | Has a right answer → AskOutro "jawab agli video mein" + answer comment; brings back returning viewers like puzzles, but on the mythology audience |
+| ⬜ Baki | 23 | **Granth Mein Hai Ya Nahi?** (`fact-or-myth`) | One popular belief on screen ("Lakshman rekha Valmiki Ramayan mein hai?", "Karna ka kavach-kundal Indra ne churaya?") → FACT / MYTH | Bank with exact book/chapter for every answer | `FACT` / `MYTH` | S | Corrects common myths with sources — strong comment bait ("maine to TV pe dekha tha!"); answer in next video |
 
 **Question bank starters:** Karna ya Arjun — bada dhanurdhar kaun? · Draupadi ka sabha mein sawaal: jo khud ko haar chuka,
 kya wo patni ko daav pe laga sakta tha? · Bhishma cheerharan pe chup kyun rahe? · Ram ne Bali ko chhup ke kyun maara —
