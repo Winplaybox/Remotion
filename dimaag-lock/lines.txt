@@ -1,0 +1,3 @@
+The previous code was 353.
+Can you crack this 4 digit code? Study all five clues.
+Each clue shows how many digits are correct, and how many are in the right place.
