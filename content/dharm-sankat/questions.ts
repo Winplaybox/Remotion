@@ -10,8 +10,8 @@ import { P, StoryDioramaSchema, type StoryDiorama, type StoryDioramaInput } from
  */
 
 type Fig = Record<string, unknown>;
-interface Side { label: string; hi: string; en: string; card: string[] }
-interface Q {
+export interface Side { label: string; hi: string; en: string; card: string[] }
+export interface Q {
   /** Hook headline (2 lines, <=16 chars each) + spoken hook. */
   h1: string; h2: string; hookHi: string; hookEn: string;
   ctxHi: string; ctxEn: string; c1: string; c2: string;
