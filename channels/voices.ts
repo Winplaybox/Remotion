@@ -55,6 +55,7 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "ebs-season-long": KATHAVACHAK,
   "dharm-sankat": KATHAVACHAK,
   "dharm-sankat-long": KATHAVACHAK,
+  "kaun-hoon-main": KATHAVACHAK,
   "liar-lineup": DETECTIVE,
   "dimaag-lock": CODE_HOST_EN
 };
