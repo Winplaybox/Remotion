@@ -18,6 +18,11 @@ import { StoryDioramaSchema, storyDioramaDuration, type StoryDiorama } from "../
 import { epicBharatSagaForDay } from "../../../../content/epicbharatsaga/vishnu-season";
 import { withNarrationDurations } from "../../../../engines/story-diorama/src/metadata";
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
+import { SagaLongComposition } from "../../../../engines/story-diorama/src/SagaLongComposition";
+import { SagaLongSchema, SAGA_W, SAGA_H, sagaLongDuration, type SagaLong } from "../../../../engines/story-diorama/src/saga-long-model";
+import { seasonLongForPost } from "../../../../content/epicbharatsaga/season-long";
+
+const SAGA_LONG_DEMO: SagaLong = seasonLongForPost(1);
 import { TemplateSchema, templateDuration, templateForDay, type Template } from "../../../../engines/_template/src/model";
 import { TemplateComposition } from "../../../../engines/_template/src/TemplateComposition";
 import { NARRATOR_DEMO, NARRATOR_IDS, NarratorThumbSchema, NarratorVideoSchema, narratorVideoDuration, sizeOf, thumbSizeOf, type NarratorThumb, type NarratorVideo } from "../../../../engines/narrator-video/src/model";
@@ -138,6 +143,12 @@ export const Root: React.FC = () => (
         calculateMetadata={async ({ props }: { props: StoryDiorama }) => {
           const timed = await withNarrationDurations(props);
           return { durationInFrames: storyDioramaDuration(timed), props: timed };
+        }} />
+      <Composition id="EpicBharatSagaLong" component={SagaLongComposition} schema={SagaLongSchema} fps={30} width={SAGA_W} height={SAGA_H}
+        durationInFrames={sagaLongDuration(SAGA_LONG_DEMO)} defaultProps={SAGA_LONG_DEMO}
+        calculateMetadata={async ({ props }: { props: SagaLong }) => {
+          const timed = { ...props, scenes: (await withNarrationDurations(props)).scenes };
+          return { durationInFrames: sagaLongDuration(timed), props: timed };
         }} />
     </Folder>
     <Folder name="BrandArt">

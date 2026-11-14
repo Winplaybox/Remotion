@@ -1,7 +1,9 @@
 import { chakraPuzzleForDay, chakraVoiceLines, oddCellOf } from "../engines/odd-orbit/src/model";
 import { kaaliPeeliForDay, kaaliPeeliVoiceLines } from "../engines/track-vehicle/src/model";
 import { buildSchedule } from "../engines/track-vehicle/src/schedule";
-import { epicBharatSagaForDay, episodeInfo } from "../content/epicbharatsaga/vishnu-season";
+import { epicBharatSagaForDay, episodeInfo, SEASONS } from "../content/epicbharatsaga/vishnu-season";
+import { seasonLongForPost, SEASON_LONG_DATES } from "../content/epicbharatsaga/season-long";
+import { SAGA_TEASER_CROP } from "../engines/story-diorama/src/saga-long-teaser";
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
 import { championshipForEpisode, marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
@@ -12,7 +14,7 @@ import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../en
 export interface PostMeta {
   title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string;
   /** Long videos: part cut as the vertical Instagram/Facebook teaser (seconds) + its closing banner. */
-  teaser?: { start: number; length: number; banner: string };
+  teaser?: { start: number; length: number; banner: string; header?: string; crop?: { w: number; x: number } };
 }
 
 export interface ChannelConfig {
@@ -24,6 +26,8 @@ export interface ChannelConfig {
   slots: readonly string[];
   /** Only post on these weekdays (IST, 0 = Sunday). Post numbers then count only those days. Default: every day. */
   weekdays?: readonly number[];
+  /** Only post on these exact dates (IST, ascending). Post n = dates[n - 1]. Overrides weekdays. */
+  dates?: readonly string[];
   /** Long video (16:9): Instagram / Facebook get a vertical teaser that sends viewers to YouTube; no Pinterest pin. */
   longForm?: boolean;
   /** Use this channel's connected Instagram / Facebook / Pinterest accounts (same brand, different format). */
@@ -206,6 +210,51 @@ export const CHANNELS = {
     }
   },
   // Long video (16:9) for watch hours. Same YouTube channel + Instagram/Facebook as Kaali Peeli Chase.
+  // Long video (16:9) for watch hours: a whole EpicBharatSaga season in one video, the Sunday after the season ends.
+  // Same YouTube channel + Instagram/Facebook as epicbharatsaga. Narrated scene by scene like the Shorts.
+  "ebs-season-long": {
+    name: "EpicBharatSaga Season (long)",
+    composition: "EpicBharatSagaLong",
+    startDate: SEASON_LONG_DATES[0]!,
+    dates: SEASON_LONG_DATES,
+    slots: ["11:30"],
+    longForm: true,
+    socialAccount: "epicbharatsaga",
+    narrated: true,
+    autoPublish: true,
+    youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
+    metaSecretPrefix: "META_EBS",
+    youtubeHandle: "@EpicBharatSaga",
+    pinterestSecretPrefix: "PINTEREST_EBS",
+    resolve: (n) => seasonLongForPost(n),
+    meta: (n) => {
+      const p = seasonLongForPost(n);
+      const season = SEASONS[n - 1]!;
+      const nice = (w: string) => w.split(" ").map((x) => x.charAt(0) + x.slice(1).toLowerCase()).join(" ");
+      const names = season.outline.map(nice);
+      const title = season.id === "vishnu"
+        ? "Vishnu ke 10 Avatar — Poori Kahani | Dashavatar Story in Hindi | Epic Bharat Saga"
+        : `${season.short} ki ${season.outline.length} Kahaniyaan — Poori Kahani Ek Video Mein | ${nice(season.name)} | Epic Bharat Saga`;
+      const introSec = p.scenes.slice(0, p.introScenes).reduce((a, s) => a + s.seconds, 0);
+      const firstLen = p.scenes.slice(p.chapters[0]!.startScene, p.chapters[1]?.startScene ?? p.outroScene).reduce((a, s) => a + s.seconds, 0);
+      return {
+        title,
+        description: [
+          `${nice(season.name)} ki saari kahaniyaan, shuru se ant tak, ek hi video mein.`,
+          "", "Is video mein:", ...names.map((x, i) => `${String(i + 1).padStart(2, "0")}. ${x}`), "",
+          "Har kahani Puranon, Valmiki Ramayan aur Mahabharat par aadharit hai.",
+          "Comment mein batayiye: aapki favourite kahani kaunsi hai? 🙏",
+          "Roz ek naya episode Shorts pe — subscribe @EpicBharatSaga", "",
+          `${season.hashtags} #hindumythology #sanatandharma #epicbharatsaga`
+        ].join("\n"),
+        tags: ["sanatan dharma", ...season.tags, "hindu mythology", "puranic stories", "kahani", "epic bharat saga", ...season.outline.map((x) => x.toLowerCase())].slice(0, 30),
+        caption: `${nice(season.name)} — poori kahani 🙏 Pehli kahani yahan, baaki sab YouTube pe!\n${season.hashtags} #reels`,
+        teaser: { start: introSec, length: firstLen, banner: "Poori kahani YouTube pe", crop: SAGA_TEASER_CROP },
+        language: "hi",
+        categoryId: "27"
+      };
+    }
+  },
   "kpc-championship": {
     name: "Kaali Peeli Chase Championship",
     composition: "KpcChampionship",
@@ -320,17 +369,26 @@ export function isLive(channel: ChannelId): boolean {
 }
 
 const weekdaysOf = (channel: ChannelId): readonly number[] | undefined => (CHANNELS[channel] as ChannelConfig).weekdays;
+const datesOf = (channel: ChannelId): readonly string[] | undefined => (CHANNELS[channel] as ChannelConfig).dates;
 const weekdayOf = (date: string) => new Date(`${date}T00:00:00Z`).getUTCDay();
 const addDays = (date: string, k: number) => new Date(Date.parse(`${date}T00:00:00Z`) + k * 86_400_000).toISOString().slice(0, 10);
 
 /** Whether the channel posts on this date (weekday channels skip the other days). */
 export function isPostDay(channel: ChannelId, date: string): boolean {
+  const list = datesOf(channel);
+  if (list) return list.includes(date);
   const w = weekdaysOf(channel);
   return !w || w.includes(weekdayOf(date));
 }
 
 /** 1-based posting day: calendar days since start, or (weekday channels) posting days since start. */
 export function dayNumber(channel: ChannelId, date: string): number {
+  const list = datesOf(channel);
+  if (list) {
+    const i = list.indexOf(date);
+    if (i < 0) throw new Error(`${channel}: ${date} is not a posting day`);
+    return i + 1;
+  }
   const startDate = startDateOf(channel);
   const start = Date.parse(`${startDate}T00:00:00Z`);
   const target = Date.parse(`${date}T00:00:00Z`);
@@ -355,6 +413,11 @@ export function postNumber(channel: ChannelId, date: string, slot: number): numb
 export function dateOfPost(channel: ChannelId, n: number): string {
   const slots = CHANNELS[channel].slots.length;
   const day = Math.floor((n - 1) / slots) + 1; // posting day number
+  const list = datesOf(channel);
+  if (list) {
+    if (day > list.length) throw new Error(`${channel}: post ${n} out of range`);
+    return list[day - 1]!;
+  }
   const start = startDateOf(channel);
   if (!weekdaysOf(channel)) return addDays(start, day - 1);
   let count = 0;
