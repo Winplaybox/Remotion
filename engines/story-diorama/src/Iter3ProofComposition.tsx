@@ -3,7 +3,6 @@ import {
   AbsoluteFill,
   Img,
   Sequence,
-  interpolate,
   random,
   spring,
   staticFile,
@@ -14,7 +13,7 @@ import { FONT, useBundledFonts } from "@visuals/fonts";
 import { Character } from "@visuals/rig/Character";
 import { fillLook } from "@visuals/rig/presets";
 import type { ActionId } from "@visuals/rig/motion";
-import { FPS, type StoryDiorama, type StoryLayer, type StoryScene } from "./model";
+import { type StoryDiorama, type StoryLayer, type StoryScene } from "./model";
 import { PROPS, PropDefs } from "./props";
 
 const W = 1080;
