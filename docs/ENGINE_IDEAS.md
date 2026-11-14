@@ -7,7 +7,7 @@ content to copy — every engine writes its own stories, art and audio. Each ide
 Build one with: `npm run engine:new -- <slug> <Pascal> --channel "<Name>"`, then give an AI agent the prompt in
 `docs/NEW_ENGINE.md` plus the section below.
 
-**Status (14 Nov 2026):** ✅ Done 2 / 18 engines — #1 Code Cracker (`engines/code-lock`), #2 Jhooth Kaun? (`engines/liar-lineup`). Baki 16. Next: #8 Spot the Liar 17s (reuses #2), then batch 2 Number Puzzle.
+**Status (14 Nov 2026):** ✅ Done 2 / 20 engines — #1 Code Cracker (`engines/code-lock`), #2 Jhooth Kaun? (`engines/liar-lineup`). Baki 18. Next: #19 Dharm Sankat (best data signal), then #8 Spot the Liar 17s.
 
 ## What all 13 references have in common
 
@@ -106,6 +106,30 @@ Reaction → Spot the Difference → Brain Test. The first five are ~1–2 days 
 
 **Channel fit:** Chakra Puzzle can rotate Bubble Pop / Hidden Object (emoji) / Colour as extra formats; a new **Dimaag Lock**
 channel can carry Number, Memory, Maze, Reaction, Emoji Quiz, Code Cracker.
+
+## Batch 3 — Mythology + logic (proven signal, build FIRST)
+
+**Why:** in `channel-stats` (13 Nov 2026) EpicBharatSaga's best long-form/Shorts after a generic VFX reel are
+*"Draupadi's Rejection of Karna: A Dark Psychology Analysis"* (1,149 views) and *"Draupadi's Vow"* (928) — a question /
+judgement angle on a famous episode. Normal storytelling uploads average ~131 views. Debate questions have no single
+"right" answer, so everyone can comment — the thing all our puzzle channels are missing (0–8 comments total).
+
+| Status | # | Engine (slug) | Format | Content | Answer / options chips | Effort | Notes |
+|---|---|---|---|---|---|---|---|
+| ⬜ Baki | 19 | **Dharm Sankat** (`dharm-sankat`) | 35–50 s: hook question (≤1.5 s) → context in 3 beats → Side A with its text reference → Side B with its reference → "Aap kya kehte ho? [A] [B]" | Reviewed bank of 120+ questions, each with both sides + source (Valmiki Ramayan kanda, Mahabharat parva, Ramcharitmanas) | `[A] KARNA` `[B] ARJUN`, `HAAN / NAHI` | M | Next video opens with "Kal ka sawaal: 63% ne A kaha" (from real comments via `answer-comments.ts`) + what the text says |
+| ⬜ Baki | 20 | **Sabse Bada Sawaal — Top 10** (`dharm-sankat-long`) | 8–10 min 16:9: 10 questions from the week's Shorts, with comment results + deeper context | Built from #19's bank + vote results | chapters per question | S (after #19) | For the 8,000 watch-hour target |
+
+**Question bank starters:** Karna ya Arjun — bada dhanurdhar kaun? · Draupadi ka sabha mein sawaal: jo khud ko haar chuka,
+kya wo patni ko daav pe laga sakta tha? · Bhishma cheerharan pe chup kyun rahe? · Ram ne Bali ko chhup ke kyun maara —
+dharm ya adharm? · Ekalavya ka angutha — Drona sahi the? · Kunti ne Karna ka sach kyun chhupaya? · "Ashwatthama hato" —
+Yudhishthir ka aadha sach jhooth tha? · Abhimanyu chakravyuh se bahar kyun nahi nikal paya? · Shikhandi ke peeche se
+Bhishma par baan — dharm-yuddh tha? · Barbarik ka sheesh Krishna ne kyun maanga? · Lakshman rekha Valmiki Ramayan mein
+hai ya nahi? · Kumbhakarna 6 mahine kyun sota tha? · Vibhishan — bhakt ya gaddar?
+
+**Rules (sensitive topic):** respectful tone, never mock a deity or a tradition; when versions differ (Valmiki vs Tulsidas,
+regional retellings) say so instead of picking one as "the truth"; every claim carries its source in the description;
+existing blocked-words moderation stays on. Rig needs Mahabharat/Ramayan looks (Krishna, Arjun, Karna, Draupadi, Bhishma,
+Ram, Sita, Ravan…) and a palace-court / Kurukshetra set — add as presets, respectful and non-photoreal.
 
 ## Channel ideas
 | Channel | Engines |
