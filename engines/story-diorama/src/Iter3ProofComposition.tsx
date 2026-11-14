@@ -11,6 +11,9 @@ import {
   useVideoConfig
 } from "remotion";
 import { FONT, useBundledFonts } from "@visuals/fonts";
+import { Character } from "@visuals/rig/Character";
+import { fillLook } from "@visuals/rig/presets";
+import type { ActionId } from "@visuals/rig/motion";
 import { FPS, type StoryDiorama, type StoryLayer, type StoryScene } from "./model";
 import { PROPS, PropDefs } from "./props";
 
@@ -126,6 +129,58 @@ const PoisonOrb: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
+const RiggedFigure: React.FC<{
+  layer: Extract<StoryLayer, { kind: "prop" }>;
+  frame: number;
+  mode: BeatSpec["mode"];
+  index: number;
+}> = ({ layer, frame, mode, index }) => {
+  const data = layer.data ?? {};
+  const read = (key: string, fallback: string) => typeof data[key] === "string" ? String(data[key]) : fallback;
+  const isShiva = read("head", "") === "jata" || data.moon === true;
+  const skin = read("skin", isShiva ? "#679ED4" : "#D8A17B");
+  const robe = read("robe", isShiva ? "#D9942C" : "#E6A13B");
+  const sash = read("sash", isShiva ? "#397D83" : "#D9A33E");
+  const action: ActionId = mode === "reaction"
+    ? (isShiva ? "lookRight" : "afraid")
+    : mode === "acceptance"
+      ? (isShiva ? "point" : "afraid")
+      : mode === "reveal"
+        ? "idle"
+        : "walk";
+  const look = fillLook({
+    label: isShiva ? "Mahadev" : "Deva / Asura",
+    gender: "m",
+    skin,
+    hair: isShiva ? "jata" : (read("head", "") === "crown" ? "slickBack" : "short"),
+    hairColor: isShiva ? "#17121D" : "#241A18",
+    headwear: read("head", "") === "crown" ? "pagdi" : "none",
+    headwearColor: "#D8A63C",
+    facialHair: isShiva ? "longBeard" : "none",
+    top: "robe",
+    topColor: robe,
+    trim: sash,
+    bottom: "dhoti",
+    bottomColor: read("bottom", isShiva ? "#B77D39" : "#C28A3C"),
+    shoes: "#493B31",
+    accessories: isShiva ? ["tripund", "rudraksha", "earrings"] : ["tilak", "earrings"],
+    height: isShiva ? 1.04 : 0.96,
+    accent: "#E6B84F"
+  });
+  return (
+    <g transform={`translate(${layer.x} ${layer.y}) scale(${layer.scale * (layer.flip ? -1 : 1)} ${layer.scale})`}>
+      <ellipse cx="0" cy="4" rx="82" ry="12" fill="#020812" opacity="0.36" />
+      <Character look={look} action={action} frame={frame} seed={`iter3-${mode}-${index}`} facing={1} />
+      {isShiva ? (
+        <g transform="translate(128 -330)" opacity="0.96">
+          <path d="M 0 0 L 0 -230 M -46 -194 Q 0 -230 46 -194 M -34 -220 L -34 -160 M 34 -220 L 34 -160" fill="none" stroke="#C8D8E4" strokeWidth="12" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M 0 -255 A 34 34 0 1 1 -28 -215 A 26 26 0 1 0 0 -255" fill="#E9D8A2" />
+        </g>
+      ) : null}
+    </g>
+  );
+};
+
 const CinematicLayer: React.FC<{
   layer: StoryLayer;
   index: number;
@@ -187,9 +242,11 @@ const CinematicLayer: React.FC<{
   return (
     <div style={style}>
       <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", inset: 0, overflow: "visible" }}>
-        <g transform={`translate(${layer.x} ${layer.y}) scale(${layer.scale * (layer.flip ? -1 : 1)} ${layer.scale})`}>
-          <Prop lf={lf} fps={fps} data={layer.data} pal={pal} />
-        </g>
+        {layer.prop === "figure"
+          ? <RiggedFigure layer={layer} frame={frame} mode={mode} index={index} />
+          : <g transform={`translate(${layer.x} ${layer.y}) scale(${layer.scale * (layer.flip ? -1 : 1)} ${layer.scale})`}>
+              <Prop lf={lf} fps={fps} data={layer.data} pal={pal} />
+            </g>}
       </svg>
     </div>
   );
