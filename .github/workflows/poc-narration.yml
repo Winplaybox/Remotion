@@ -19,7 +19,7 @@ jobs:
       - name: Synthesize
         run: |
           mkdir -p out
-          npx --yes tsx -e "import('./engines/story-diorama/src/cinematic/neelkanth-lines.ts').then(m => require('fs').writeFileSync('out/lines.json', JSON.stringify(m.NEELKANTH_LINES)))"
+          npx --yes tsx -e "import('./engines/story-diorama/src/cinematic/neelkanth-lines.ts').then(m => require('fs').writeFileSync('out/lines.json', JSON.stringify(m.NEELKANTH_LINES ?? m.default.NEELKANTH_LINES)))"
           python - <<'PY'
           import asyncio, json, subprocess
           import edge_tts

@@ -135,7 +135,7 @@ const Captions: React.FC<{ f: number }> = ({ f }) => {
   const starts = words.map((w) => { const s = speakA + (acc / total) * (speakB - speakA); acc += w.length + 2; return s; });
   const appear = sm(f, a, a + 5) * (1 - sm(f, b - 4, b));
   return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 330, opacity: appear }}>
+    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 210, opacity: appear }}>
       <div style={{ width: 920, textAlign: "center", fontFamily: "'Poppins', 'Noto Sans', sans-serif", fontWeight: 800, fontSize: 64, lineHeight: 1.18, letterSpacing: -0.5 }}>
         {words.map((w, i) => {
           const on = f >= starts[i]!;
@@ -163,9 +163,9 @@ const SHOTS: Shot[] = [
       const heave = churn(f), spin = f * 3.2 + heave * 30, slide = f * 4 + heave * 40;
       const glow = sm(f, 40, 78);
       const pullL = heave * 7, pullR = -heave * 7;
-      const devas = [{ x: 70, s: 0.5, look: DEVA }, { x: 205, s: 0.55, look: DEVA2 }];
-      const asuras = [{ x: 875, s: 0.55, look: ASURA }, { x: 1010, s: 0.5, look: ASURA }];
-      const ry = 1330;
+      const devas = [{ x: 105, s: 0.6, look: DEVA }, { x: 255, s: 0.66, look: DEVA2 }];
+      const asuras = [{ x: 830, s: 0.66, look: ASURA }, { x: 975, s: 0.6, look: ASURA }];
+      const ry = 1290;
       return <>
         <Plane cam={cam} d={0.15} f={f}><Sky top="#2B1E4A" bottom={interpolateColors(glow, [0, 1], ["#E89A5A", "#9ACB6A"])} sun={{ x: 760, y: 820, r: 46, color: "#FFE8B0" }} /></Plane>
         <Plane cam={cam} d={0.35} f={f}><Ridges y={900} color="#3A2E52" seed="m1" amp={120} /></Plane>
@@ -277,14 +277,15 @@ const SHOTS: Shot[] = [
     id: "s4-neelkanth", from: 222, len: 78,
     cam: [{ at: 0, x: 40, y: 40, z: 1.0, focus: 1, dof: 0 }, { at: 34, x: 10, y: 0, z: 1.12 }, { at: 60, x: 0, y: 30, z: 1.28 }, { at: 78, z: 1.3 }],
     render: (f, cam) => {
-      const toLips = sm(f, 0, 16);
-      const drink = sm(f, 14, 30);
-      const tilt = sm(f, 14, 26) * (1 - sm(f, 44, 58));
-      const blue = sm(f, 26, 52);
-      const open = sm(f, 54, 62);
-      const away = sm(f, 36, 56);
+      const toLips = sm(f, 0, 9);
+      const drink = sm(f, 12, 26);
+      const tilt = sm(f, 12, 22) * (1 - sm(f, 40, 54));
+      const blue = sm(f, 24, 50);
+      const open = sm(f, 50, 58);
+      const away = sm(f, 28, 44);
       const title = sm(f, 56, 66);
-      const armR = { sh: interpolate(toLips, [0, 1], [158, 162]) - away * 140, el: interpolate(toLips, [0, 1], [62, 128]) - away * 120, cup: 1 };
+      // continues S3's raised palm (sh 158, el 26) -> cupped palm at the lips (150, 140) -> arm lowered (10, 6)
+      const armR = { sh: interpolate(toLips, [0, 1], [158, 150]) * (1 - away) + 10 * away, el: interpolate(toLips, [0, 1], [26, 140]) * (1 - away) + 6 * away, cup: 1 };
       const s = 1.32, sx = 540, sy = 1980;
       return <>
         <Plane cam={cam} d={0.1} f={f}><Sky top="#0A0E24" bottom="#4E6290" /></Plane>
@@ -293,7 +294,7 @@ const SHOTS: Shot[] = [
         <Plane cam={cam} d={1} f={f}>
           <SvgBox>
             <g transform={`translate(${sx} ${sy}) scale(${s})`}>
-              <ShivaFigure f={f} legs={false} armFront={away < 0.5} armR={armR} armL={{ sh: 12, el: 8 }} orb={1 - drink} headTilt={-12 * tilt}
+              <ShivaFigure f={f} legs={false} armFront={away < 0.6} armR={armR} armL={{ sh: 12, el: 8 }} orb={1 - drink} headTilt={-12 * tilt}
                 eyes={sm(f, 16, 24) * (1 - open)} throat={blue} smile={open} />
             </g>
             {/* throat glow pulse */}
