@@ -2,5 +2,6 @@
   { "id": "chakra-puzzle", "name": "Chakra Puzzle", "youtubeTokenSecret": "YT_TOKEN_CHAKRA_PUZZLE", "metaSecretPrefix": "META_CHAKRA" },
   { "id": "kaali-peeli-chase", "name": "Kaali Peeli Chase", "youtubeTokenSecret": "YT_TOKEN_KAALI_PEELI_CHASE", "metaSecretPrefix": "META_KPC" },
   { "id": "epicbharatsaga", "name": "Epic Bharat Saga", "youtubeTokenSecret": "YT_TOKEN_EPICBHARATSAGA", "metaSecretPrefix": "META_EBS" },
+  { "id": "kaun-hoon-main", "name": "Digital Immortals — Kaun Hoon Main?", "youtubeTokenSecret": "YT_TOKEN_DIGITAL_IMMORTALS", "metaSecretPrefix": "META_DI" },
   { "id": "dimaag-lock", "name": "Dimaag Lock", "youtubeTokenSecret": "YT_TOKEN_DIMAAG_LOCK", "metaSecretPrefix": "META_DIMAAG_LOCK" }
 ]

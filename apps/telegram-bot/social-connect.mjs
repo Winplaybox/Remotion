@@ -109,5 +109,6 @@ export const SOCIAL_CHANNELS = [
   { id: "chakra-puzzle", name: "Chakra Puzzle", handle: "@ChakraPuzzle" },
   { id: "kaali-peeli-chase", name: "Kaali Peeli Chase", handle: "@KaaliPeeliChase" },
   { id: "epicbharatsaga", name: "Epic Bharat Saga", handle: "@EpicBharatSaga" },
+  { id: "kaun-hoon-main", name: "Digital Immortals", handle: "@DigitalImmortals" },
   { id: "dimaag-lock", name: "Dimaag Lock", handle: "@DimaagLock" }
 ];

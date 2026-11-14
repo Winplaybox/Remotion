@@ -43,6 +43,7 @@ Add these in Settings → Secrets and variables → Actions:
 | `YT_TOKEN_CHAKRA_PUZZLE` | output of `node scripts/publish/auth-youtube.mjs client_secret.json`. Pick **Chakra Puzzle** on the consent screen |
 | `YT_TOKEN_KAALI_PEELI_CHASE` | same command, pick **Kaali Peeli Chase** |
 | `YT_TOKEN_EPICBHARATSAGA` | same command, signed in as epicbharat.official, pick **EpicBharatSaga** |
+| `YT_TOKEN_DIGITAL_IMMORTALS` | Digital Immortals (Kaun Hoon Main?): paste the **same JSON** as colab-YT's `DIGITALIMMORTALS_TOKEN_JSON` (google-auth `authorized_user` format with client_id/secret is supported), or run `node scripts/publish/auth-youtube.mjs client_secret.json` and pick **Digital Immortals** |
 | `YT_TOKEN_DIMAAG_LOCK` | OAuth token JSON for the separate Dimaag Lock channel |
 | `YT_TOKEN_DIMAAG_LOCK_CLIENT` | OAuth client JSON for the dedicated Dimaag Lock Cloud project |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | public bucket `meta-publishing`, where Meta pulls each Reel from (same values as daily-devotional-shorts) |
