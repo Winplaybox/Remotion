@@ -6,7 +6,8 @@
 //      GH_DISPATCH_TOKEN (fine-grained PAT, Contents: read & write) · GITHUB_REPO (default Winplaybox/Remotion) ·
 //      SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (ideas/jobs/users; without them an in-memory store is used) ·
 //      MAX_JOBS_PER_DAY (all users, default 40; admin exempt) · TG_BOT_USERNAME (optional, else getMe) ·
-//      RENDER_EXTERNAL_URL (set by Render) or PUBLIC_URL — the webhook is registered on boot.
+//      RENDER_EXTERNAL_URL (set by Render) or PUBLIC_URL — the webhook is registered on boot ·
+//      TG_WEBHOOK_URL (optional: always-on relay, supabase/functions/tg-relay, so cold starts never drop messages).
 import crypto from "node:crypto";
 import http from "node:http";
 import { handle } from "./commands.mjs";
@@ -347,8 +348,10 @@ http.createServer((req, res) => {
 }).listen(Number(env.PORT || 10000), async () => {
   console.log(`telegram bot listening on ${env.PORT || 10000}`);
   if (!botUsername) { const me = await tg("getMe", {}); if (me.ok) botUsername = me.result.username; }
-  if (PUBLIC_URL) {
-    const r = await tg("setWebhook", { url: `${PUBLIC_URL.replace(/\/$/, "")}/tg/${SECRET}`, secret_token: SECRET, allowed_updates: ["message", "callback_query"], drop_pending_updates: false });
+  if (PUBLIC_URL || env.TG_WEBHOOK_URL) {
+    // TG_WEBHOOK_URL: always-on relay (supabase/functions/tg-relay) so Telegram never waits on a cold start.
+    const hook = env.TG_WEBHOOK_URL || `${PUBLIC_URL.replace(/\/$/, "")}/tg/${SECRET}`;
+    const r = await tg("setWebhook", { url: hook, secret_token: SECRET, allowed_updates: ["message", "callback_query"], drop_pending_updates: false });
     console.log("setWebhook:", r.ok ? "ok" : r.description);
     await tg("setMyCommands", { commands: [
       { command: "menu", description: "Main menu" },
