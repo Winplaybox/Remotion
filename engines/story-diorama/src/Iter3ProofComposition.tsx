@@ -298,6 +298,7 @@ export const Iter3ProofComposition: React.FC<StoryDiorama> = (p) => {
   useBundledFonts();
   const sourceById = new Map(p.scenes.map((scene) => [scene.id, scene]));
   const fallback = p.scenes[0];
+  if (!fallback) throw new Error("ITER3 proof requires at least one source scene.");
   const selected = BEATS.map((beat) => ({ beat, scene: sourceById.get(beat.source) ?? fallback }));
   return (
     <AbsoluteFill style={{ background: "#07101A" }}>
