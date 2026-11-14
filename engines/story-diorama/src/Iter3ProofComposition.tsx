@@ -204,6 +204,9 @@ const BeatScene: React.FC<{ scene: StoryScene; spec: BeatSpec; pal: Pal }> = ({ 
   const isOcean = spec.mode === "wide" || spec.mode === "poison";
   return (
     <AbsoluteFill style={{ overflow: "hidden", background: `linear-gradient(180deg, ${scene.sky[0]}, ${scene.sky[1]})` }}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+        <PropDefs />
+      </svg>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 50% 38%, rgba(255,255,255,.14), transparent 62%)" }} />
       {layers.map((layer, i) => <CinematicLayer key={i} layer={layer} index={i} frame={frame} fps={fps} progress={progress} mode={spec.mode} pal={pal} />)}
       {isOcean ? <OceanMotion frame={frame} strength={spec.mode === "poison" ? 1.5 : 1} /> : null}
