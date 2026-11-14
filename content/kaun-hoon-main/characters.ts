@@ -63,7 +63,7 @@ const C: Character[] = [
     clues: [{ hi: "मैं एक दासी का पुत्र, पर हस्तिनापुर का महामंत्री बना।", card: "DAASI-PUTRA MANTRI" }, { hi: "मुझे धर्मराज यम का अंश माना जाता है।", card: "YAM KA ANSH" }, { hi: "लाक्षागृह का ख़तरा, मैंने पांडवों को पहले ही बता दिया।", card: "LAAKSHAGRIH" }] }
 ];
 
-export const KHM_HANDLE = "@EpicBharatSaga";
+export const KHM_HANDLE = "@DigitalImmortals";
 export const KHM_LETTERS = ["A", "B", "C", "D"] as const;
 const CTA_VOICE = "अपना जवाब कमेंट में लिखो, ए, बी, सी या डी! और सही जवाब देखने के लिए फॉलो करो।";
 const PAL = { paper: "#F5EEDF", ink: "#1C1A17", accent: "#F0533F", accent2: "#F6B93B", accent3: "#5BD17A" };
@@ -128,7 +128,7 @@ export function kaunHoonMainForDay(n: number): StoryDiorama {
     ]
   });
   return StoryDioramaSchema.parse({
-    brand: "EPIC BHARAT SAGA", handle: KHM_HANDLE, tag: "KAUN HOON MAIN · #", tagAccent: String(n).padStart(2, "0"),
+    brand: "DIGITAL IMMORTALS", handle: KHM_HANDLE, tag: "KAUN HOON MAIN · #", tagAccent: String(n).padStart(2, "0"),
     palette: PAL, transitionFrames: 10,
     scenes: scenes.map((s, i) => ({ ...s, fig: `SCENE ${i + 1}` })),
     ask: askOutro({
@@ -170,7 +170,7 @@ export function kaunHoonMainMeta(n: number) {
       `Suraag ka source: ${c.sources}`,
       "", "#mahabharat #ramayan #mythologyquiz #sanatandharma #shorts"
     ].join("\n"),
-    tags: ["kaun hoon main", "mythology quiz", "mahabharat quiz", "ramayan quiz", "guess the character", "hindu mythology", "sanatan dharma", "epic bharat saga", "shorts"],
+    tags: ["kaun hoon main", "mythology quiz", "mahabharat quiz", "ramayan quiz", "guess the character", "hindu mythology", "sanatan dharma", "digital immortals", "shorts"],
     caption: "Main kaun hoon? 3 suraag 🤔 Jawab comment mein (A/B/C/D) 👇 Sahi jawab agli video mein!\n#mahabharat #ramayan #mythologyquiz #reels",
     language: "hi",
     categoryId: "27"

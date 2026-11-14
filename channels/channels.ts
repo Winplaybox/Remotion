@@ -269,19 +269,20 @@ export const CHANNELS = {
     }
   },
   // #22 Kaun Hoon Main? — guess the mythology character from 3 cited clues (A-D), answer in the next video + as a comment.
-  // Proposed as a 3rd daily slot on EpicBharatSaga (13:30 IST). DISABLED until LIVE_KAUN_HOON_MAIN=true.
+  // On DIGITAL IMMORTALS (@DigitalImmortals, mythology audience; EpicBharatSaga already has 2 daily Shorts). 13:30 IST.
+  // Token: YT_TOKEN_DIGITAL_IMMORTALS = the same authorized_user JSON as colab-YT's DIGITALIMMORTALS_TOKEN_JSON.
+  // DISABLED until LIVE_KAUN_HOON_MAIN=true.
   "kaun-hoon-main": {
-    name: "Kaun Hoon Main? (EpicBharatSaga)",
+    name: "Kaun Hoon Main? (Digital Immortals)",
     composition: "EpicBharatSaga",
     startDate: "2026-11-17",
     slots: ["13:30"],
-    socialAccount: "epicbharatsaga",
     narrated: true,
     autoPublish: false,
-    youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
-    metaSecretPrefix: "META_EBS",
-    youtubeHandle: "@EpicBharatSaga",
-    pinterestSecretPrefix: "PINTEREST_EBS",
+    youtubeTokenSecret: "YT_TOKEN_DIGITAL_IMMORTALS",
+    metaSecretPrefix: "META_DI",
+    youtubeHandle: "@DigitalImmortals",
+    pinterestSecretPrefix: "PINTEREST_DI",
     resolve: (n) => kaunHoonMainForDay(n),
     meta: (n) => kaunHoonMainMeta(n),
     answerInNextFrom: 1,
