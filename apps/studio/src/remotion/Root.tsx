@@ -18,6 +18,7 @@ import { StoryDioramaSchema, storyDioramaDuration, type StoryDiorama } from "../
 import { epicBharatSagaForDay } from "../../../../content/epicbharatsaga/vishnu-season";
 import { withNarrationDurations } from "../../../../engines/story-diorama/src/metadata";
 import { StoryDioramaComposition } from "../../../../engines/story-diorama/src/StoryDioramaComposition";
+import { Iter3ProofComposition, iter3ProofDuration } from "../../../../engines/story-diorama/src/Iter3ProofComposition";
 import { SagaLongComposition } from "../../../../engines/story-diorama/src/SagaLongComposition";
 import { SagaLongSchema, SAGA_W, SAGA_H, sagaLongDuration, type SagaLong } from "../../../../engines/story-diorama/src/saga-long-model";
 import { seasonLongForPost } from "../../../../content/epicbharatsaga/season-long";
@@ -54,6 +55,8 @@ if (trafficErrors.length) throw new Error("Traffic puzzle demo is invalid: " + t
 const sanatanEpisode = SanatanEpisodeSchema.parse(SANATAN_EPISODE_DEMO);
 
 const STORY_DEMO = epicBharatSagaForDay(1);
+// Isolated 10-second ITER3 visual proof. This does not alter the production episode data or render path.
+const ITER3_DEMO = epicBharatSagaForDay(11);
 const video = { fps: MASTER_VIDEO.fps, width: MASTER_VIDEO.width, height: MASTER_VIDEO.height };
 
 const TEMPLATE_DEMO = templateForDay(1);
@@ -150,6 +153,10 @@ export const Root: React.FC = () => (
           const timed = { ...props, scenes: (await withNarrationDurations(props)).scenes };
           return { durationInFrames: sagaLongDuration(timed), props: timed };
         }} />
+    </Folder>
+    <Folder name="Visual Proofs">
+      <Composition id="EpicBharatSaga-ITER3-Proof" component={Iter3ProofComposition} schema={StoryDioramaSchema} {...video}
+        durationInFrames={iter3ProofDuration()} defaultProps={ITER3_DEMO} />
     </Folder>
     <Folder name="BrandArt">
       <Still id="ChakraPuzzle-Avatar" component={BrandArt} width={800} height={800} defaultProps={{ channel: "chakra" as const, kind: "avatar" as const }} />
