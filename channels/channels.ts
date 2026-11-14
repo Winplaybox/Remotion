@@ -4,6 +4,7 @@ import { buildSchedule } from "../engines/track-vehicle/src/schedule";
 import { epicBharatSagaForDay, episodeInfo, SEASONS } from "../content/epicbharatsaga/vishnu-season";
 import { seasonLongForPost, SEASON_LONG_DATES } from "../content/epicbharatsaga/season-long";
 import { dharmSankatForDay, dharmSankatMeta } from "../content/dharm-sankat/questions";
+import { kaunHoonMainCharacter, kaunHoonMainForDay, kaunHoonMainMeta, kaunHoonMainOptions, KHM_LETTERS, parseKhmLetter } from "../content/kaun-hoon-main/characters";
 import { SAGA_TEASER_CROP } from "../engines/story-diorama/src/saga-long-teaser";
 import { ASK_META } from "../engines/ask-outro";
 import { parseCell, parseNumber, type Quiz } from "./quiz";
@@ -227,6 +228,31 @@ export const CHANNELS = {
     pinterestSecretPrefix: "PINTEREST_EBS",
     resolve: (n) => dharmSankatForDay(n),
     meta: (n) => dharmSankatMeta(n)
+  },
+  // #22 Kaun Hoon Main? — guess the mythology character from 3 cited clues (A-D), answer in the next video + as a comment.
+  // Proposed as a 3rd daily slot on EpicBharatSaga (13:30 IST). DISABLED until LIVE_KAUN_HOON_MAIN=true.
+  "kaun-hoon-main": {
+    name: "Kaun Hoon Main? (EpicBharatSaga)",
+    composition: "EpicBharatSaga",
+    startDate: "2026-11-17",
+    slots: ["13:30"],
+    socialAccount: "epicbharatsaga",
+    narrated: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_EPICBHARATSAGA",
+    metaSecretPrefix: "META_EBS",
+    youtubeHandle: "@EpicBharatSaga",
+    pinterestSecretPrefix: "PINTEREST_EBS",
+    resolve: (n) => kaunHoonMainForDay(n),
+    meta: (n) => kaunHoonMainMeta(n),
+    answerInNextFrom: 1,
+    answer: (n) => { const { answer } = kaunHoonMainOptions(n); return `✅ JAWAB: ${KHM_LETTERS[answer]} — ${kaunHoonMainCharacter(n).name}\nSource: ${kaunHoonMainCharacter(n).sources}\nAapne pehchana? Reply mein batao 👇 Kal naya sawaal — follow karo!`; },
+    quiz: {
+      key: (n) => [kaunHoonMainOptions(n).answer + 1],
+      parse: (t) => parseKhmLetter(t),
+      label: ([k]) => KHM_LETTERS[(k ?? 1) - 1] ?? "?",
+      how: "A, B, C ya D likho (ya naam)"
+    }
   },
   // Long video (16:9) for watch hours: a whole EpicBharatSaga season in one video, the Sunday after the season ends.
   // Same YouTube channel + Instagram/Facebook as epicbharatsaga. Narrated scene by scene like the Shorts.

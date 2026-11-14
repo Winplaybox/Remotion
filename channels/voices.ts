@@ -54,6 +54,7 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   epicbharatsaga: KATHAVACHAK,
   "ebs-season-long": KATHAVACHAK,
   "dharm-sankat": KATHAVACHAK,
+  "kaun-hoon-main": KATHAVACHAK,
   "liar-lineup": DETECTIVE,
   "dimaag-lock": CODE_HOST_EN
 };
