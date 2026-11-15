@@ -103,3 +103,37 @@ The old pipeline (Winplaybox/colab-YT, `epic_bharat_saga_scheduler.yml`) keeps p
 2. Merge the colab-YT PR that removes the EpicBharatSaga cron.
 3. Set the repo variables `START_EPICBHARATSAGA=<switch date YYYY-MM-DD>` (that day = EP01) and `LIVE_EPICBHARATSAGA=true`.
 4. Have at least 7 episodes written (`content/epicbharatsaga/vishnu-season.ts`) and narrated with IndicF5. Missing narration posts with captions only while `EBS_ALLOW_SILENT=true`.
+
+## Revived channels (Nov 2026): AllTrainReels, Indian Horror Tapes, MindNest Tales
+
+These three stopped publishing on their old pipelines (AllTrainReels after 13 Oct, Indian Horror Tapes after 8 Nov,
+most MindNest language channels after 13-21 Oct). They now run here, on the story-diorama engine, and are **disabled**
+until you switch each one on.
+
+| Channel id | Format | Content | Slot (IST) | Narrator |
+|---|---|---|---|---|
+| `alltrainreels` | Train Battle: A vs B, stat rounds, twist, "A ya B?" | `content/alltrainreels/battles.ts` (14 written) | 18:45 | Hindi, documentary host |
+| `indian-horror-tapes` | Found-footage folklore "TAPE #NN", VHS finish, "Sach ya afwaah?" | `content/indian-horror-tapes/tapes.ts` (14 written) | 21:30 | Hindi, late-night storyteller |
+| `mindnest-hi/es/ar/de/ja/ko/fil` | One fable a day in every language, storybook finish, made for kids | `content/mindnest/fables.ts` (7 written) | staggered 15:30-22:30 | Bedtime voice per language |
+
+Shared new parts: `engines/story-diorama/src/props-channels.tsx` (train, rails, statBars, ruin, lantern, shadow, road,
+animal, moralCard, butterfly, mango), `finish` ("vhs" | "storybook" | "rail") on the story schema, original sounds from
+`scripts/sound/synth_channels.py`. Narrated scenes on these channels stretch to their voice (`fitScenesToVoice`), so a
+slower language is never cut off. EpicBharatSaga does not use that option and is unchanged.
+
+### Switching one on
+
+1. Token: `node scripts/publish/auth-youtube.mjs` signed in as that YouTube channel, then save it as the secret named in
+   the table below (`setup-secrets.mjs` does the same).
+2. Repo variables: `START_<ID>=<first date>` and `LIVE_<ID>=true` (ID = channel id upper-cased, `-` -> `_`).
+   All repo variables now reach the jobs through `REPO_VARS`, so no workflow edit is needed.
+3. Optional: Meta secrets `META_<ID>_PAGE_ID / _IG_USER_ID / _PAGE_TOKEN` for Instagram + Facebook (skipped if absent).
+
+| Channel id | YouTube secret | Variables |
+|---|---|---|
+| alltrainreels | `YT_TOKEN_ALLTRAINREELS` | `START_ALLTRAINREELS`, `LIVE_ALLTRAINREELS` |
+| indian-horror-tapes | `YT_TOKEN_INDIAN_HORROR_TAPES` | `START_INDIAN_HORROR_TAPES`, `LIVE_INDIAN_HORROR_TAPES` |
+| mindnest-hi … mindnest-fil | `YT_TOKEN_MINDNEST_HI` … `YT_TOKEN_MINDNEST_FIL` | `START_MINDNEST_HI`, `LIVE_MINDNEST_HI`, … |
+
+Note: because all repo variables now reach the jobs, an existing `LIVE_DHARM_SANKAT` / `LIVE_KAUN_HOON_MAIN` variable
+takes effect after this change (before, those two variables were never passed to the workflows).

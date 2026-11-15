@@ -71,6 +71,15 @@ async function main() {
       }
     }
     story.scenes.forEach((s, i) => { if (fs.existsSync(path.join(audioDir, `scene-${i + 1}.wav`))) s.audio = `audio/${channel}/${tag}/scene-${i + 1}.wav`; });
+    if ((cfg as { fitScenesToVoice?: boolean }).fitScenesToVoice) {
+      // Never cut a narration off: a scene is at least as long as its WAV + a breath (opt-in per channel).
+      const len = (f: string) => { try { return Number(execFileSync("ffprobe", ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f]).toString().trim()) || 0; } catch { return 0; } };
+      (story.scenes as unknown as { audio?: string; seconds: number }[]).forEach((s) => {
+        if (!s.audio) return;
+        const need = Math.round((len(path.join("public", s.audio)) + 0.4) * 10) / 10;
+        if (need > s.seconds) { console.log(`[narration] scene ${s.audio} ${s.seconds}s -> ${need}s (fits the voice)`); s.seconds = need; }
+      });
+    }
     const have = story.scenes.filter((s) => s.audio).length;
     console.log(`[narration] ${have}/${story.scenes.length} WAVs in ${audioDir}`);
     if (flag("require-narration") && have < story.scenes.length) throw new Error(`Narration missing for ${tag}; run scripts/narration/narrate.py first`);

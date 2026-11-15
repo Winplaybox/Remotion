@@ -45,6 +45,21 @@ const CODE_HOST_EN: VoiceProfile = {
   geminiStyle: "Say this like a clear, confident puzzle-show host — crisp and engaging", edge: "en-US-AriaNeural", edgeRate: "+5%"
 };
 
+const RAIL_HOST: VoiceProfile = {
+  engines: CHAIN, kokoro: "hm_psi", kokoroSpeed: 1.05, gemini: "Puck",
+  geminiStyle: "Say this in Hindi like an excited railway documentary host — curious, punchy, proud of Indian trains", edge: "hi-IN-MadhurNeural", edgeRate: "+5%"
+};
+const HORROR_NARRATOR: VoiceProfile = {
+  engines: CHAIN, kokoro: "hm_omega", kokoroSpeed: 0.9, gemini: "Charon",
+  geminiStyle: "Say this in Hindi like a late-night horror radio storyteller — low, slow, hushed, with tense pauses", edge: "hi-IN-MadhurNeural", edgeRate: "-4%"
+};
+const bedtime = (language: string, kokoro: string, gemini: string, edge: string, engines: TtsEngine[] = CHAIN): VoiceProfile => ({
+  engines, kokoro, kokoroSpeed: 0.92, gemini,
+  geminiStyle: `Say this in ${language} like a warm, gentle bedtime storyteller for small children — clear, smiling, unhurried`, edge, edgeRate: "-6%"
+});
+/** Kokoro has no Arabic, German, Korean or Filipino voice: those go Gemini -> Edge. */
+const NO_KOKORO: TtsEngine[] = ["gemini", "edge"];
+
 /** Chosen per channel and format. Long videos use their Shorts channel's narrator (same brand). */
 export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "chakra-puzzle": QUIZ_HOST,
@@ -57,7 +72,16 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "dharm-sankat-long": KATHAVACHAK,
   "kaun-hoon-main": KATHAVACHAK,
   "liar-lineup": DETECTIVE,
-  "dimaag-lock": CODE_HOST_EN
+  "dimaag-lock": CODE_HOST_EN,
+  alltrainreels: RAIL_HOST,
+  "indian-horror-tapes": HORROR_NARRATOR,
+  "mindnest-hi": bedtime("Hindi", "hf_alpha", "Leda", "hi-IN-SwaraNeural"),
+  "mindnest-es": bedtime("Spanish", "ef_dora", "Leda", "es-MX-DaliaNeural"),
+  "mindnest-ar": bedtime("Arabic", "af_heart", "Leda", "ar-SA-ZariyahNeural", NO_KOKORO),
+  "mindnest-de": bedtime("German", "af_heart", "Leda", "de-DE-KatjaNeural", NO_KOKORO),
+  "mindnest-ja": bedtime("Japanese", "jf_alpha", "Leda", "ja-JP-NanamiNeural"),
+  "mindnest-ko": bedtime("Korean", "af_heart", "Leda", "ko-KR-SunHiNeural", NO_KOKORO),
+  "mindnest-fil": bedtime("Filipino", "af_heart", "Leda", "fil-PH-BlessicaNeural", NO_KOKORO)
 };
 
 /** Voice for post n: the channel profile from VOICE_SWITCH_DATE on, else null (legacy Edge voice). */

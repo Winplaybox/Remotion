@@ -31,6 +31,8 @@ jobs:
       LIVE_DIMAAG_LOCK: ${{ vars.LIVE_DIMAAG_LOCK }}
       START_DIMAAG_LOCK: ${{ vars.START_DIMAAG_LOCK }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
+      # Every repo variable (START_*/LIVE_* for any channel) — read by channels/channels.ts repoVar().
+      REPO_VARS: ${{ toJSON(vars) }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       GEMINI_TTS_MODEL: ${{ vars.GEMINI_TTS_MODEL }}
       PYTHON: python

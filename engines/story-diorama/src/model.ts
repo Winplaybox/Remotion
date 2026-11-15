@@ -8,7 +8,9 @@ export const PROP_NAMES = [
   "fish", "boat", "kamandalu", "growthSteps", "towing", "vedas",
   "figure", "tortoise", "mountain", "churning", "kalash", "earth", "varaha", "pillar", "narasimha", "boonList",
   "threeSteps", "greatBow", "setu", "feather", "horse",
-  "shivling", "firePillar", "tripura"
+  "shivling", "firePillar", "tripura",
+  // props-channels.tsx: AllTrainReels, Indian Horror Tapes, MindNest Tales
+  "train", "rails", "statBars", "ruin", "lantern", "shadow", "road", "animal", "moralCard", "butterfly", "mango"
 ] as const;
 export type PropName = (typeof PROP_NAMES)[number];
 
@@ -76,7 +78,15 @@ export const StoryDioramaSchema = z.object({
    * Optional shared "comment karo + FOLLOW" ending (engines/ask-outro) over the LAST scene, e.g. Dharm Sankat debates.
    * That scene's narration should speak voiceQuestion + voiceCta; its headline and captions are hidden under the outro.
    */
-  ask: AskOutroSchema.optional()
+  ask: AskOutroSchema.optional(),
+  /**
+   * Frame finish. Absent = the paper-cutout finish (every EpicBharatSaga post). "vhs" = found-footage camcorder
+   * (Indian Horror Tapes: PLAY/REC, timestamp, scanlines, tracking noise). "storybook" = warm watercolour page (MindNest Tales).
+   * "rail" = clean bright finish for AllTrainReels. Optional with no default so published props stay byte-identical.
+   */
+  finish: z.enum(["paper", "vhs", "storybook", "rail"]).optional(),
+  /** VHS timestamp text, e.g. "14 NOV 1998  02:47 AM" (vhs finish only). */
+  stamp: z.string().optional()
 });
 
 export type StoryLayer = z.infer<typeof LayerSchema>;

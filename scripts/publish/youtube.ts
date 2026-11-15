@@ -45,7 +45,7 @@ export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientS
       const want = targetTime(publishAt);
       if (v?.privacyStatus === "private" && v.publishAt && Math.abs(Date.parse(v.publishAt) - want.getTime()) > 5 * 60_000) {
         try {
-          await yt.videos.update({ part: ["status"], requestBody: { id: dupId, status: { privacyStatus: "private", publishAt: want.toISOString(), selfDeclaredMadeForKids: false } } });
+          await yt.videos.update({ part: ["status"], requestBody: { id: dupId, status: { privacyStatus: "private", publishAt: want.toISOString(), selfDeclaredMadeForKids: meta.madeForKids === true } } });
           console.log(`[YouTube] already uploaded as ${dupId}; schedule moved ${v.publishAt} -> ${want.toISOString()}`);
         } catch (e) {
           console.warn(`[YouTube] already uploaded as ${dupId}, scheduled ${v.publishAt}; could not move it (${(e as Error).message}) — change it in YouTube Studio`);
@@ -60,7 +60,7 @@ export async function uploadYouTube({ video, meta, publishAt, tokenJson, clientS
     part: ["snippet", "status"],
     requestBody: {
       snippet: { title: meta.title.slice(0, 100), description: meta.description, tags: meta.tags, categoryId: meta.categoryId, defaultLanguage: meta.language, defaultAudioLanguage: meta.language },
-      status: { privacyStatus: "private", publishAt: at.toISOString(), selfDeclaredMadeForKids: false }
+      status: { privacyStatus: "private", publishAt: at.toISOString(), selfDeclaredMadeForKids: meta.madeForKids === true }
     },
     media: { body: fs.createReadStream(video) }
   });

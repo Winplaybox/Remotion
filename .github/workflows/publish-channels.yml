@@ -64,6 +64,8 @@ jobs:
           START_DIMAAG_LOCK: ${{ vars.START_DIMAAG_LOCK }}
           LIVE_LIAR_LINEUP: ${{ vars.LIVE_LIAR_LINEUP }}
           START_LIAR_LINEUP: ${{ vars.START_LIAR_LINEUP }}
+          # Every repo variable (START_*/LIVE_* for any channel) — read by channels/channels.ts repoVar().
+          REPO_VARS: ${{ toJSON(vars) }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
@@ -99,6 +101,21 @@ jobs:
       YT_TOKEN_EPICBHARATSAGA: ${{ secrets.YT_TOKEN_EPICBHARATSAGA }}
       YT_TOKEN_DIGITAL_IMMORTALS: ${{ secrets.YT_TOKEN_DIGITAL_IMMORTALS }}
       YT_TOKEN_DIGITAL_IMMORTALS_CLIENT: ${{ secrets.YT_TOKEN_DIGITAL_IMMORTALS_CLIENT }}
+      YT_TOKEN_ALLTRAINREELS: ${{ secrets.YT_TOKEN_ALLTRAINREELS }}
+      YT_TOKEN_INDIAN_HORROR_TAPES: ${{ secrets.YT_TOKEN_INDIAN_HORROR_TAPES }}
+      YT_TOKEN_MINDNEST_HI: ${{ secrets.YT_TOKEN_MINDNEST_HI }}
+      YT_TOKEN_MINDNEST_ES: ${{ secrets.YT_TOKEN_MINDNEST_ES }}
+      YT_TOKEN_MINDNEST_AR: ${{ secrets.YT_TOKEN_MINDNEST_AR }}
+      YT_TOKEN_MINDNEST_DE: ${{ secrets.YT_TOKEN_MINDNEST_DE }}
+      YT_TOKEN_MINDNEST_JA: ${{ secrets.YT_TOKEN_MINDNEST_JA }}
+      YT_TOKEN_MINDNEST_KO: ${{ secrets.YT_TOKEN_MINDNEST_KO }}
+      YT_TOKEN_MINDNEST_FIL: ${{ secrets.YT_TOKEN_MINDNEST_FIL }}
+      META_ALLTRAINREELS_PAGE_ID: ${{ secrets.META_ALLTRAINREELS_PAGE_ID }}
+      META_ALLTRAINREELS_IG_USER_ID: ${{ secrets.META_ALLTRAINREELS_IG_USER_ID }}
+      META_ALLTRAINREELS_PAGE_TOKEN: ${{ secrets.META_ALLTRAINREELS_PAGE_TOKEN }}
+      META_INDIAN_HORROR_TAPES_PAGE_ID: ${{ secrets.META_INDIAN_HORROR_TAPES_PAGE_ID }}
+      META_INDIAN_HORROR_TAPES_IG_USER_ID: ${{ secrets.META_INDIAN_HORROR_TAPES_IG_USER_ID }}
+      META_INDIAN_HORROR_TAPES_PAGE_TOKEN: ${{ secrets.META_INDIAN_HORROR_TAPES_PAGE_TOKEN }}
       META_CHAKRA_PAGE_ID: ${{ secrets.META_CHAKRA_PAGE_ID }}
       META_CHAKRA_IG_USER_ID: ${{ secrets.META_CHAKRA_IG_USER_ID }}
       META_CHAKRA_PAGE_TOKEN: ${{ secrets.META_CHAKRA_PAGE_TOKEN }}
@@ -123,6 +140,7 @@ jobs:
       START_DIMAAG_LOCK: ${{ vars.START_DIMAAG_LOCK }}
       LIVE_LIAR_LINEUP: ${{ vars.LIVE_LIAR_LINEUP }}
       START_LIAR_LINEUP: ${{ vars.START_LIAR_LINEUP }}
+      REPO_VARS: ${{ toJSON(vars) }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       PINTEREST_APP_ID: ${{ secrets.PINTEREST_APP_ID }}
@@ -155,7 +173,7 @@ jobs:
         # Kokoro is not installed here to keep the hourly job fast: voices are made ahead by Prepare Voice.
         # If a post has to be narrated here (no pre-rendered video), the chain skips Kokoro -> Gemini -> Edge.
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-cjk fonts-noto-core
           python -m pip install --quiet edge-tts
       - name: Build, render and publish
         shell: bash
@@ -188,6 +206,9 @@ jobs:
       YT_TOKEN_DIMAAG_LOCK_CLIENT: ${{ secrets.YT_TOKEN_DIMAAG_LOCK_CLIENT }}
       YT_TOKEN_LIAR_LINEUP: ${{ secrets.YT_TOKEN_LIAR_LINEUP }}
       YT_TOKEN_LIAR_LINEUP_CLIENT: ${{ secrets.YT_TOKEN_LIAR_LINEUP_CLIENT }}
+      YT_TOKEN_ALLTRAINREELS: ${{ secrets.YT_TOKEN_ALLTRAINREELS }}
+      YT_TOKEN_INDIAN_HORROR_TAPES: ${{ secrets.YT_TOKEN_INDIAN_HORROR_TAPES }}
+      REPO_VARS: ${{ toJSON(vars) }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:

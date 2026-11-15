@@ -3,6 +3,7 @@ import { interpolate, random, spring } from "remotion";
 import { FONT } from "@visuals/fonts";
 import type { PropName, StoryDiorama } from "./model";
 import { AVATAR_PROPS } from "./props-avatars";
+import { CHANNEL_PROPS } from "./props-channels";
 
 export interface PropCtx {
   /** Frames since the layer appeared (can be negative before `at`). */
@@ -578,7 +579,8 @@ export const PROPS: Record<PropName, React.FC<PropCtx>> = {
   moon: Moon, moonPhases: MoonPhases, clouds: Clouds, hills: Hills, doorway: Doorway, toran: Toran, diya: Diya, diyaRow: DiyaRow,
   rangoli: Rangoli, rooftops: Rooftops, lotus: Lotus, water: Water, tree: Tree, temple: Temple, sun: Sun, noteCard: NoteCard,
   festivalTracker: FestivalTracker, progress: Progress, monthCalendar: MonthCalendar,
-  ...AVATAR_PROPS
+  ...AVATAR_PROPS,
+  ...CHANNEL_PROPS
 };
 
 export const PropDefs: React.FC = () => (
