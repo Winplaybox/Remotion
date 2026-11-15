@@ -495,8 +495,8 @@ function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
       name: `MindNest Tales (${LANGS[lang].name})`,
       composition: "EpicBharatSaga",
       startDate: "2026-11-18",
-      // Staggered so seven renders/uploads never land in the same hour.
-      slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15"][i]!],
+      // Staggered (and near each audience's evening: en 05:30 IST = US evening, pt 03:45 IST = Brazil evening).
+      slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15", "05:30", "03:45", "21:45", "17:05"][i]!],
       narrated: true,
       fitScenesToVoice: true,
       autoPublish: false,

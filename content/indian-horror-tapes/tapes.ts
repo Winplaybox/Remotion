@@ -18,6 +18,8 @@ export interface Tape {
   place: string; region: string; stamp: string;
   ruin: RuinKind | "road" | "forest" | "shore";
   shadow: "woman" | "boy" | "man";
+  /** Real photo of the place: Wikimedia Commons search terms in order of preference. */
+  photo: string[];
   hookHi: string; hookEn: string;
   placeHi: string; placeEn: string;
   legendHi: string; legendEn: string;
@@ -29,6 +31,7 @@ export interface Tape {
 const TAPES: Tape[] = [
   {
     h1: "BHANGARH", h2: "KILA", place: "BHANGARH FORT", region: "ALWAR, RAJASTHAN", stamp: "TAPE 01 · 06:58 PM", ruin: "fort", shadow: "man",
+    photo: ["Bhangarh Fort", "Bhangarh"],
     hookHi: "सूरज ढलने के बाद, इस किले के दरवाज़े बंद हो जाते हैं। और ये नियम सरकारी है।",
     hookEn: "Suraj dhalne ke baad is kile ke darwaaze band ho jaate hain. Aur ye niyam sarkari hai.",
     placeHi: "राजस्थान का भानगढ़ किला, सत्रहवीं सदी में बसा एक पूरा शहर। आज यहाँ सिर्फ़ खंडहर हैं, बाज़ार, मंदिर और महल।",
@@ -42,6 +45,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "KULDHARA:", h2: "EK RAAT MEIN", place: "KULDHARA VILLAGE", region: "JAISALMER, RAJASTHAN", stamp: "TAPE 02 · 11:40 PM", ruin: "haveli", shadow: "man",
+    photo: ["Kuldhara", "Kuldhara village Jaisalmer"],
     hookHi: "एक पूरा गाँव, जो एक ही रात में ख़ाली हो गया। और फिर कभी कोई वापस नहीं बसा।",
     hookEn: "Ek poora gaon, jo ek hi raat mein khaali ho gaya. Aur phir kabhi koi wapas nahi basa.",
     placeHi: "जैसलमेर के पास कुलधरा, जहाँ कभी पालीवाल ब्राह्मण रहते थे। आज पत्थर के सैकड़ों घर, बिना छत के, ख़ामोश खड़े हैं।",
@@ -55,6 +59,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "DOW HILL", h2: "KA JUNGLE", place: "DOW HILL", region: "KURSEONG, WEST BENGAL", stamp: "TAPE 03 · 05:12 PM", ruin: "forest", shadow: "boy",
+    photo: ["Dow Hill Kurseong", "Kurseong forest"],
     hookHi: "पहाड़ी जंगल, घना कोहरा, और एक लड़का, जो पीछे मुड़ते ही ग़ायब हो जाता है।",
     hookEn: "Pahadi jungle, ghana kohra, aur ek ladka jo peechhe mudte hi gaayab ho jaata hai.",
     placeHi: "दार्जिलिंग के पास कर्सियांग का डाउ हिल। देवदार के ऊँचे पेड़, और अंग्रेज़ों के ज़माने का एक पुराना स्कूल।",
@@ -68,6 +73,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "SHANIWAR", h2: "WADA", place: "SHANIWAR WADA", region: "PUNE, MAHARASHTRA", stamp: "TAPE 04 · 12:00 AM", ruin: "fort", shadow: "boy",
+    photo: ["Shaniwar Wada", "Shaniwarwada Pune"],
     hookHi: "पूनम की रात, पुणे के एक महल से, एक आवाज़। काका, मुझे बचाओ।",
     hookEn: "Poonam ki raat, Pune ke ek mahal se, ek awaaz: Kaka, mujhe bachao.",
     placeHi: "शनिवार वाड़ा, पेशवाओं का महल, सत्रह सौ बत्तीस में बना। अठारह सौ अट्ठाईस की आग के बाद, आज सिर्फ़ दीवारें और दरवाज़े बचे हैं।",
@@ -81,6 +87,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "DUMAS", h2: "BEACH", place: "DUMAS BEACH", region: "SURAT, GUJARAT", stamp: "TAPE 05 · 10:22 PM", ruin: "shore", shadow: "woman",
+    photo: ["Dumas Beach Surat", "Dumas beach"],
     hookHi: "काली रेत, तेज़ हवा, और रात को लहरों के बीच, फुसफुसाहटें।",
     hookEn: "Kaali ret, tez hawa, aur raat ko lehron ke beech fusfusahatein.",
     placeHi: "सूरत का डुमस बीच, अरब सागर के किनारे। यहाँ की रेत सुनहरी नहीं, काली है।",
@@ -94,6 +101,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "AGRASEN KI", h2: "BAOLI", place: "AGRASEN KI BAOLI", region: "NEW DELHI", stamp: "TAPE 06 · 07:05 PM", ruin: "stepwell", shadow: "man",
+    photo: ["Agrasen ki Baoli", "Ugrasen ki Baoli"],
     hookHi: "दिल्ली के बीचों बीच, एक सौ से ज़्यादा सीढ़ियाँ, जो नीचे अँधेरे में उतरती हैं।",
     hookEn: "Delhi ke beechon beech, 100 se zyada seedhiyan, jo neeche andhere mein utarti hain.",
     placeHi: "कनॉट प्लेस के पास अग्रसेन की बावली, एक पुरानी सीढ़ीदार बावड़ी। ऊपर शहर का शोर, नीचे अजीब सन्नाटा।",
@@ -107,6 +115,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "BRIJ RAJ", h2: "BHAWAN", place: "BRIJ RAJ BHAWAN", region: "KOTA, RAJASTHAN", stamp: "TAPE 07 · 02:15 AM", ruin: "bungalow", shadow: "man",
+    photo: ["Brij Raj Bhawan Kota", "Kota City Palace"],
     hookHi: "एक अंग्रेज़ अफ़सर, जो मरने के बाद भी, पहरेदारों को सोने नहीं देता।",
     hookEn: "Ek angrez afsar, jo marne ke baad bhi pehredaaron ko sone nahi deta.",
     placeHi: "कोटा का बृज राज भवन, उन्नीसवीं सदी की एक इमारत। अठारह सौ सत्तावन की क्रांति में, यहाँ मेजर बर्टन मारे गए थे।",
@@ -120,6 +129,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "JATINGA:", h2: "PANCHHI KYUN?", place: "JATINGA", region: "DIMA HASAO, ASSAM", stamp: "TAPE 08 · 08:30 PM", ruin: "forest", shadow: "man",
+    photo: ["Jatinga Assam", "Dima Hasao"],
     hookHi: "असम का एक गाँव, जहाँ कुछ रातों को, पंछी आसमान से रोशनी की तरफ़ गिरने लगते हैं।",
     hookEn: "Assam ka ek gaon, jahan kuch raaton ko panchhi aasmaan se roshni ki taraf girne lagte hain.",
     placeHi: "असम की पहाड़ियों में जतिंगा। अगस्त से अक्टूबर की कुछ अँधेरी, कोहरे वाली रातों में, ये अजीब घटना होती है।",
@@ -133,6 +143,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "MUKESH", h2: "MILLS", place: "MUKESH MILLS", region: "COLABA, MUMBAI", stamp: "TAPE 09 · 01:05 AM", ruin: "mill", shadow: "woman",
+    photo: ["Mukesh Mills Colaba", "Mukesh Mills"],
     hookHi: "समंदर किनारे एक जली हुई मिल। दिन में यहाँ फ़िल्में शूट होती हैं, रात को कोई नहीं रुकता।",
     hookEn: "Samandar kinare ek jali hui mill. Din mein yahan filmein shoot hoti hain, raat ko koi nahi rukta.",
     placeHi: "मुंबई के कोलाबा में मुकेश मिल्स, अठारह सौ सत्तर के आसपास बनी। उन्नीस सौ बयासी की आग के बाद, ये खंडहर बन गई।",
@@ -146,6 +157,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "SANJAY VAN", h2: "KI RAAT", place: "SANJAY VAN", region: "MEHRAULI, DELHI", stamp: "TAPE 10 · 11:11 PM", ruin: "forest", shadow: "woman",
+    photo: ["Sanjay Van Delhi", "Sanjay Van Mehrauli"],
     hookHi: "दिल्ली के बीच एक जंगल, जहाँ रात को, सफ़ेद कपड़ों में एक औरत दिखने की बात कही जाती है।",
     hookEn: "Delhi ke beech ek jungle, jahan raat ko safed kapdon mein ek aurat dikhne ki baat kahi jaati hai.",
     placeHi: "महरौली का संजय वन, सैकड़ों एकड़ का जंगल। अंदर पुरानी कब्रें और सूफ़ी दरगाहें भी हैं।",
@@ -159,6 +171,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "DELHI CANTT", h2: "KI LIFT", place: "DELHI CANTT ROAD", region: "NEW DELHI", stamp: "TAPE 11 · 03:03 AM", ruin: "road", shadow: "woman",
+    photo: ["Delhi Cantonment road", "Delhi Cantonment"],
     hookHi: "रात तीन बजे, सुनसान सड़क, और सफ़ेद साड़ी में एक औरत, लिफ़्ट माँगती हुई।",
     hookEn: "Raat teen baje, sunsaan sadak, aur safed saadi mein ek aurat, lift maangti hui.",
     placeHi: "दिल्ली कैंटोनमेंट की चौड़ी, पेड़ों से घिरी सड़कें। रात को यहाँ बहुत कम गाड़ियाँ चलती हैं।",
@@ -171,20 +184,22 @@ const TAPES: Tape[] = [
     title: "Delhi Cantt — raat 3 baje lift maangti aurat", sources: "Delhi urban legend (no evidence; told for entertainment)", tags: ["delhi cantt", "urban legend", "lift", "haunted road"]
   },
   {
-    h1: "D'SOUZA", h2: "CHAWL", place: "D'SOUZA CHAWL", region: "MAHIM, MUMBAI", stamp: "TAPE 12 · 09:45 PM", ruin: "bungalow", shadow: "woman",
-    hookHi: "मुंबई की एक चाल, और उसके आँगन का कुआँ। लोग कहते हैं, रात को वहाँ कोई खड़ा रहता है।",
-    hookEn: "Mumbai ki ek chawl, aur uske aangan ka kuaan. Log kehte hain, raat ko wahan koi khada rehta hai.",
-    placeHi: "माहिम की डिसूज़ा चाल, एक पुरानी रिहायशी चाल। बीच में एक पुराना कुआँ।",
-    placeEn: "Mahim ki D'Souza chawl, ek purani rihaayshi chawl. Beech mein ek purana kuaan.",
-    legendHi: "कहानी है, बरसों पहले, पानी भरते हुए एक औरत कुएँ में गिर गई। तब से रात को, कुएँ के पास एक साया दिखने की बातें होती हैं। पर वो किसी को परेशान नहीं करता।",
-    legendEn: "Kahani hai, barson pehle paani bharte hue ek aurat kuein mein gir gayi. Tab se raat ko kuein ke paas ek saaya dikhne ki baatein hoti hain. Par woh kisi ko pareshaan nahi karta.",
-    todayTitle: "AAJ", today: ["LOG RAHTE HAIN", "IZZAT SE BAAT KAREIN"],
-    todayHi: "यहाँ आज भी परिवार रहते हैं। इसलिए ये सिर्फ़ एक कहानी है, किसी के घर में घुसने की वजह नहीं।",
-    todayEn: "Yahan aaj bhi parivaar rehte hain. Isliye ye sirf ek kahani hai, kisi ke ghar mein ghusne ki wajah nahi.",
-    title: "D'Souza Chawl Mahim — kuein ki kahani", sources: "Mumbai folklore (D'Souza Chawl, Mahim)", tags: ["dsouza chawl", "mahim", "mumbai", "mumbai horror"]
+    h1: "GOLCONDA", h2: "KI TAALI", place: "GOLCONDA FORT", region: "HYDERABAD, TELANGANA", stamp: "TAPE 12 · 08:10 PM", ruin: "fort", shadow: "man",
+    photo: ["Golconda Fort", "Golconda Fort Hyderabad"],
+    hookHi: "किले के दरवाज़े पर एक ताली बजाओ, और वो आवाज़ लगभग एक किलोमीटर दूर, सबसे ऊपर तक सुनाई देती है।",
+    hookEn: "Kile ke darwaaze par ek taali bajao, aur woh awaaz lagbhag ek kilometer door, sabse upar tak sunai deti hai.",
+    placeHi: "हैदराबाद का गोलकोंडा किला, कभी हीरों के व्यापार के लिए मशहूर। ये पहाड़ी पर बना है, और ऊपर बाला हिसार तक सीढ़ियाँ जाती हैं।",
+    placeEn: "Hyderabad ka Golconda kila, kabhi heeron ke vyapaar ke liye mashhoor. Ye pahadi par bana hai, aur upar Bala Hisar tak seedhiyan jaati hain.",
+    legendHi: "लोग कहते हैं, रात को सुनसान गलियारों में, कोई ताली बजाता है। और दरबार की तरफ़ से, घुँघरुओं की हल्की आवाज़ आती है।",
+    legendEn: "Log kehte hain, raat ko sunsaan galiyaaron mein koi taali bajaata hai. Aur darbaar ki taraf se ghunghruon ki halki awaaz aati hai.",
+    todayTitle: "VIGYAAN", today: ["TAALI = SANDESH", "PURANA ALARM"],
+    todayHi: "सच ये है, कि ये ताली किले का पुराना अलार्म सिस्टम था। दरवाज़े पर ख़तरा हो, तो ऊपर तक ख़बर पहुँच जाती थी।",
+    todayEn: "Sach ye hai ki ye taali kile ka purana alarm system tha. Darwaaze par khatra ho, to upar tak khabar pahunch jaati thi.",
+    title: "Golconda Fort — taali ka rahasya", sources: "Golconda Fort, Hyderabad (ASI; Fateh Darwaza acoustics); local folklore", tags: ["golconda fort", "hyderabad", "telangana", "haunted fort"]
   },
   {
     h1: "LAMBI DEHAR", h2: "KI KHAANEIN", place: "LAMBI DEHAR MINES", region: "MUSSOORIE, UTTARAKHAND", stamp: "TAPE 13 · 06:20 PM", ruin: "mill", shadow: "man",
+    photo: ["Lambi Dehar mines Mussoorie", "Mussoorie hills"],
     hookHi: "मसूरी की ख़ूबसूरत पहाड़ियों में, बंद पड़ी चूना पत्थर की खदानें।",
     hookEn: "Mussoorie ki khoobsurat pahadiyon mein, band padi choona patthar ki khaanein.",
     placeHi: "लंबी देहार की खदानें, जो कई साल पहले बंद हो गईं। अब यहाँ टूटी दीवारें और ख़ाली रास्ते हैं।",
@@ -198,6 +213,7 @@ const TAPES: Tape[] = [
   },
   {
     h1: "HIGHWAY KA", h2: "BAND DHABA", place: "EK KAHANI", region: "HIGHWAY · KAHANI", stamp: "TAPE 14 · 02:00 AM", ruin: "road", shadow: "man",
+    photo: ["Indian highway at night", "National Highway India night"],
     hookHi: "ये एक कहानी है। हाईवे, रात दो बजे, और एक ढाबा, जो दिन में कभी दिखता ही नहीं।",
     hookEn: "Ye ek kahani hai. Highway, raat do baje, aur ek dhaba jo din mein kabhi dikhta hi nahi.",
     placeHi: "ट्रक ड्राइवरों के बीच ये कहानी चलती है। लंबे सफ़र में, थकान और नींद के बीच, सड़क किनारे एक जलता हुआ बोर्ड।",
@@ -227,13 +243,14 @@ export function horrorTape(n: number): Tape {
 type Scene = Omit<StoryDioramaInput["scenes"][number], "fig">;
 
 /** The set for a tape: building / road / forest / shore + moon + optional lantern. */
+/** Drawn set = stand-in (art: true) shown only when the real photo of the place is not available. */
 function set(t: Tape, n: number, shadowAt?: number) {
-  const layers = [P("moon", 820, 640, { depth: 0.1, idle: "pulse", data: { phase: 1 } })];
-  if (t.ruin === "road") layers.push(P("road", 540, 1000, { depth: 0.5, enter: "none", data: { sign: t.h2.includes("DHABA") ? "DHABA" : "" } }));
-  else if (t.ruin === "forest") layers.push(...[180, 420, 700, 930].map((x, i) => P("tree", x, 1500 - (i % 2) * 40, { depth: 0.3 + i * 0.15, scale: 1.3 - (i % 2) * 0.2, idle: "sway" })));
-  else if (t.ruin === "shore") layers.push(P("water", 540, 1420, { depth: 0.4, data: { color: "#16202A" } }));
-  else layers.push(P("ruin", 540, 1480, { depth: 0.5, scale: 1.1, data: { kind: t.ruin } }));
-  if (t.ruin !== "road" && n % 2 === 0) layers.push(P("lantern", 950, 200, { depth: 0.9, enter: "fade" }));
+  const layers = [P("moon", 820, 640, { depth: 0.1, idle: "pulse", art: true, data: { phase: 1 } })];
+  if (t.ruin === "road") layers.push(P("road", 540, 1000, { depth: 0.5, enter: "none", art: true, data: { sign: t.h2.includes("DHABA") ? "DHABA" : "" } }));
+  else if (t.ruin === "forest") layers.push(...[180, 420, 700, 930].map((x, i) => P("tree", x, 1500 - (i % 2) * 40, { depth: 0.3 + i * 0.15, scale: 1.3 - (i % 2) * 0.2, idle: "sway", art: true })));
+  else if (t.ruin === "shore") layers.push(P("water", 540, 1420, { depth: 0.4, art: true, data: { color: "#16202A" } }));
+  else layers.push(P("ruin", 540, 1480, { depth: 0.5, scale: 1.1, art: true, data: { kind: t.ruin } }));
+  if (t.ruin !== "road" && n % 2 === 0) layers.push(P("lantern", 950, 200, { depth: 0.9, enter: "fade", art: true }));
   if (shadowAt !== undefined) layers.push(P("shadow", t.ruin === "road" ? 760 : 820, 1560, { depth: 1, at: shadowAt, enter: "none", data: { kind: t.shadow, eyes: t.shadow !== "boy" } }));
   return layers;
 }
@@ -246,31 +263,31 @@ export function horrorTapeForDay(n: number): StoryDiorama {
   const tape = `TAPE #${String(n).padStart(2, "0")}`;
   const scenes: Scene[] = [
     {
-      id: "cold-open", seconds: 6, location: `${t.place} · ${t.region}`, sky, ground, tone: "light", particles: "none", camera: "push",
+      id: "cold-open", seconds: 6, location: `${t.place} · ${t.region}`, photos: [{ query: t.photo }], sky, ground, tone: "light", particles: "none", camera: "push",
       narration: t.hookHi, caption: t.hookEn, sfx: ["wind"],
       headlines: [{ at: 0, lines: [{ text: t.h1 }, { text: t.h2, tone: "accent" }] }],
       layers: set(t, n)
     },
     {
-      id: "place", seconds: 8, location: t.region, sky, ground, tone: "light", particles: "none", camera: "panLeft",
+      id: "place", seconds: 8, location: t.region, photos: [{ query: t.photo }], sky, ground, tone: "light", particles: "none", camera: "panLeft",
       narration: t.placeHi, caption: t.placeEn, sfx: ["creak"],
       headlines: [{ at: 0, lines: [{ text: "YE JAGAH" }, { text: "ASLI HAI", tone: "accent2" }] }],
       layers: set(t, n + 1)
     },
     {
-      id: "legend", seconds: 9.5, location: "LOK KATHA", sky, ground, tone: "light", particles: t.ruin === "shore" ? "none" : "rain", camera: "push",
+      id: "legend", seconds: 9.5, location: "LOK KATHA", photos: [{ query: t.photo }], sky, ground, tone: "light", particles: t.ruin === "shore" ? "none" : "rain", camera: "push",
       narration: t.legendHi, caption: t.legendEn, sfx: ["heartbeat", "stinger"],
       headlines: [{ at: 0, lines: [{ text: "LOG KEHTE" }, { text: "HAIN...", tone: "accent" }] }],
       layers: set(t, n, 3.5)
     },
     {
-      id: "today", seconds: 7.5, location: t.todayTitle, sky, ground, tone: "light", particles: "none", camera: "still",
+      id: "today", seconds: 7.5, location: t.todayTitle, photos: [{ query: t.photo }], sky, ground, tone: "light", particles: "none", camera: "still",
       narration: t.todayHi, caption: t.todayEn,
       headlines: [{ at: 0, lines: [{ text: t.todayTitle.length <= 16 ? t.todayTitle : "AAJ" }] }],
       layers: [...set(t, n + 1), P("noteCard", 540, 980, { depth: 0.8, at: 0.4, enter: "drop", scale: 0.82, data: { title: t.todayTitle, items: t.today } })]
     },
     {
-      id: "ask", seconds: 9.5, location: tape, sky, ground, tone: "light", particles: "none", camera: "still",
+      id: "ask", seconds: 9.5, location: tape, photos: [{ query: t.photo }], sky, ground, tone: "light", particles: "none", camera: "still",
       narration: `${HORROR_CTA_VOICE}`, caption: "",
       headlines: [{ at: 0, lines: [{ text: "SACH YA" }, { text: "AFWAAH?", tone: "accent" }] }],
       layers: set(t, n, 0.6)

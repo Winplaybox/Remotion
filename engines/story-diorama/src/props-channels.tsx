@@ -406,7 +406,122 @@ const Mango: React.FC<PropCtx> = ({ data }) => (
     : <g filter={SHADOW}><path d="M 0 -70 C 70 -70 80 40 10 70 C -60 90 -80 -20 -30 -55 Z" fill="#F6A623" /><path d="M -6 -66 q 10 -30 30 -34" stroke="#3E7A3A" strokeWidth={8} fill="none" /><ellipse cx={30} cy={-80} rx={26} ry={12} fill="#3E9A5C" transform="rotate(-20 30 -80)" /></g>
 );
 
+/* ---------- stickman (original rig) ---------- */
+
+type Pose = { sl: number; el: number; sr: number; er: number; hl: number; kl: number; hr: number; kr: number; lean: number };
+/** Joint angles in degrees (0 = straight down, positive = towards the viewer's right). */
+const POSES: Record<string, Pose> = {
+  stand: { sl: 18, el: 8, sr: -18, er: -8, hl: 10, kl: 0, hr: -10, kr: 0, lean: 0 },
+  wave: { sl: 18, el: 8, sr: -150, er: -30, hl: 10, kl: 0, hr: -10, kr: 0, lean: 0 },
+  point: { sl: 18, el: 8, sr: -95, er: 0, hl: 10, kl: 0, hr: -10, kr: 0, lean: -4 },
+  think: { sl: 18, el: 8, sr: -40, er: -150, hl: 8, kl: 0, hr: -8, kr: 0, lean: 0 },
+  panic: { sl: 95, el: 50, sr: -95, er: -50, hl: 20, kl: -10, hr: -20, kr: 10, lean: 0 },
+  cheer: { sl: 140, el: 20, sr: -140, er: -20, hl: 14, kl: 0, hr: -14, kr: 0, lean: 0 },
+  reach: { sl: -70, el: -10, sr: -80, er: -10, hl: 30, kl: 60, hr: 10, kr: 70, lean: -35 },
+  sit: { sl: 30, el: 40, sr: -30, er: -40, hl: 80, kl: -80, hr: 80, kr: -80, lean: 0 },
+  shrug: { sl: 70, el: -100, sr: -70, er: 100, hl: 10, kl: 0, hr: -10, kr: 0, lean: 0 }
+};
+const rad = (d: number) => (d * Math.PI) / 180;
+const limb = (x: number, y: number, a: number, len: number) => [x + Math.sin(rad(a)) * len, y + Math.cos(rad(a)) * len] as const;
+
+/**
+ * Original flat stickman (WinPlayBox design, not based on any existing character): round head, thick ink limbs,
+ * mitten hands. ~520 px tall. Origin = feet.
+ * data: pose (POSES or "walk"), face ("happy" | "shock" | "smug" | "sad" | "thirsty" | "think"), head (fill colour),
+ * body (limb colour), sweat (bool), cap (colour), prop ("none" | "umbrella" | "bottle" | "phone").
+ */
+const Stickman: React.FC<PropCtx> = ({ lf, data }) => {
+  const poseName = str(data.pose, "stand");
+  const t = lf / 30;
+  const w = Math.sin(t * 7);
+  const base = POSES[poseName] ?? POSES.stand!;
+  const p: Pose = poseName === "walk" ? { sl: 25 * w, el: 10, sr: -25 * w, er: -10, hl: 28 * w, kl: -Math.max(0, 30 * w), hr: -28 * w, kr: -Math.max(0, -30 * w), lean: 4 } : base;
+  const ink = str(data.body, "#141414");
+  const headFill = str(data.head, "#FFFFFF");
+  const face = str(data.face, "happy");
+  const sitting = poseName === "sit";
+  const hipY = sitting ? -120 : -230;
+  const bob = poseName === "walk" ? -Math.abs(w) * 8 : Math.sin(t * 2) * 3;
+  const neckY = hipY - 170;
+  const hx = Math.sin(rad(p.lean)) * 170, hy = hipY + bob;
+  const nx = hx + 0, ny = neckY + bob;
+  const headY = ny - 92;
+  const arm = (s: number, e: number, side: 1 | -1) => {
+    const [ex, ey] = limb(nx, ny + 20, s, 95);
+    const [wx, wy] = limb(ex, ey, s + e, 90);
+    return { d: `M ${nx} ${ny + 20} L ${ex} ${ey} L ${wx} ${wy}`, wx, wy, side };
+  };
+  const leg = (h: number, k: number) => {
+    const [kx, ky] = limb(hx * 0, hy, h, 115);
+    const [fx, fy] = limb(kx, ky, h + k, 115);
+    return { d: `M 0 ${hy} L ${kx} ${ky} L ${fx} ${fy}`, fx, fy };
+  };
+  const arms = [arm(p.sl, p.el, 1), arm(p.sr, p.er, -1)];
+  const legs = [leg(p.hl, p.kl), leg(p.hr, p.kr)];
+  const stroke = { stroke: ink, strokeWidth: 22, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+  const blink = lf % 96 < 4;
+  const eye = (x: number) => face === "smug"
+    ? <path d={`M ${x - 18} ${headY - 4} q 18 -12 36 0`} stroke="#141414" strokeWidth={6} fill="none" strokeLinecap="round" />
+    : blink ? <path d={`M ${x - 16} ${headY - 6} h 32`} stroke="#141414" strokeWidth={6} strokeLinecap="round" />
+    : <g><ellipse cx={x} cy={headY - 8} rx={face === "shock" || face === "thirsty" ? 25 : 19} ry={face === "shock" || face === "thirsty" ? 30 : 23} fill="#FFFFFF" stroke="#141414" strokeWidth={5} />
+      <circle cx={x + (face === "think" ? 7 : 2)} cy={headY - (face === "think" ? 16 : 6)} r={10} fill="#141414" /></g>;
+  const mouth = face === "happy" ? <path d={`M ${nx - 26} ${headY + 26} q 26 26 52 0`} stroke="#141414" strokeWidth={6} fill="#7A1F1F" />
+    : face === "shock" ? <ellipse cx={nx} cy={headY + 34} rx={16} ry={20} fill="#7A1F1F" stroke="#141414" strokeWidth={5} />
+    : face === "thirsty" ? <g><path d={`M ${nx - 30} ${headY + 22} q 30 34 60 0 Z`} fill="#7A1F1F" stroke="#141414" strokeWidth={5} /><path d={`M ${nx - 4} ${headY + 34} q 10 ${30 + Math.sin(t * 6) * 4} 22 0`} fill="#F28C9A" stroke="#141414" strokeWidth={4} /></g>
+    : face === "sad" ? <path d={`M ${nx - 22} ${headY + 36} q 22 -18 44 0`} stroke="#141414" strokeWidth={6} fill="none" strokeLinecap="round" />
+    : face === "smug" ? <path d={`M ${nx - 10} ${headY + 30} q 22 10 34 -8`} stroke="#141414" strokeWidth={6} fill="none" strokeLinecap="round" />
+    : <path d={`M ${nx - 18} ${headY + 30} h 36`} stroke="#141414" strokeWidth={6} strokeLinecap="round" />;
+  const item = str(data.prop, "none");
+  const hand = arms[1]!;
+  return (
+    <g filter={SHADOW}>
+      {legs.map((l, i) => <g key={i}><path d={l.d} {...stroke} /><ellipse cx={l.fx + 12} cy={l.fy} rx={26} ry={12} fill={ink} /></g>)}
+      <path d={`M ${hx} ${hy} L ${nx} ${ny}`} {...stroke} strokeWidth={20} />
+      {arms.map((a, i) => <g key={i}><path d={a.d} {...stroke} /><circle cx={a.wx} cy={a.wy} r={17} fill={ink} /></g>)}
+      {item === "umbrella" ? <g transform={`translate(${hand.wx} ${hand.wy})`}><line y2={-230} stroke="#3A3A3A" strokeWidth={8} /><path d="M -150 -220 Q 0 -330 150 -220 Q 112 -238 75 -220 Q 37 -238 0 -220 Q -37 -238 -75 -220 Q -112 -238 -150 -220 Z" fill="#2F6FD8" stroke="#141414" strokeWidth={5} /></g> : null}
+      {item === "bottle" ? <g transform={`translate(${hand.wx} ${hand.wy - 40})`}><rect x={-16} y={-50} width={32} height={80} rx={10} fill="#9ED8F5" stroke="#141414" strokeWidth={5} /><rect x={-9} y={-66} width={18} height={18} fill="#2F6FD8" /></g> : null}
+      {item === "phone" ? <rect x={hand.wx - 18} y={hand.wy - 70} width={36} height={64} rx={6} fill="#1C1A22" stroke="#141414" strokeWidth={4} /> : null}
+      <circle cx={nx} cy={headY} r={96} fill={headFill} stroke="#141414" strokeWidth={9} />
+      {str(data.cap, "") ? <path d={`M ${nx - 96} ${headY - 34} A 96 96 0 0 1 ${nx + 96} ${headY - 34} Z M ${nx + 50} ${headY - 38} h 84 v 16 h -84 Z`} fill={str(data.cap, "")} stroke="#141414" strokeWidth={5} /> : null}
+      {eye(nx - 34)}{eye(nx + 34)}
+      {face === "sad" || face === "thirsty" ? <path d={`M ${nx - 48} ${headY - 44} l 26 10 M ${nx + 48} ${headY - 44} l -26 10`} stroke="#141414" strokeWidth={6} /> : null}
+      {face === "smug" ? <path d={`M ${nx - 46} ${headY - 34} l 28 -4 M ${nx + 46} ${headY - 30} l -28 -8`} stroke="#141414" strokeWidth={6} /> : null}
+      {mouth}
+      {data.sweat === true ? [0, 1].map((k) => <path key={k} d="M 0 0 q 10 16 0 24 q -10 -8 0 -24 Z" transform={`translate(${nx - 70 + k * 16} ${headY - 20 + k * 30 + ((lf * 2 + k * 20) % 30)})`} fill="#7FC8F5" stroke="#141414" strokeWidth={3} />) : null}
+    </g>
+  );
+};
+
+/** Three numbered doors / rooms for "which one is safe?" riddles. Origin = floor centre. data.labels (3), data.icons ("fire" | "lion" | "gun" | "water" | "skull" | "door"). */
+const ThreeDoors: React.FC<PropCtx> = ({ lf, fps, data, pal }) => {
+  const labels = Array.isArray(data.labels) ? (data.labels as string[]) : ["1", "2", "3"];
+  const icons = Array.isArray(data.icons) ? (data.icons as string[]) : ["door", "door", "door"];
+  return (
+    <g>
+      {[-300, 0, 300].map((x, i) => {
+        const p = spring({ frame: lf - i * 8, fps, config: { damping: 14 } });
+        const ic = icons[i] ?? "door";
+        return (
+          <g key={i} transform={`translate(${x} 0) scale(${0.6 + 0.4 * p})`} opacity={clamp01(p * 2)}>
+            <rect x={-120} y={-420} width={240} height={420} rx={14} fill="#3A2A22" stroke="#141414" strokeWidth={8} filter={SHADOW} />
+            <rect x={-96} y={-396} width={192} height={300} rx={8} fill={ic === "fire" ? "#3A1408" : ic === "water" ? "#0F2A3A" : ic === "gun" ? "#3A1414" : "#1C1612"} />
+            {ic === "fire" ? [0, 1, 2].map((k) => <path key={k} d={`M ${-50 + k * 50} -110 q -30 -60 0 ${-110 - 20 * Math.sin(lf / 5 + k)} q 30 50 0 ${110 + 20 * Math.sin(lf / 5 + k)} Z`} fill={k === 1 ? "#FFD23F" : "#FF6A1F"} />) : null}
+            {ic === "lion" ? <g transform="translate(0 -220)"><circle r={70} fill="#9A5A22" /><circle r={46} fill="#D9963A" /><circle cx={-16} cy={-8} r={6} fill="#141414" /><circle cx={16} cy={-8} r={6} fill="#141414" /><path d="M -14 16 q 14 12 28 0" stroke="#141414" strokeWidth={5} fill="none" /></g> : null}
+            {ic === "gun" ? <g transform="translate(0 -230)" fill="#9A9AA8">{[-50, 0, 50].map((k) => <g key={k} transform={`translate(${k} 0)`}><circle cy={-30} r={18} /><rect x={-14} y={-12} width={28} height={70} rx={8} /></g>)}</g> : null}
+            {ic === "water" ? <path d={`M -96 -160 q 24 -14 48 0 t 48 0 t 48 0 t 48 0 V -96 H -96 Z`} fill="#2F8FD8" /> : null}
+            {ic === "skull" ? <g transform="translate(0 -240)"><circle r={50} fill="#ECE6D8" /><circle cx={-18} cy={-6} r={12} fill="#141414" /><circle cx={18} cy={-6} r={12} fill="#141414" /><rect x={-24} y={34} width={48} height={22} fill="#ECE6D8" /></g> : null}
+            <circle cx={80} cy={-200} r={10} fill="#F6B93B" />
+            <rect x={-60} y={-480} width={120} height={60} rx={12} fill={pal.accent2} stroke="#141414" strokeWidth={6} />
+            <text y={-436} textAnchor="middle" fontFamily={FONT.display} fontSize={48} fill="#141414">{labels[i]}</text>
+          </g>
+        );
+      })}
+    </g>
+  );
+};
+
 export const CHANNEL_PROPS = {
+  stickman: Stickman, threeDoors: ThreeDoors,
   butterfly: Butterfly, mango: Mango,
   train: Train, rails: Rails, statBars: StatBars,
   ruin: Ruin, lantern: Lantern, shadow: Shadow, road: Road,

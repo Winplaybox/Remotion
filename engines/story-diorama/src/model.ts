@@ -10,7 +10,7 @@ export const PROP_NAMES = [
   "threeSteps", "greatBow", "setu", "feather", "horse",
   "shivling", "firePillar", "tripura",
   // props-channels.tsx: AllTrainReels, Indian Horror Tapes, MindNest Tales
-  "train", "rails", "statBars", "ruin", "lantern", "shadow", "road", "animal", "moralCard", "butterfly", "mango"
+  "train", "rails", "statBars", "ruin", "lantern", "shadow", "road", "animal", "moralCard", "butterfly", "mango", "stickman", "threeDoors"
 ] as const;
 export type PropName = (typeof PROP_NAMES)[number];
 
@@ -28,7 +28,9 @@ const LayerBase = {
   idle: IDLE.default("none"),
   /** 0 = background (barely moves with camera), 1 = foreground. */
   depth: z.number().min(0).max(1.5).default(0.5),
-  flip: z.boolean().default(false)
+  flip: z.boolean().default(false),
+  /** Drawn stand-in for a real photo: hidden when the scene's photo is available (optional; absent = always drawn). */
+  art: z.boolean().optional()
 };
 
 export const LayerSchema = z.discriminatedUnion("kind", [
@@ -56,6 +58,12 @@ export const SceneSchema = z.object({
   /** Narration audio in /public, e.g. "audio/ebs/vishnu-01/scene-1.wav". Scene length stretches to fit it. */
   audio: z.string().optional(),
   camera: z.enum(["still", "push", "panLeft", "panRight"]).default("push"),
+  /**
+   * Real photos (Wikimedia Commons, fetched by scripts/photos/commons.ts): 1 = full-bleed, 2 = stacked halves.
+   * `query` = search terms in order of preference; `src` is filled at render time when the file exists.
+   * Optional with no default, so published props are unchanged.
+   */
+  photos: z.array(z.object({ query: z.array(z.string().min(1)).min(1), src: z.string().optional(), label: z.string().optional() })).max(2).optional(),
   /** Extra one-shot SFX for this scene, e.g. ["bell", "footsteps", "horn"] (files in public/sfx). Ambience follows `particles`. */
   sfx: z.array(z.string()).default([])
 });

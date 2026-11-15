@@ -9,7 +9,7 @@ import { P, StoryDioramaSchema, type StoryDiorama, type StoryDioramaInput, type 
  * Add a language: one entry in LANGS + a `text` entry in every fable + a channel in channels/channels.ts.
  */
 
-export const MINDNEST_LANGS = ["hi", "es", "ar", "de", "ja", "ko", "fil"] as const;
+export const MINDNEST_LANGS = ["hi", "es", "ar", "de", "ja", "ko", "fil", "en", "pt", "fr", "vi"] as const;
 export type MindNestLang = (typeof MINDNEST_LANGS)[number];
 
 interface LangInfo {
@@ -34,6 +34,10 @@ export const LANGS: Record<MindNestLang, LangInfo> = {
   de: { code: "de", name: "German", handle: "@GermanMindNestTales", moral: "DIE MORAL", outro: "Die Moral von heute: {m} Abonniere für eine neue Geschichte!", latin: true, hashtags: "#gutenachtgeschichte #kindergeschichten #fabeln #märchen #shorts", series: "Geschichten" },
   ja: { code: "ja", name: "Japanese", handle: "@JapaneseMindNestTales", moral: "きょうのおしえ", outro: "きょうのおしえ。{m} あたらしいおはなしは、チャンネル登録してね！", latin: false, hashtags: "#絵本 #童話 #読み聞かせ #子供向け #shorts", series: "おはなし" },
   ko: { code: "ko", name: "Korean", handle: "@KoreanMindNestTales", moral: "오늘의 교훈", outro: "오늘의 교훈: {m} 새로운 이야기를 보려면 구독해 주세요!", latin: false, hashtags: "#동화 #어린이동화 #교훈 #동화책 #shorts", series: "동화" },
+  en: { code: "en", name: "English", handle: "@EnglishMindNestTales", moral: "MORAL", outro: "Today's moral: {m} Subscribe for a new story!", latin: true, hashtags: "#bedtimestories #kidsstories #moralstories #fables #shorts", series: "Bedtime Stories" },
+  pt: { code: "pt", name: "Portuguese", handle: "@PortugueseMindNestTales", moral: "MORAL", outro: "A moral de hoje: {m} Inscreva-se para uma nova história!", latin: true, hashtags: "#historinhas #historiasinfantis #fabulas #historiaparadormir #shorts", series: "Historinhas" },
+  fr: { code: "fr", name: "French", handle: "@FrenchMindNestTales", moral: "LA MORALE", outro: "La morale du jour : {m} Abonne-toi pour une nouvelle histoire !", latin: true, hashtags: "#histoirepourenfants #contes #fables #histoiredusoir #shorts", series: "Histoires" },
+  vi: { code: "vi", name: "Vietnamese", handle: "@VietnameseMindNestTales", moral: "BÀI HỌC", outro: "Bài học hôm nay: {m} Hãy đăng ký kênh để nghe chuyện mới nhé!", latin: true, hashtags: "#truyenthieunhi #truyenngungon #truyenkechobe #shorts", series: "Truyện thiếu nhi" },
   fil: { code: "fil", name: "Filipino", handle: "@FilipinoMindNestTales", moral: "ARAL", outro: "Ang aral ngayon: {m} Mag-subscribe para sa bagong kuwento!", latin: true, hashtags: "#kwentongpambata #pabula #kwento #aralingbuhay #shorts", series: "Kwentong Pambata" }
 };
 
@@ -103,7 +107,27 @@ const FABLES: Fable[] = [
         "Sa isang luntiang gubat, nakatira si Chintu, isang maliit na batang cheetah, kasama ang nanay niyang si Rani. Mahilig tumakbo nang mabilis si Chintu.",
         "Isang umaga, nakakita siya ng makintab na asul na paru-paro. Huhulihin kita! sigaw niya, at hinabol niya ito.",
         "Pero habang pabilis siya nang pabilis, pabilis din ang lipad ng paru-paro. Plak! Nadulas si Chintu at nahulog sa putik.",
-        "Ngumiti si Rani. Umupo ka lang at maghintay, anak. Tahimik na naghintay si Chintu... at dahan-dahang dumapo ang paru-paro sa ilong niya!"] }
+        "Ngumiti si Rani. Umupo ka lang at maghintay, anak. Tahimik na naghintay si Chintu... at dahan-dahang dumapo ang paru-paro sa ilong niya!"] },
+      en: { title: ["Chintu Learns", "to Wait"], moral: ["Patience brings", "good things."], s: [
+        "In a green forest lived Chintu, a little cheetah cub, with his mother Rani. Chintu loved to run fast.",
+        "One morning he saw a bright blue butterfly. I will catch it! he shouted, and rushed after it.",
+        "But the faster he ran, the faster it flew. Splash! Chintu slipped and fell into the mud.",
+        "Rani smiled. Sit still and wait, my dear. Chintu sat quietly... and the butterfly landed softly on his nose!"] },
+      pt: { title: ["Chintu aprende", "a esperar"], moral: ["A paciência traz", "coisas boas."], s: [
+        "Numa floresta verde vivia Chintu, um filhotinho de guepardo, com sua mamãe Rani. Chintu adorava correr rápido.",
+        "Uma manhã, ele viu uma borboleta azul brilhante. Vou pegar você!, gritou, e correu atrás dela.",
+        "Mas quanto mais rápido ele corria, mais rápido ela voava. Splash! Chintu escorregou e caiu na lama.",
+        "Rani sorriu. Fique quietinho e espere, meu amor. Chintu sentou em silêncio... e a borboleta pousou de leve no nariz dele!"] },
+      fr: { title: ["Chintu apprend", "à attendre"], moral: ["La patience apporte", "de belles choses."], s: [
+        "Dans une forêt verte vivait Chintu, un petit bébé guépard, avec sa maman Rani. Chintu adorait courir vite.",
+        "Un matin, il vit un papillon bleu tout brillant. Je vais l'attraper !, cria-t-il, et il courut derrière lui.",
+        "Mais plus il courait vite, plus le papillon volait vite. Splash ! Chintu glissa et tomba dans la boue.",
+        "Rani sourit. Assieds-toi sans bouger et attends, mon chéri. Chintu s'assit tout calme... et le papillon se posa doucement sur son nez !"] },
+      vi: { title: ["Chintu học", "cách chờ đợi"], moral: ["Kiên nhẫn sẽ mang lại", "điều tốt đẹp."], s: [
+        "Trong một khu rừng xanh, có chú báo con Chintu sống cùng mẹ Rani. Chintu rất thích chạy thật nhanh.",
+        "Một buổi sáng, cậu thấy một chú bướm xanh lấp lánh. Mình sẽ bắt được nó! cậu reo lên, rồi chạy theo.",
+        "Nhưng cậu chạy càng nhanh, bướm càng bay nhanh. Bõm! Chintu trượt chân ngã xuống bùn.",
+        "Mẹ Rani mỉm cười. Con ngồi yên và chờ nhé. Chintu ngồi im lặng... và chú bướm nhẹ nhàng đậu lên mũi cậu!"] }
     }
   },
   {
@@ -151,7 +175,27 @@ const FABLES: Fable[] = [
         "Isang gabi, may narinig si Chintu na umiiyak sa likod ng halaman. Si Mimi pala, isang maliit na kuneho, mag-isa.",
         "Naliligaw ako, hindi ko mahanap ang bahay ko, iyak ni Mimi. Nang makita niya si Chintu, nanginig siya. Tatakutin mo ba ako?",
         "Hindi! malumanay na sabi ni Chintu. Tutulungan kita. Inamoy niya ang lupa at nakita ang maliliit na bakas ng kuneho.",
-        "Sinundan nila ang mga bakas hanggang sa isang malaking guwang na puno. Niyakap si Mimi ng kanyang pamilya, at nagpasalamat silang lahat kay Chintu."] }
+        "Sinundan nila ang mga bakas hanggang sa isang malaking guwang na puno. Niyakap si Mimi ng kanyang pamilya, at nagpasalamat silang lahat kay Chintu."] },
+      en: { title: ["Chintu and the", "Lost Bunny"], moral: ["Kindness turns strangers", "into friends."], s: [
+        "One evening, Chintu heard someone crying behind a bush. It was Mimi, a little bunny, all alone.",
+        "I'm lost, and I can't find my home, sobbed Mimi. When she saw Chintu, she shivered. Are you going to scare me?",
+        "No! said Chintu gently. I'll help you. He sniffed the ground and found tiny bunny footprints.",
+        "They followed the footprints to a big hollow tree. Mimi's family hugged her, and everyone thanked Chintu."] },
+      pt: { title: ["Chintu e a", "coelhinha"], moral: ["A bondade transforma", "estranhos em amigos."], s: [
+        "Uma tarde, Chintu ouviu alguém chorando atrás de um arbusto. Era Mimi, uma coelhinha, sozinha.",
+        "Eu me perdi e não acho minha casa, chorava Mimi. Quando viu Chintu, ela tremeu. Você vai me assustar?",
+        "Não!, disse Chintu com carinho. Eu vou te ajudar. Ele farejou o chão e encontrou pegadinhas de coelho.",
+        "Eles seguiram as pegadas até uma grande árvore oca. A família de Mimi a abraçou, e todos agradeceram a Chintu."] },
+      fr: { title: ["Chintu et la", "petite lapine"], moral: ["La gentillesse change", "les inconnus en amis."], s: [
+        "Un soir, Chintu entendit quelqu'un pleurer derrière un buisson. C'était Mimi, une petite lapine, toute seule.",
+        "Je suis perdue et je ne trouve pas ma maison, sanglotait Mimi. En voyant Chintu, elle trembla. Tu vas me faire peur ?",
+        "Non !, dit Chintu doucement. Je vais t'aider. Il renifla le sol et trouva de toutes petites traces de lapin.",
+        "Ils suivirent les traces jusqu'à un grand arbre creux. La famille de Mimi la serra fort, et tout le monde remercia Chintu."] },
+      vi: { title: ["Chintu và", "thỏ con đi lạc"], moral: ["Lòng tốt biến người lạ", "thành bạn bè."], s: [
+        "Một buổi chiều, Chintu nghe tiếng ai khóc sau bụi cây. Đó là Mimi, một cô thỏ nhỏ, chỉ có một mình.",
+        "Mình bị lạc, không tìm thấy nhà, Mimi nức nở. Thấy Chintu, cô run lên. Bạn định làm mình sợ à?",
+        "Không đâu! Chintu dịu dàng nói. Mình sẽ giúp bạn. Cậu ngửi mặt đất và tìm thấy những dấu chân thỏ nhỏ xíu.",
+        "Họ đi theo dấu chân đến một cây lớn có hốc rỗng. Gia đình Mimi ôm chầm lấy cô, và mọi người cảm ơn Chintu."] }
     }
   },
   {
@@ -199,7 +243,27 @@ const FABLES: Fable[] = [
         "Nakakita sina Chintu at Bholu na unggoy ng isang hinog at gintong mangga sa mababang sanga.",
         "Akin 'yan! sabi ni Chintu. Hindi, akin! sabi ni Bholu. Hinila nila nang hinila at nag-away sila.",
         "Plop! Nadulas ang mangga, nahulog sa ilog, at inanod palayo. Ngayon, wala nang mangga ang kahit sino.",
-        "Kinabukasan, may nakita silang isa pang mangga. Hinati ito ni Bholu sa dalawa, at sabay nila itong kinain habang tumatawa."] }
+        "Kinabukasan, may nakita silang isa pang mangga. Hinati ito ni Bholu sa dalawa, at sabay nila itong kinain habang tumatawa."] },
+      en: { title: ["One Mango,", "Two Friends"], moral: ["Sharing is sweeter", "than fighting."], s: [
+        "Chintu and Bholu the monkey found one ripe, golden mango on a low branch.",
+        "It's mine! said Chintu. No, mine! said Bholu. They pulled and tugged and argued.",
+        "Plop! The mango slipped, fell into the river, and floated far away. Now nobody had a mango.",
+        "The next day they found another mango. This time Bholu cut it in half, and they ate it together, laughing."] },
+      pt: { title: ["Uma manga,", "dois amigos"], moral: ["Dividir é mais doce", "que brigar."], s: [
+        "Chintu e o macaco Bholu encontraram uma manga madura e dourada num galho baixo.",
+        "É minha!, disse Chintu. Não, é minha!, disse Bholu. Eles puxavam e puxavam, e brigavam.",
+        "Ploft! A manga escorregou, caiu no rio e foi boiando para longe. Agora ninguém tinha manga.",
+        "No dia seguinte, encontraram outra manga. Desta vez, Bholu cortou ao meio, e eles comeram juntos, rindo."] },
+      fr: { title: ["Une mangue,", "deux amis"], moral: ["Partager est plus doux", "que se disputer."], s: [
+        "Chintu et Bholu le singe trouvèrent une mangue mûre et dorée sur une branche basse.",
+        "C'est à moi !, dit Chintu. Non, à moi !, dit Bholu. Ils tiraient, tiraient, et se disputaient.",
+        "Plouf ! La mangue glissa, tomba dans la rivière et partit au fil de l'eau. Plus personne n'avait de mangue.",
+        "Le lendemain, ils trouvèrent une autre mangue. Cette fois, Bholu la coupa en deux, et ils la mangèrent ensemble en riant."] },
+      vi: { title: ["Một quả xoài,", "hai người bạn"], moral: ["Chia sẻ ngọt ngào", "hơn tranh giành."], s: [
+        "Chintu và khỉ Bholu tìm thấy một quả xoài chín vàng trên cành thấp.",
+        "Của mình! Chintu nói. Không, của mình! Bholu nói. Hai bạn kéo qua kéo lại và cãi nhau.",
+        "Tõm! Quả xoài tuột tay, rơi xuống sông và trôi đi xa. Giờ chẳng ai có xoài cả.",
+        "Hôm sau, họ tìm được một quả xoài khác. Lần này Bholu bổ đôi, và hai bạn vừa ăn vừa cười vui vẻ."] }
     }
   },
   {
@@ -247,7 +311,27 @@ const FABLES: Fable[] = [
         "Takot sa dilim si Nini, isang maliit na kuwago. Pero gising ang mga kuwago tuwing gabi! Tuwing gabi, nagtatago siya sa kanyang puno.",
         "Isang gabi, dumating ang malakas na bagyo. Bum! Kumulog nang malakas, at si Chintu, na hindi kailanman natatakot, ay nanginig.",
         "Lumipad pababa si Nini. Takot ako sa dilim, takot ka sa kulog. Magtabi tayo, bulong niya.",
-        "Magkatabi nilang binilang ang mga patak ng ulan hanggang lumipas ang bagyo. Sa liwanag ng buwan, hindi na nakakatakot ang dilim."] }
+        "Magkatabi nilang binilang ang mga patak ng ulan hanggang lumipas ang bagyo. Sa liwanag ng buwan, hindi na nakakatakot ang dilim."] },
+      en: { title: ["Brave", "Together"], moral: ["Friends make", "us brave."], s: [
+        "Nini, a little owl, was afraid of the dark. But owls wake up at night! Every evening, she hid in her tree.",
+        "One night a big storm came. Boom! Thunder rolled, and Chintu, who was never scared, began to tremble.",
+        "Nini flew down. I'm scared of the dark, you're scared of thunder. Let's sit together, she whispered.",
+        "Side by side, they counted the raindrops until the storm passed. In the moonlight, the dark didn't look scary anymore."] },
+      pt: { title: ["Corajosos", "juntos"], moral: ["Os amigos nos", "deixam corajosos."], s: [
+        "Nini, uma corujinha, tinha medo do escuro. Mas as corujas acordam à noite! Toda tarde ela se escondia na sua árvore.",
+        "Uma noite chegou uma grande tempestade. Bum! O trovão rugiu, e Chintu, que nunca tinha medo, começou a tremer.",
+        "Nini desceu voando. Eu tenho medo do escuro, você tem medo do trovão. Vamos ficar juntos, ela sussurrou.",
+        "Lado a lado, eles contaram as gotas de chuva até a tempestade passar. Sob a lua, o escuro não dava mais medo."] },
+      fr: { title: ["Courageux", "ensemble"], moral: ["Les amis nous", "rendent courageux."], s: [
+        "Nini, une petite chouette, avait peur du noir. Pourtant, les chouettes se réveillent la nuit ! Chaque soir, elle se cachait dans son arbre.",
+        "Une nuit, un gros orage arriva. Boum ! Le tonnerre gronda, et Chintu, qui n'avait jamais peur, se mit à trembler.",
+        "Nini descendit en volant. Moi, j'ai peur du noir, et toi, du tonnerre. Asseyons-nous ensemble, chuchota-t-elle.",
+        "Côte à côte, ils comptèrent les gouttes de pluie jusqu'à la fin de l'orage. Sous la lune, le noir ne faisait plus peur du tout."] },
+      vi: { title: ["Cùng nhau", "dũng cảm"], moral: ["Bạn bè giúp ta", "dũng cảm hơn."], s: [
+        "Nini, một cô cú nhỏ, rất sợ bóng tối. Nhưng cú lại thức dậy vào ban đêm! Chiều nào cô cũng trốn trong cây.",
+        "Một đêm, cơn bão lớn ập đến. Ầm! Sấm rền vang, và Chintu, người chưa bao giờ sợ, bắt đầu run rẩy.",
+        "Nini bay xuống. Mình sợ bóng tối, bạn sợ sấm. Mình ngồi cạnh nhau nhé, cô thì thầm.",
+        "Ngồi sát bên nhau, hai bạn đếm từng giọt mưa cho đến khi bão tan. Dưới ánh trăng, bóng tối chẳng còn đáng sợ nữa."] }
     }
   },
   {
@@ -295,7 +379,27 @@ const FABLES: Fable[] = [
         "Pinuno ni Gaju, ang elepante, ang isang malaking banga ng malamig na tubig mula sa ilog, at iniwan ito sa ilalim ng puno.",
         "Naglalaro ng habulan si Chintu at, bag! Natumba niya ang banga. Tumapon ang lahat ng tubig.",
         "Sino ang nagtumba ng banga ko? tanong ni Gaju. Bumilis ang tibok ng puso ni Chintu. Baka ang hangin? sabi niya habang nakatingin sa paa niya.",
-        "Pero bumigat ang loob niya. Gaju, ako ang may gawa. Patawad. Ngumiti si Gaju. Salamat sa pagsasabi ng totoo. Halika, punuin natin ang bago."] }
+        "Pero bumigat ang loob niya. Gaju, ako ang may gawa. Patawad. Ngumiti si Gaju. Salamat sa pagsasabi ng totoo. Halika, punuin natin ang bago."] },
+      en: { title: ["Chintu Tells", "the Truth"], moral: ["The truth makes", "your heart light."], s: [
+        "Gaju the elephant filled a big clay pot with cool river water and left it under a tree.",
+        "Chintu was playing chase and, crash! He knocked the pot over. All the water spilled out.",
+        "Who knocked over my pot? asked Gaju. Chintu's heart beat fast. Maybe the wind? he said, looking at his paws.",
+        "But his tummy felt heavy. Gaju, it was me. I'm sorry. Gaju smiled. Thank you for telling the truth. Let's fill a new one together."] },
+      pt: { title: ["Chintu fala", "a verdade"], moral: ["A verdade deixa", "o coração leve."], s: [
+        "Gaju, o elefante, encheu um grande pote de barro com água fresquinha do rio e deixou embaixo de uma árvore.",
+        "Chintu brincava de pega-pega e, crash! Derrubou o pote. Toda a água se derramou.",
+        "Quem derrubou meu pote?, perguntou Gaju. O coração de Chintu batia rápido. Talvez o vento?, disse ele, olhando para as patinhas.",
+        "Mas a barriguinha ficou pesada. Gaju, fui eu. Desculpa. Gaju sorriu. Obrigado por falar a verdade. Vamos encher outro juntos."] },
+      fr: { title: ["Chintu dit", "la vérité"], moral: ["La vérité rend", "le cœur léger."], s: [
+        "Gaju l'éléphant remplit une grande jarre d'eau fraîche de la rivière et la laissa sous un arbre.",
+        "Chintu jouait à chat et, crac ! Il renversa la jarre. Toute l'eau se répandit.",
+        "Qui a renversé ma jarre ?, demanda Gaju. Le cœur de Chintu battait vite. Peut-être le vent ?, dit-il en regardant ses pattes.",
+        "Mais il avait le ventre tout lourd. Gaju, c'était moi. Pardon. Gaju sourit. Merci de dire la vérité. Allons en remplir une autre ensemble."] },
+      vi: { title: ["Chintu nói", "sự thật"], moral: ["Nói thật giúp", "lòng nhẹ nhàng."], s: [
+        "Voi Gaju đổ đầy nước sông mát lạnh vào một chiếc chum đất lớn rồi để dưới gốc cây.",
+        "Chintu đang chơi đuổi bắt thì, choang! Cậu làm đổ chiếc chum. Nước chảy hết ra ngoài.",
+        "Ai làm đổ chum của mình? Gaju hỏi. Tim Chintu đập thình thịch. Chắc là gió? cậu nói, mắt nhìn xuống chân.",
+        "Nhưng lòng cậu nặng trĩu. Gaju ơi, là mình đấy. Mình xin lỗi. Gaju mỉm cười. Cảm ơn bạn đã nói thật. Mình cùng múc chum mới nhé."] }
     }
   },
   {
@@ -343,7 +447,27 @@ const FABLES: Fable[] = [
         "Isang mainit na araw ng tag-init, uhaw na uhaw si Kalu, ang uwak. Nakita ni Chintu na dumapo siya sa tabi ng isang lumang banga.",
         "May kaunting tubig sa ilalim, pero hindi ito maabot ng tuka ni Kalu. Napabuntong-hininga si Chintu. Sumuko ka na, Kalu.",
         "Pero nag-isip nang mabuti si Kalu. Pumulot siya ng maliit na bato at inihulog ito. Plink! Isa pa, at isa pa.",
-        "Dahan-dahang tumaas ang tubig, hanggang nakainom si Kalu! Wow, sabi ni Chintu. Ginamit mo ang isip mo!"] }
+        "Dahan-dahang tumaas ang tubig, hanggang nakainom si Kalu! Wow, sabi ni Chintu. Ginamit mo ang isip mo!"] },
+      en: { title: ["Kalu the", "Clever Crow"], moral: ["Think hard and", "never give up."], s: [
+        "On a hot summer day, Kalu the crow was very thirsty. Chintu watched him land beside an old pot.",
+        "There was a little water at the bottom, but Kalu's beak couldn't reach it. Chintu sighed. Give up, Kalu.",
+        "But Kalu thought hard. Then he picked up a pebble and dropped it in. Plink! Then another, and another.",
+        "Slowly the water rose higher and higher, until Kalu could drink! Wow, said Chintu. You used your brain!"] },
+      pt: { title: ["Kalu, o corvo", "esperto"], moral: ["Pense bem e", "nunca desista."], s: [
+        "Num dia quente de verão, Kalu, o corvo, estava com muita sede. Chintu viu quando ele pousou ao lado de um pote velho.",
+        "Tinha um pouquinho de água no fundo, mas o bico de Kalu não alcançava. Chintu suspirou. Desiste, Kalu.",
+        "Mas Kalu pensou bastante. Então pegou uma pedrinha e jogou dentro. Plim! Depois outra, e mais outra.",
+        "Pouco a pouco a água foi subindo, até Kalu conseguir beber! Uau!, disse Chintu. Você usou a cabeça!"] },
+      fr: { title: ["Kalu, le", "corbeau malin"], moral: ["Réfléchis bien et", "n'abandonne jamais."], s: [
+        "Par une chaude journée d'été, Kalu le corbeau avait très soif. Chintu le vit se poser près d'une vieille jarre.",
+        "Il y avait un peu d'eau au fond, mais le bec de Kalu ne l'atteignait pas. Chintu soupira. Abandonne, Kalu.",
+        "Mais Kalu réfléchit. Puis il prit un caillou et le laissa tomber dedans. Plic ! Puis un autre, et encore un autre.",
+        "Peu à peu, l'eau monta, monta, jusqu'à ce que Kalu puisse boire ! Waouh, dit Chintu. Tu as utilisé ta tête !"] },
+      vi: { title: ["Kalu, chú quạ", "thông minh"], moral: ["Hãy suy nghĩ và", "đừng bao giờ bỏ cuộc."], s: [
+        "Vào một ngày hè nóng nực, quạ Kalu khát nước lắm. Chintu thấy cậu đáp xuống cạnh một chiếc chum cũ.",
+        "Dưới đáy chum có một ít nước, nhưng mỏ của Kalu không với tới. Chintu thở dài. Bỏ cuộc đi, Kalu.",
+        "Nhưng Kalu suy nghĩ thật kỹ. Rồi cậu nhặt một viên sỏi thả vào chum. Tõm! Thêm một viên, rồi một viên nữa.",
+        "Nước dâng lên từ từ, cho đến khi Kalu uống được! Ồ, Chintu nói. Bạn đã dùng trí thông minh!"] }
     }
   },
   {
@@ -391,7 +515,27 @@ const FABLES: Fable[] = [
         "Isang araw, namasyal nang malayo si Chintu. Itinuro sa kanya ng usa ang malamig na batis, at binigyan siya ng oso ng matamis na pulot.",
         "Masayang uminom at kumain si Chintu, at tumakbo pauwi. Pero nakalimutan niyang magsabi ng isang maliit na salita.",
         "Tanong ni Rani, Nagpasalamat ka ba sa mga kaibigan mo? Natigilan si Chintu. Naku, nakalimutan ko!",
-        "Tumakbo siya pabalik. Salamat, Usa! Salamat, Oso! Ngiting-ngiti ang mga kaibigan niya, at uminit ang puso ni Chintu."] }
+        "Tumakbo siya pabalik. Salamat, Usa! Salamat, Oso! Ngiting-ngiti ang mga kaibigan niya, at uminit ang puso ni Chintu."] },
+      en: { title: ["The Magic", "Word"], moral: ["Always say", "thank you."], s: [
+        "One day Chintu went on a long walk. A deer showed him a cool stream, and a bear gave him sweet honey.",
+        "Chintu drank and ate happily, and ran home. But he forgot to say one small word.",
+        "Rani asked, Did you thank your friends? Chintu stopped. Oh no, I forgot!",
+        "He ran all the way back. Thank you, Deer! Thank you, Bear! His friends smiled so wide, and Chintu felt warm inside."] },
+      pt: { title: ["A palavra", "mágica"], moral: ["Sempre diga", "obrigado."], s: [
+        "Um dia, Chintu saiu para um longo passeio. Um veado mostrou um riacho fresquinho, e um urso deu mel docinho para ele.",
+        "Chintu bebeu e comeu feliz, e correu para casa. Mas esqueceu de dizer uma palavrinha.",
+        "Rani perguntou: Você agradeceu aos seus amigos? Chintu parou. Ai, não, eu esqueci!",
+        "Ele correu de volta. Obrigado, Veado! Obrigado, Urso! Os amigos sorriram muito, e Chintu sentiu um quentinho no coração."] },
+      fr: { title: ["Le mot", "magique"], moral: ["Dis toujours", "merci."], s: [
+        "Un jour, Chintu partit faire une longue promenade. Un cerf lui montra un ruisseau frais, et un ours lui offrit du miel tout doux.",
+        "Chintu but et mangea joyeusement, puis rentra en courant. Mais il oublia de dire un petit mot.",
+        "Rani demanda : As-tu dit merci à tes amis ? Chintu s'arrêta. Oh non, j'ai oublié !",
+        "Il repartit en courant. Merci, Cerf ! Merci, Ours ! Ses amis eurent un grand sourire, et Chintu sentit son cœur tout chaud."] },
+      vi: { title: ["Lời nói", "kỳ diệu"], moral: ["Hãy luôn nói", "cảm ơn."], s: [
+        "Một ngày, Chintu đi dạo thật xa. Chú nai chỉ cho cậu một dòng suối mát, và bác gấu cho cậu mật ong ngọt lịm.",
+        "Chintu vui vẻ uống nước, ăn mật, rồi chạy về nhà. Nhưng cậu quên nói một lời nhỏ.",
+        "Mẹ Rani hỏi: Con đã cảm ơn các bạn chưa? Chintu khựng lại. Ôi không, con quên mất!",
+        "Cậu chạy ngược trở lại. Cảm ơn chú Nai! Cảm ơn bác Gấu! Các bạn cười thật tươi, và lòng Chintu ấm áp vô cùng."] }
     }
   }
 ];

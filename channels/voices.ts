@@ -57,7 +57,7 @@ const bedtime = (language: string, kokoro: string, gemini: string, edge: string,
   engines, kokoro, kokoroSpeed: 0.92, gemini,
   geminiStyle: `Say this in ${language} like a warm, gentle bedtime storyteller for small children — clear, smiling, unhurried`, edge, edgeRate: "-6%"
 });
-/** Kokoro has no Arabic, German, Korean or Filipino voice: those go Gemini -> Edge. */
+/** Kokoro has no Arabic, German, Korean, Filipino or Vietnamese voice: those go Gemini -> Edge. */
 const NO_KOKORO: TtsEngine[] = ["gemini", "edge"];
 
 /** Chosen per channel and format. Long videos use their Shorts channel's narrator (same brand). */
@@ -81,7 +81,11 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "mindnest-de": bedtime("German", "af_heart", "Leda", "de-DE-KatjaNeural", NO_KOKORO),
   "mindnest-ja": bedtime("Japanese", "jf_alpha", "Leda", "ja-JP-NanamiNeural"),
   "mindnest-ko": bedtime("Korean", "af_heart", "Leda", "ko-KR-SunHiNeural", NO_KOKORO),
-  "mindnest-fil": bedtime("Filipino", "af_heart", "Leda", "fil-PH-BlessicaNeural", NO_KOKORO)
+  "mindnest-fil": bedtime("Filipino", "af_heart", "Leda", "fil-PH-BlessicaNeural", NO_KOKORO),
+  "mindnest-en": bedtime("English", "af_heart", "Leda", "en-US-AnaNeural"),
+  "mindnest-pt": bedtime("Brazilian Portuguese", "pf_dora", "Leda", "pt-BR-FranciscaNeural"),
+  "mindnest-fr": bedtime("French", "ff_siwis", "Leda", "fr-FR-DeniseNeural"),
+  "mindnest-vi": bedtime("Vietnamese", "af_heart", "Leda", "vi-VN-HoaiMyNeural", NO_KOKORO)
 };
 
 /** Voice for post n: the channel profile from VOICE_SWITCH_DATE on, else null (legacy Edge voice). */

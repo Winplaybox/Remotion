@@ -274,6 +274,28 @@ const RailFinish: React.FC = () => (
   <AbsoluteFill style={{ pointerEvents: "none", background: "radial-gradient(ellipse 90% 75% at 50% 50%, transparent 65%, rgba(0,0,0,.3))" }} />
 );
 
+/* ---------- real photos ---------- */
+
+/** Full-bleed (1) or stacked (2) photos with a slow Ken Burns move and dark top/bottom bands for the text. */
+const PhotoBackdrop: React.FC<{ photos: { src?: string | undefined; label?: string | undefined }[]; sceneP: number; camera: StoryScene["camera"]; pal: Pal }> = ({ photos, sceneP, camera, pal }) => {
+  const h = H / photos.length;
+  return (
+    <AbsoluteFill>
+      {photos.map((ph, i) => {
+        const z = 1.06 + 0.1 * sceneP;
+        const dx = camera === "panLeft" ? -40 * sceneP : camera === "panRight" ? 40 * sceneP : 0;
+        return (
+          <div key={i} style={{ position: "absolute", left: 0, right: 0, top: i * h, height: h, overflow: "hidden", borderTop: i ? `8px solid ${pal.accent2}` : undefined }}>
+            <Img src={staticFile(ph.src!)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: `translateX(${dx}px) scale(${z})` }} />
+            {ph.label ? <div style={{ position: "absolute", left: 40, ...(i === 0 && photos.length > 1 ? { bottom: 36 } : { top: 36 }), fontFamily: FONT.display, fontSize: 58, color: "#fff", background: "rgba(10,10,14,.72)", padding: "6px 22px", borderLeft: `10px solid ${i ? pal.accent3 : pal.accent2}` }}>{ph.label}</div> : null}
+          </div>
+        );
+      })}
+      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.25) 26%, rgba(0,0,0,0) 45%, rgba(0,0,0,0) 70%, rgba(0,0,0,.6) 100%)" }} />
+    </AbsoluteFill>
+  );
+};
+
 /* ---------- scene ---------- */
 
 const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean; captions: boolean; headline?: boolean }> = ({ scene, pal, tf, first, captions, headline = true }) => {
@@ -282,12 +304,15 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean;
   const dur = scene.seconds * fps;
   const sceneP = Math.min(1, frame / dur);
   const wipe = first ? 1 : interpolate(frame, [0, tf], [0, 1], { extrapolateRight: "clamp" });
-  const base = scene.tone === "light" ? pal.paper : pal.ink;
+  const shown = (scene.photos ?? []).filter((ph) => ph.src);
+  const photo = shown.length > 0;
+  const base = photo ? pal.paper : scene.tone === "light" ? pal.paper : pal.ink;
   return (
     <AbsoluteFill style={{ clipPath: wipe < 1 ? `inset(${(1 - wipe) * 100}% 0 0 0)` : undefined, background: `linear-gradient(180deg, ${scene.sky[0]}, ${scene.sky[1]})` }}>
+      {photo ? <PhotoBackdrop photos={shown} sceneP={sceneP} camera={scene.camera} pal={pal} /> : null}
       <Particles kind={scene.particles === "stars" ? "stars" : "none"} frame={frame} seed={scene.id} />
-      {scene.ground ? <div style={{ position: "absolute", left: 0, right: 0, top: scene.ground.y, bottom: 0, background: scene.ground.color, boxShadow: "0 -6px 16px rgba(0,0,0,.25)" }} /> : null}
-      {scene.layers.map((layer, i) => <Layer key={i} layer={layer} frame={frame} fps={fps} sceneP={sceneP} scene={scene} pal={pal} />)}
+      {scene.ground && !photo ? <div style={{ position: "absolute", left: 0, right: 0, top: scene.ground.y, bottom: 0, background: scene.ground.color, boxShadow: "0 -6px 16px rgba(0,0,0,.25)" }} /> : null}
+      {scene.layers.filter((layer) => !(photo && layer.art)).map((layer, i) => <Layer key={i} layer={layer} frame={frame} fps={fps} sceneP={sceneP} scene={scene} pal={pal} />)}
       {scene.particles !== "stars" ? <Particles kind={scene.particles} frame={frame} seed={scene.id} /> : null}
       {scene.labels.map((l, i) => <Label key={i} l={l} frame={frame} fps={fps} pal={pal} />)}
       <div style={{ position: "absolute", top: 160, left: 62, right: 62, display: "flex", justifyContent: "space-between", fontFamily: FONT.mono, fontWeight: 500, fontSize: 22, letterSpacing: 2, color: base, opacity: 0.8 }}>
