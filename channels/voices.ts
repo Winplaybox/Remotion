@@ -99,5 +99,5 @@ export function narrateArgs(channel: ChannelId, n: number): string[] {
   const legacy = (CHANNELS[channel] as { voiceName?: string }).voiceName || process.env.EDGE_TTS_VOICE || "hi-IN-MadhurNeural";
   if (!v) return ["--engine", "edge", "--edge-voice", legacy];
   return ["--engine", "auto", "--engines", v.engines.join(","), "--kokoro-voice", v.kokoro, "--kokoro-speed", String(v.kokoroSpeed),
-    "--gemini-voice", v.gemini, "--gemini-style", v.geminiStyle, "--edge-voice", v.edge, "--edge-rate", v.edgeRate];
+    "--gemini-voice", v.gemini, "--gemini-style", v.geminiStyle, "--edge-voice", v.edge, `--edge-rate=${v.edgeRate}`];
 }

@@ -1,5 +1,5 @@
 import { CHANNELS, isLive, repoVar, type ChannelId } from "../channels/channels";
-import { VOICES } from "../channels/voices";
+import { VOICES, narrateArgs } from "../channels/voices";
 import { trainBattleCount, trainBattleForDay, trainBattleMeta, TRAIN_CTA_VOICE } from "../content/alltrainreels/battles";
 import { horrorTapeCount, horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
 import { LANGS, MINDNEST_LANGS, mindNestCount, mindNestForDay, mindNestMeta } from "../content/mindnest/fables";
@@ -137,5 +137,13 @@ describe("going live", () => {
     process.env.REPO_VARS = JSON.stringify({ LIVE_ALLTRAINREELS: "false" });
     process.env.LIVE_ALLTRAINREELS = "true";
     expect(isLive("alltrainreels")).toBe(true);
+  });
+});
+
+describe("narrator args", () => {
+  it("a negative Edge rate is passed as --edge-rate=-N% (argparse reads a bare -4% as a flag)", () => {
+    const a = narrateArgs("indian-horror-tapes", 1);
+    expect(a).toContain("--edge-rate=-4%");
+    expect(a).not.toContain("--edge-rate");
   });
 });

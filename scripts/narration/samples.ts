@@ -40,7 +40,7 @@ for (const [ch, v] of Object.entries(VOICES) as [ChannelId, NonNullable<(typeof 
     try {
       execFileSync(py, ["scripts/narration/narrate.py", "--channel", fake, "--n", "1", "--engine", eng,
         "--kokoro-voice", v.kokoro, "--kokoro-speed", String(v.kokoroSpeed), "--gemini-voice", v.gemini, "--gemini-style", v.geminiStyle,
-        "--edge-voice", v.edge, "--edge-rate", v.edgeRate], { stdio: "inherit" });
+        "--edge-voice", v.edge, `--edge-rate=${v.edgeRate}`], { stdio: "inherit" });
       const dir = path.join("public", "audio", fake, "post-001");
       const list = path.join(dir, "list.txt");
       fs.writeFileSync(list, lines.map((_, i) => `file 'l${i + 1}.wav'\nfile '${GAP}'`).join("\n"));
