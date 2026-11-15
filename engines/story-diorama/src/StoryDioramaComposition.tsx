@@ -229,6 +229,50 @@ const PaperFinish: React.FC = () => (
   </AbsoluteFill>
 );
 
+/* ---------- channel finishes (StoryDiorama.finish) ---------- */
+
+/** Found-footage camcorder layer: PLAY + REC readout, timestamp, scanlines, rolling tracking band, vignette. */
+const VhsFinish: React.FC<{ stamp: string }> = ({ stamp }) => {
+  const frame = useCurrentFrame();
+  const band = (frame * 9) % 2600 - 300;
+  const jitter = random(`vhs-j-${Math.floor(frame / 3)}`) > 0.93 ? (random(`vhs-x-${frame}`) - 0.5) * 18 : 0;
+  const rec = Math.floor(frame / 18) % 2 === 0;
+  const secs = Math.floor(frame / 30);
+  const clock = `${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      <AbsoluteFill style={{ background: "repeating-linear-gradient(180deg, rgba(0,0,0,.22) 0px, rgba(0,0,0,.22) 2px, transparent 2px, transparent 5px)" }} />
+      <div style={{ position: "absolute", left: 0, right: 0, top: band, height: 90, transform: `translateX(${jitter}px)`, background: "linear-gradient(180deg, transparent, rgba(255,255,255,.09) 40%, rgba(255,255,255,.16) 50%, rgba(255,255,255,.09) 60%, transparent)" }} />
+      <svg width={W} height={H} style={{ position: "absolute", inset: 0, mixBlendMode: "screen", opacity: 0.18 }}>
+        <filter id="vhs-noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={frame % 7} /><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0" /></filter>
+        <rect width={W} height={H} filter="url(#vhs-noise)" />
+      </svg>
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse 80% 65% at 50% 50%, transparent 55%, rgba(0,0,0,.6))" }} />
+      <div style={{ position: "absolute", left: 66, top: 1466, fontFamily: FONT.mono, fontWeight: 700, fontSize: 34, color: "#F4F1E8", textShadow: "2px 0 0 rgba(255,40,40,.7), -2px 0 0 rgba(40,220,255,.7)" }}>▶ PLAY&nbsp;&nbsp;SP&nbsp;&nbsp;{clock}</div>
+      <div style={{ position: "absolute", right: 66, top: 1466, fontFamily: FONT.mono, fontWeight: 700, fontSize: 34, color: "#F4F1E8", display: "flex", alignItems: "center", gap: 12, textShadow: "2px 0 0 rgba(255,40,40,.7), -2px 0 0 rgba(40,220,255,.7)" }}>
+        <span style={{ width: 22, height: 22, borderRadius: 11, background: "#FF2D2D", opacity: rec ? 1 : 0.15 }} />REC
+      </div>
+      {stamp ? <div style={{ position: "absolute", right: 66, top: 1516, fontFamily: FONT.mono, fontWeight: 700, fontSize: 28, color: "#F4F1E8", opacity: 0.9 }}>{stamp}</div> : null}
+    </AbsoluteFill>
+  );
+};
+
+/** Warm watercolour page: soft paper grain, bloom vignette, no fold lines. */
+const StorybookFinish: React.FC = () => (
+  <AbsoluteFill style={{ pointerEvents: "none" }}>
+    <svg width={W} height={H} style={{ position: "absolute", inset: 0, mixBlendMode: "multiply", opacity: 0.4 }}>
+      <filter id="sb-grain"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" /><feColorMatrix values="0 0 0 0 0.85  0 0 0 0 0.75  0 0 0 0 0.6  0 0 0 0.35 0" /></filter>
+      <rect width={W} height={H} filter="url(#sb-grain)" />
+    </svg>
+    <AbsoluteFill style={{ background: "radial-gradient(ellipse 90% 75% at 50% 45%, transparent 62%, rgba(120,80,30,.28))" }} />
+  </AbsoluteFill>
+);
+
+/** Clean, bright finish for the train channel: light grain + soft vignette. */
+const RailFinish: React.FC = () => (
+  <AbsoluteFill style={{ pointerEvents: "none", background: "radial-gradient(ellipse 90% 75% at 50% 50%, transparent 65%, rgba(0,0,0,.3))" }} />
+);
+
 /* ---------- scene ---------- */
 
 const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean; captions: boolean; headline?: boolean }> = ({ scene, pal, tf, first, captions, headline = true }) => {
@@ -272,9 +316,10 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
   });
   const askAt = p.ask ? p.scenes.slice(0, -1).reduce((a, s) => a + s.seconds, 0) : 0;
   if (p.ask) sfx.push(...askOutroSfx(p.ask, askAt));
+  const finish = p.finish ?? "paper";
   return (
-    <AbsoluteFill style={{ background: "#111" }}>
-      <SoundBed music={p.music || undefined} musicVolume={0.08} sfx={sfx} />
+    <AbsoluteFill style={{ background: "#111", filter: finish === "vhs" ? "saturate(.6) contrast(1.12) brightness(.95)" : undefined }}>
+      <SoundBed music={p.music || undefined} musicVolume={finish === "vhs" ? 0.12 : 0.08} sfx={sfx} />
       {p.scenes.map((scene, i) => {
         const from = Math.round(cursor * FPS);
         cursor += scene.seconds;
@@ -288,7 +333,7 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
       })}
       <SeriesHeader brand={p.brand} tag={p.tag} accent={p.tagAccent} pal={p.palette} />
       {p.ask ? <AskOutro from={Math.round(askAt * FPS)} a={p.ask} accent={p.palette.accent2} tapAt={followTapAt(p.ask)} /> : null}
-      <PaperFinish />
+      {finish === "vhs" ? <VhsFinish stamp={p.stamp ?? ""} /> : finish === "storybook" ? <StorybookFinish /> : finish === "rail" ? <RailFinish /> : <PaperFinish />}
     </AbsoluteFill>
   );
 };

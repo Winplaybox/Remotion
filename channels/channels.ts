@@ -12,12 +12,17 @@ import { parseCell, parseNumber, type Quiz } from "./quiz";
 import { championshipForEpisode, marathonChapters, marathonForEpisode, marathonVoiceLines } from "../engines/puzzle-marathon/src/model";
 import { liarLineupForDay, liarLineupVoiceLines, liarLineupAnswerComment, HANDLE as HANDLE_LIAR } from "../engines/liar-lineup/src/model";
 import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../engines/code-lock/src/model";
+import { trainBattleForDay, trainBattleMeta } from "../content/alltrainreels/battles";
+import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
+import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
 // @engine-builder:imports
 
 export interface PostMeta {
   title: string; description: string; tags: string[]; caption: string; language: string; categoryId: string;
   /** Long videos: part cut as the vertical Instagram/Facebook teaser (seconds) + its closing banner. */
   teaser?: { start: number; length: number; banner: string; header?: string; crop?: { w: number; x: number } };
+  /** YouTube "made for kids" (COPPA). Absent = false, as every channel was uploaded before this field existed. */
+  madeForKids?: boolean;
 }
 
 export interface ChannelConfig {
@@ -55,6 +60,11 @@ export interface ChannelConfig {
   voice?: (n: number) => VoiceLine[];
   /** Optional per-channel Edge TTS voice override. */
   voiceName?: string;
+  /**
+   * Narrated stories: lengthen each scene to its narration WAV (+0.4 s) so a slower TTS voice (other languages, other
+   * engines) is never cut off by the next scene. Off by default: EpicBharatSaga's pipeline stays exactly as it is.
+   */
+  fitScenesToVoice?: boolean;
   /** Answer comment posted on the video once it is public (pin it in YouTube Studio). */
   answer?: (n: number) => string;
   /** From this post on the answer is revealed in the next video; the comment is posted once post n+1 is public. */
@@ -430,8 +440,75 @@ export const CHANNELS = {
       };
     }
   },
+  // AllTrainReels — "Train Battle" (A vs B) Shorts on the story-diorama engine, rail finish, AskOutro "A ya B?".
+  // Moved here from the old pipeline that stopped on 13 Oct 2026. DISABLED until a human sets LIVE_ALLTRAINREELS=true
+  // (and START_ALLTRAINREELS) after adding YT_TOKEN_ALLTRAINREELS.
+  alltrainreels: {
+    name: "AllTrainReels",
+    composition: "EpicBharatSaga",
+    startDate: "2026-11-18",
+    slots: ["18:45"],
+    narrated: true,
+    autoPublish: false,
+    fitScenesToVoice: true,
+    youtubeTokenSecret: "YT_TOKEN_ALLTRAINREELS",
+    metaSecretPrefix: "META_ALLTRAINREELS",
+    youtubeHandle: "@AllTrainReels",
+    pinterestSecretPrefix: "PINTEREST_ALLTRAINREELS",
+    resolve: (n) => trainBattleForDay(n),
+    meta: (n) => trainBattleMeta(n)
+  },
+  // Indian Horror Tapes — found-footage folklore Shorts ("TAPE #NN"), story-diorama engine with the VHS finish.
+  // Replaces the old Python + Pexels pipeline (stopped 8 Nov 2026). DISABLED until LIVE_INDIAN_HORROR_TAPES=true
+  // (+ START_INDIAN_HORROR_TAPES) after YT_TOKEN_INDIAN_HORROR_TAPES is added.
+  "indian-horror-tapes": {
+    name: "Indian Horror Tapes",
+    composition: "EpicBharatSaga",
+    startDate: "2026-11-18",
+    slots: ["21:30"],
+    narrated: true,
+    autoPublish: false,
+    fitScenesToVoice: true,
+    youtubeTokenSecret: "YT_TOKEN_INDIAN_HORROR_TAPES",
+    metaSecretPrefix: "META_INDIAN_HORROR_TAPES",
+    youtubeHandle: "@IndianHorrorTapes",
+    pinterestSecretPrefix: "PINTEREST_INDIAN_HORROR_TAPES",
+    resolve: (n) => horrorTapeForDay(n),
+    meta: (n) => horrorTapeMeta(n)
+  },
   // @engine-builder:channels
+  // MindNest Tales — one master fable a day, rendered in every language channel (see content/mindnest/fables.ts).
+  ...mindNestChannels()
 } satisfies Record<string, ChannelConfig>;
+
+/**
+ * MindNest Tales language channels ("mindnest-hi", "mindnest-es", ...). Same post number = same fable on every channel.
+ * DISABLED until a human sets LIVE_MINDNEST_<LANG>=true (+ START_MINDNEST_<LANG>) after adding YT_TOKEN_MINDNEST_<LANG>.
+ * Made for kids (COPPA): comments are off on those videos, so there is no comment ask and no answer comment.
+ */
+function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
+  const out = {} as Record<`mindnest-${MindNestLang}`, ChannelConfig>;
+  MINDNEST_LANGS.forEach((lang, i) => {
+    const UP = lang.toUpperCase();
+    out[`mindnest-${lang}`] = {
+      name: `MindNest Tales (${LANGS[lang].name})`,
+      composition: "EpicBharatSaga",
+      startDate: "2026-11-18",
+      // Staggered so seven renders/uploads never land in the same hour.
+      slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15"][i]!],
+      narrated: true,
+      fitScenesToVoice: true,
+      autoPublish: false,
+      youtubeTokenSecret: `YT_TOKEN_MINDNEST_${UP}`,
+      metaSecretPrefix: `META_MINDNEST_${UP}`,
+      youtubeHandle: LANGS[lang].handle,
+      pinterestSecretPrefix: `PINTEREST_MINDNEST_${UP}`,
+      resolve: (n) => mindNestForDay(lang, n),
+      meta: (n) => mindNestMeta(lang, n)
+    };
+  });
+  return out;
+}
 
 export type ChannelId = keyof typeof CHANNELS;
 
@@ -442,14 +519,24 @@ export function todayIST(now = new Date()): string {
 
 const envKey = (channel: ChannelId) => channel.toUpperCase().replace(/-/g, "_");
 
+/**
+ * A repo variable: the env var of that name, else the same key in REPO_VARS (the workflows pass `toJSON(vars)`), so a
+ * new START_/LIVE_ variable works without editing every workflow. Before this, LIVE_DHARM_SANKAT / LIVE_KAUN_HOON_MAIN
+ * were never passed to the jobs and could not switch those channels on.
+ */
+export function repoVar(key: string): string | undefined {
+  if (process.env[key]) return process.env[key];
+  try { const v = (JSON.parse(process.env.REPO_VARS || "{}") as Record<string, unknown>)[key]; return typeof v === "string" && v ? v : undefined; } catch { return undefined; }
+}
+
 /** Start date, overridable per channel with START_<ID> (repo variable). */
 export function startDateOf(channel: ChannelId): string {
-  return process.env[`START_${envKey(channel)}`] || CHANNELS[channel].startDate;
+  return repoVar(`START_${envKey(channel)}`) || CHANNELS[channel].startDate;
 }
 
 /** Whether the hourly publisher may post this channel. */
 export function isLive(channel: ChannelId): boolean {
-  return CHANNELS[channel].autoPublish || process.env[`LIVE_${envKey(channel)}`] === "true";
+  return CHANNELS[channel].autoPublish || repoVar(`LIVE_${envKey(channel)}`) === "true";
 }
 
 const weekdaysOf = (channel: ChannelId): readonly number[] | undefined => (CHANNELS[channel] as ChannelConfig).weekdays;
