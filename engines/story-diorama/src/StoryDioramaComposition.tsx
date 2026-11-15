@@ -261,7 +261,7 @@ const VhsFinish: React.FC<{ stamp: string }> = ({ stamp }) => {
 const StorybookFinish: React.FC = () => (
   <AbsoluteFill style={{ pointerEvents: "none" }}>
     <svg width={W} height={H} style={{ position: "absolute", inset: 0, mixBlendMode: "multiply", opacity: 0.4 }}>
-      <filter id="sb-grain"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="3" /><feColorMatrix values="0 0 0 0 0.85  0 0 0 0 0.75  0 0 0 0 0.6  0 0 0 0.35 0" /></filter>
+      <filter id="sb-grain"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="3" /><feColorMatrix values="0 0 0 0 0.85  0 0 0 0 0.75  0 0 0 0 0.6  0 0 0 0.35 0" /></filter>
       <rect width={W} height={H} filter="url(#sb-grain)" />
     </svg>
     <AbsoluteFill style={{ background: "radial-gradient(ellipse 90% 75% at 50% 45%, transparent 62%, rgba(120,80,30,.28))" }} />
