@@ -69,7 +69,20 @@ export const FilterDefs: React.FC<{ id: string; r: Recipe; frame: number; w: num
       </>
     ), "ib");
   }
-  if (r.duotone) {
+  if (r.gradientMap && r.gradientMap.length >= 2) {
+    const stops = r.gradientMap.map(rgb);
+    const col = (k: 0 | 1 | 2) => stops.map((c) => c[k].toFixed(3)).join(" ");
+    add("gmap", (
+      <>
+        <feColorMatrix in={last} type="matrix" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0" result="gl" />
+        <feComponentTransfer in="gl" result="gm">
+          <feFuncR type="table" tableValues={col(0)} />
+          <feFuncG type="table" tableValues={col(1)} />
+          <feFuncB type="table" tableValues={col(2)} />
+        </feComponentTransfer>
+      </>
+    ), "gm");
+  } else if (r.duotone) {
     const [d, l] = [rgb(r.duotone[0]), rgb(r.duotone[1])];
     add("duo", (
       <>
@@ -90,6 +103,21 @@ export const FilterDefs: React.FC<{ id: string; r: Recipe; frame: number; w: num
         <feBlend in={src} in2="bb" mode="screen" result="bs" />
       </>
     ), "bs");
+  }
+  if (r.rgbSplit) {
+    const k = r.rgbSplit;
+    const src = last;
+    add("rgb", (
+      <>
+        <feColorMatrix in={src} type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="cr" />
+        <feOffset in="cr" dx={k} dy={0} result="cro" />
+        <feColorMatrix in={src} type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="cg" />
+        <feColorMatrix in={src} type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="cb" />
+        <feOffset in="cb" dx={-k} dy={0} result="cbo" />
+        <feBlend in="cro" in2="cg" mode="screen" result="crg" />
+        <feBlend in="crg" in2="cbo" mode="screen" result="crgb" />
+      </>
+    ), "crgb");
   }
   return (
     <svg width={0} height={0} style={{ position: "absolute" }} aria-hidden>
@@ -114,6 +142,36 @@ const gradeCss = (r: Recipe) => {
   return parts.join(" ");
 };
 
+
+const rgba = (hex: string, a: number) => { const [r, g, b] = rgb(hex); return `rgba(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)},${a})`; };
+
+/** Deterministic rain: 70 streaks whose x/speed/length come from their index, positions from the frame. */
+const Rain: React.FC<{ frame: number; w: number; h: number; opacity: number }> = ({ frame, w, h, opacity }) => (
+  <svg width={w} height={h} style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity }}>
+    {Array.from({ length: 70 }, (_, i) => {
+      const x0 = (i * 97) % w;
+      const speed = 38 + (i % 7) * 6;
+      const len = 60 + (i % 5) * 24;
+      const y = ((i * 211 + frame * speed) % (h + 300)) - 200;
+      const x = x0 - y * 0.18;
+      return <line key={i} x1={x} y1={y} x2={x - len * 0.18} y2={y + len} stroke="#dff4ff" strokeWidth={2 + (i % 3)} strokeLinecap="round" opacity={0.5 + (i % 4) * 0.12} />;
+    })}
+  </svg>
+);
+
+/** Cusped temple / jharokha arch frame: thin pillars, arch springing near the top so headers stay visible. */
+const Arch: React.FC<{ w: number; h: number; colors: [string, string, string] }> = ({ w, h, colors }) => {
+  const m = 30, top = 34, spring = 150;
+  const inner = `M ${m} ${h - m} L ${m} ${spring} Q ${m} ${top + 40} ${w * 0.28} ${top + 30} Q ${w * 0.42} ${top + 26} ${w / 2} ${top} Q ${w * 0.58} ${top + 26} ${w * 0.72} ${top + 30} Q ${w - m} ${top + 40} ${w - m} ${spring} L ${w - m} ${h - m} Z`;
+  return (
+    <svg width={w} height={h} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+      <path d={`M 0 0 H ${w} V ${h} H 0 Z ${inner}`} fill={colors[0]} fillRule="evenodd" opacity={0.92} />
+      <path d={inner} fill="none" stroke={colors[1]} strokeWidth={8} />
+      <path d={inner} fill="none" stroke={colors[2]} strokeWidth={3} transform={`translate(0 0)`} strokeDasharray="2 14" />
+    </svg>
+  );
+};
+
 const abs: React.CSSProperties = { position: "absolute", inset: 0, pointerEvents: "none" };
 
 export const StyledScene: React.FC<{ style: string; frame?: number; children: React.ReactNode }> = ({ style, frame: frameProp, children }) => {
@@ -125,7 +183,7 @@ export const StyledScene: React.FC<{ style: string; frame?: number; children: Re
   const frame = frameProp ?? cf;
   const held = r.hold ? Math.floor(frame / r.hold) * r.hold : frame;
   const fid = `st-${style}`;
-  const hasFilter = !!(r.wobble || r.pixel || r.posterize || r.ink || r.duotone || r.bloom);
+  const hasFilter = !!(r.wobble || r.pixel || r.posterize || r.ink || r.duotone || r.gradientMap || r.bloom || r.rgbSplit);
   const flick = r.flicker ? 1 + r.flicker * (Math.sin(frame * 12.9898) * 43758.5453 % 1) : 1;
   const css = [hasFilter ? `url(#${fid})` : "", gradeCss(r), flick !== 1 ? `brightness(${flick.toFixed(3)})` : ""].filter(Boolean).join(" ");
   const grainSeed = 1 + (Math.floor(frame / 2) % 8);
@@ -157,7 +215,11 @@ export const StyledScene: React.FC<{ style: string; frame?: number; children: Re
         </svg>
       ) : null}
       {r.scan ? <div style={{ ...abs, opacity: r.scan * 4, background: "repeating-linear-gradient(0deg, rgba(0,0,0,.55) 0 1px, transparent 1px 4px)" }} /> : null}
-      {r.vignette ? <div style={{ ...abs, background: `radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,${r.vignette}) 100%)` }} /> : null}
+      {r.lightLeak ? (
+        <div style={{ ...abs, mixBlendMode: "screen", opacity: r.lightLeak.opacity, background: `radial-gradient(ellipse 55% 40% at ${50 + Math.sin(frame / 70) * 38}% ${22 + Math.cos(frame / 90) * 12}%, ${r.lightLeak.color}, transparent 70%)` }} />
+      ) : null}
+      {r.rain ? <Rain frame={frame} w={width} h={height} opacity={r.rain} /> : null}
+      {r.vignette ? <div style={{ ...abs, background: `radial-gradient(ellipse at center, transparent 45%, ${rgba(r.vignetteColor ?? "#000000", r.vignette)} 100%)` }} /> : null}
       {r.overlay === "speedlines" ? (
         <svg width={width} height={height} style={{ ...abs, opacity: 0.18 }}>
           {Array.from({ length: 36 }, (_, i) => {
@@ -166,7 +228,12 @@ export const StyledScene: React.FC<{ style: string; frame?: number; children: Re
           })}
         </svg>
       ) : null}
-      {r.overlay === "border" ? <div style={{ ...abs, boxShadow: "inset 0 0 0 26px #7a2e1d, inset 0 0 0 34px #f2c14e, inset 0 0 0 44px #7a2e1d" }} /> : null}
+      {r.overlay === "border" ? (() => { const [o, m, i] = r.borderColors ?? ["#7a2e1d", "#f2c14e", "#7a2e1d"]; return <div style={{ ...abs, boxShadow: `inset 0 0 0 26px ${o}, inset 0 0 0 34px ${m}, inset 0 0 0 44px ${i}` }} />; })() : null}
+      {r.overlay === "grid" ? (
+        <div style={{ ...abs, opacity: 0.22, backgroundImage: "linear-gradient(rgba(255,255,255,.9) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.9) 1px, transparent 1px), linear-gradient(rgba(255,255,255,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.5) 1px, transparent 1px)", backgroundSize: "120px 120px, 120px 120px, 24px 24px, 24px 24px" }} />
+      ) : null}
+      {r.overlay === "arch" ? <Arch w={width} h={height} colors={r.borderColors ?? ["#5b2a12", "#c99a3b", "#7a3a16"]} /> : null}
+      {r.overlay === "crt" ? <div style={{ ...abs, borderRadius: 70, boxShadow: "0 0 0 60px #000, inset 0 0 160px rgba(0,0,0,.75)" }} /> : null}
       {r.overlay === "hud" ? (
         <svg width={width} height={height} style={{ ...abs, opacity: 0.85 }} fill="none" stroke="#00e5ff" strokeWidth={4}>
           <path d="M 40 120 L 40 40 L 120 40 M 960 40 L 1040 40 L 1040 120 M 40 1800 L 40 1880 L 120 1880 M 960 1880 L 1040 1880 L 1040 1800" />

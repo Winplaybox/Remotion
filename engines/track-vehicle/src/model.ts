@@ -15,6 +15,8 @@ const VEHICLE_VOICE: Record<string, string> = {
 
 
 export const TrackVehicleSchema = z.object({
+  /** Channel look from the style catalogue (see channels/looks.ts). Optional, no default: published props unchanged. */
+  style: z.string().optional(),
   /** Narration clips (seconds from start). Filled by scripts/post.ts --auto-narrate. */
   voice: z.array(z.object({ src: z.string(), at: z.number().min(0) })).default([]),
   vehicle: z.enum(VEHICLE_KINDS),

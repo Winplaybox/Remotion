@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, interpolate, interpolateColors, random, spring, useCurrentFrame, useVideoConfig, Easing } from "remotion";
+import { StyledScene } from "@visuals/styles";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
@@ -128,7 +129,7 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
   const pulse = 1 + Math.sin(frame / 4) * 0.04;
   const accent = p.colors.accent;
 
-  return (
+  const body = (
     <AbsoluteFill style={{ background: "#0B0C0F", overflow: "hidden" }}>
       <VoiceCues cues={p.voice} />
       {p.sound ? (() => {
@@ -239,4 +240,6 @@ export const TrackVehicleComposition: React.FC<TrackVehicle> = (p) => {
       {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PICHHLE LEVEL ${p.level - 1} KA JAWAB`} answer={p.prevAnswer} accent={p.colors.accent} bg="linear-gradient(180deg, #121317, #0B0C0F)" /> : null}
     </AbsoluteFill>
   );
+  // Channel look (channels/looks.ts). Absent = the original look, byte for byte.
+  return p.style ? <StyledScene style={p.style}>{body}</StyledScene> : body;
 };

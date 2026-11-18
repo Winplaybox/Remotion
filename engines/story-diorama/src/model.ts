@@ -85,6 +85,9 @@ export const StoryDioramaSchema = z.object({
    * "rail" = clean bright finish for AllTrainReels. Optional with no default so published props stay byte-identical.
    */
   finish: z.enum(["paper", "vhs", "storybook", "rail"]).optional(),
+  /** Channel look from the style catalogue (packages/visuals/src/styles), applied to the scenes only (header, ask outro
+   * and finish stay crisp). Optional with no default so published props stay byte-identical. See channels/looks.ts. */
+  style: z.string().optional(),
   /** VHS timestamp text, e.g. "14 NOV 1998  02:47 AM" (vhs finish only). */
   stamp: z.string().optional()
 });

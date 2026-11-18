@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { StyledScene } from "@visuals/styles";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
@@ -97,7 +98,7 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
     );
   };
 
-  return (
+  const body = (
     <AbsoluteFill style={{ background: `linear-gradient(180deg, ${pal.bgTop}, ${pal.bgBottom})`, overflow: "hidden" }}>
       <VoiceCues cues={p.voice} />
       {p.sound ? (
@@ -210,4 +211,6 @@ export const OddOrbitComposition: React.FC<OddOrbit> = (p) => {
       {p.introSeconds > 0 && p.prevAnswer ? <PrevAnswerCard seconds={p.introSeconds} heading={`PICHHLE PUZZLE #${String(p.puzzleNo - 1).padStart(3, "0")} KA JAWAB`} answer={p.prevAnswer} accent={pal.accent} bg={`linear-gradient(180deg, ${pal.bgTop}, ${pal.bgBottom})`} /> : null}
     </AbsoluteFill>
   );
+  // Channel look (channels/looks.ts). Absent = the original look, byte for byte.
+  return p.style ? <StyledScene style={p.style}>{body}</StyledScene> : body;
 };

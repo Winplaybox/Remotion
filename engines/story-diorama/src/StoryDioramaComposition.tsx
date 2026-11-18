@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, Img, interpolate, random, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { StyledScene } from "@visuals/styles";
 import { SoundBed, type Sfx } from "@visuals/Sound";
 import { AskOutro } from "@visuals/AskOutro";
 import { askOutroSfx, followTapAt } from "../../ask-outro";
@@ -300,6 +301,9 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean;
   );
 };
 
+/** Wraps the scenes in a catalogue look; no style = untouched. */
+const StyleLayer: React.FC<{ style?: string | undefined; children: React.ReactNode }> = ({ style, children }) => (style ? <StyledScene style={style}>{children}</StyledScene> : <>{children}</>);
+
 export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
   useBundledFonts();
   let cursor = 0;
@@ -320,6 +324,7 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
   return (
     <AbsoluteFill style={{ background: "#111", filter: finish === "vhs" ? "saturate(.6) contrast(1.12) brightness(.95)" : undefined }}>
       <SoundBed music={p.music || undefined} musicVolume={finish === "vhs" ? 0.12 : 0.08} sfx={sfx} />
+      <StyleLayer style={p.style}>
       {p.scenes.map((scene, i) => {
         const from = Math.round(cursor * FPS);
         cursor += scene.seconds;
@@ -331,6 +336,7 @@ export const StoryDioramaComposition: React.FC<StoryDiorama> = (p) => {
           </Sequence>
         );
       })}
+      </StyleLayer>
       <SeriesHeader brand={p.brand} tag={p.tag} accent={p.tagAccent} pal={p.palette} />
       {p.ask ? <AskOutro from={Math.round(askAt * FPS)} a={p.ask} accent={p.palette.accent2} tapAt={followTapAt(p.ask)} /> : null}
       {finish === "vhs" ? <VhsFinish stamp={p.stamp ?? ""} /> : finish === "storybook" ? <StorybookFinish /> : finish === "rail" ? <RailFinish /> : <PaperFinish />}

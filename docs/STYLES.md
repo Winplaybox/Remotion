@@ -14,3 +14,24 @@ Status (rule from the catalogue: not “production ready” until renderer + ass
 - **planned (11)** need a real 3D/shader renderer (Three.js) or a new design system: ps2, lego, low-poly, cel-shaded, stylized-3d, isometric, voxel, toon-shaded, 3d-cutaway, chibi, kinetic-typography. Their recipe is only a placeholder preview.
 
 Deterministic: noise seeds come from the frame number; no `Math.random`.
+
+## Channel pack (+20, Nov 2026) and channel looks
+
+`packages/visuals/src/styles/extras.ts` adds 20 code-only looks made for our channels (total 69). New recipe tools in
+`recipes.ts` / `StyledScene.tsx`: `gradientMap` (N-stop luminance map), `rgbSplit`, `lightLeak`, `rain`, `vignetteColor`,
+`borderColors`, overlays `grid` / `arch` (temple jharokha) / `crt`.
+
+| Group | Styles |
+|---|---|
+| Puzzle-safe (hue kept, no wobble/pixel) | neon-glow, crt-arcade, rangoli-festive |
+| Mumbai | taxi-pop, mumbai-night, mumbai-monsoon |
+| Indian art | tanjore-gold, pichwai-night, kalighat-pat, temple-mural |
+| Cinematic / detective / tech | golden-hour, neon-noir, detective-pulp, matrix-terminal, blueprint |
+| Horror cams | night-vision, thermal-cam, candlelight |
+| Kids | crayon-kids, pastel-dream |
+
+**Which channel wears what:** `channels/looks.ts`. From `LOOKS_FROM` (2026-11-22) every post of a listed channel gets
+`style` = its rotation[(n-1) % 7]; earlier posts are untouched. Engines that read `style`: story-diorama (scenes only;
+header, ask outro and finish stay crisp), odd-orbit, track-vehicle, liar-lineup, code-lock. Long 16:9 videos stay plain
+(render time). Puzzle channels are `colourSafe`: no monochrome looks, and a Chakra `tint` puzzle always gets the signature.
+Tests: `tests/channel-looks.test.ts`.

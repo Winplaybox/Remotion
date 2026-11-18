@@ -1,4 +1,5 @@
 import { CATALOGUE, type CatalogueEntry } from "./catalogue.generated";
+import { EXTRA_CATALOGUE } from "./extras";
 
 /**
  * STYLE RECIPES — how each of the 49 catalogue styles is produced with CODE ONLY (SVG filters + CSS overlays, no AI, no images).
@@ -18,6 +19,18 @@ export interface Recipe {
   posterize?: number;
   /** map luminance to [dark, light] colours */
   duotone?: [string, string];
+  /** map luminance to N colour stops, dark → light (thermal, night-vision, blueprint). Wins over duotone. */
+  gradientMap?: string[];
+  /** chromatic aberration: red shifted right, blue left, by N px */
+  rgbSplit?: number;
+  /** drifting warm light leak (screen blend) */
+  lightLeak?: { color: string; opacity: number };
+  /** deterministic diagonal rain streaks, 0..1 opacity */
+  rain?: number;
+  /** vignette colour (default black) */
+  vignetteColor?: string;
+  /** colours for overlay "border": [outer, middle, inner] */
+  borderColors?: [string, string, string];
   /** 0..1 — black edge lines multiplied over the scene */
   ink?: number;
   /** block size in px (pixel art) */
@@ -40,7 +53,7 @@ export interface Recipe {
   /** hold each drawing for N frames (limited animation: 2 = "on twos" at 30fps → 15 drawings/s) */
   hold?: number;
   /** decorative frame / HUD overlay */
-  overlay?: "hud" | "border" | "speedlines";
+  overlay?: "hud" | "border" | "speedlines" | "grid" | "arch" | "crt";
 }
 
 export interface StyleSpec extends CatalogueEntry { status: StyleStatus; recipe: Recipe; note: string }
@@ -97,12 +110,40 @@ const R: Record<string, { status: StyleStatus; recipe: Recipe; note: string }> =
   "sci-fi-hud": { status: "approx", recipe: { tint: { color: "#00e5ff", opacity: 0.15, blend: "screen" }, scan: 0.14, bloom: 4, overlay: "hud", grade: { contrast: 1.15 }, vignette: 0.3 }, note: "Cyan scanlines + HUD frame." }
 };
 
-export const STYLES: StyleSpec[] = CATALOGUE.map((c) => {
-  const r = R[c.id];
+
+/* ---------- channel pack (extras.ts) ---------- */
+const X: Record<string, { status: StyleStatus; recipe: Recipe; note: string }> = {
+  "neon-glow": { status: "ready", recipe: { bloom: 5, grade: { saturate: 1.45, contrast: 1.12 }, vignette: 0.5 }, note: "Glowing neon on dark sets; puzzle-safe." },
+  "crt-arcade": { status: "ready", recipe: { rgbSplit: 2, bloom: 3, scan: 0.12, overlay: "crt", grade: { saturate: 1.3, contrast: 1.1 } }, note: "Retro arcade monitor; puzzle-safe." },
+  "rangoli-festive": { status: "ready", recipe: { grade: { saturate: 1.35, contrast: 1.05, brightness: 1.03 }, tint: { color: "#ffb347", opacity: 0.12, blend: "soft-light" }, lightLeak: { color: "#ffcf6b", opacity: 0.22 }, overlay: "border", borderColors: ["#b3122e", "#ffb000", "#e85d04"], vignette: 0.3 }, note: "Marigold/diya festive look for Diwali-type weeks." },
+  "taxi-pop": { status: "ready", recipe: { grade: { saturate: 1.6, contrast: 1.25 }, tint: { color: "#ffd400", opacity: 0.1, blend: "soft-light" }, halftone: { size: 10, opacity: 0.12, color: "#111" }, vignette: 0.35 }, note: "Kaali-peeli pop grade." },
+  "mumbai-night": { status: "ready", recipe: { grade: { contrast: 1.18, saturate: 1.25, brightness: 0.9 }, tint: { color: "#ff8a1f", opacity: 0.14, blend: "soft-light" }, bloom: 4, vignette: 0.5, vignetteColor: "#04121c", grain: 0.08 }, note: "Sodium-lamp orange + teal shadows." },
+  "mumbai-monsoon": { status: "ready", recipe: { grade: { saturate: 0.85, contrast: 1.08 }, tint: { color: "#2f6f7a", opacity: 0.2, blend: "soft-light" }, rain: 0.35, vignette: 0.4, grain: 0.1 }, note: "Monsoon teal grade + rain." },
+  "tanjore-gold": { status: "approx", recipe: { posterize: 8, bloom: 3, grade: { saturate: 1.4, contrast: 1.1 }, tint: { color: "#d4a017", opacity: 0.14, blend: "soft-light" }, overlay: "border", borderColors: ["#5a0b14", "#e2b33c", "#8b1a1a"], grain: 0.1 }, note: "Gold-leaf glow + ruby frame." },
+  "pichwai-night": { status: "approx", recipe: { grade: { saturate: 1.3, contrast: 1.15, brightness: 0.92 }, tint: { color: "#13235c", opacity: 0.28, blend: "soft-light" }, bloom: 3, overlay: "border", borderColors: ["#0d1a45", "#e8b84a", "#c2185b"], vignette: 0.35, vignetteColor: "#050b24" }, note: "Indigo night of Shrinathji pichwais." },
+  "kalighat-pat": { status: "approx", recipe: { ink: 0.75, posterize: 6, paper: { color: "#f1e2bf", opacity: 0.22 }, grade: { saturate: 1.25, contrast: 1.1 }, grain: 0.15 }, note: "Bengal pat: sweeping outlines, flat colour, plain paper." },
+  "temple-mural": { status: "approx", recipe: { wobble: { scale: 3, freq: 0.015 }, posterize: 8, grade: { saturate: 0.8, contrast: 1.05, sepia: 0.2 }, tint: { color: "#b5652a", opacity: 0.14, blend: "multiply" }, paper: { color: "#e9d3a8", opacity: 0.16 }, grain: 0.22, overlay: "arch", borderColors: ["#5b2a12", "#c99a3b", "#7a3a16"] }, note: "Ajanta wall painting in a temple arch." },
+  "golden-hour": { status: "ready", recipe: { grade: { contrast: 1.08, saturate: 1.2, brightness: 1.03 }, tint: { color: "#ff9f43", opacity: 0.16, blend: "soft-light" }, lightLeak: { color: "#ffb35c", opacity: 0.28 }, bloom: 2, vignette: 0.3 }, note: "Sunset warmth with a moving light leak." },
+  "neon-noir": { status: "ready", recipe: { grade: { contrast: 1.3, saturate: 1.2, brightness: 0.88 }, tint: { color: "#6a1b9a", opacity: 0.22, blend: "soft-light" }, bloom: 3, letterbox: 0.05, vignette: 0.6, vignetteColor: "#08021a", grain: 0.15 }, note: "Rain-city detective night; colours kept." },
+  "detective-pulp": { status: "ready", recipe: { grade: { sepia: 0.3, contrast: 1.15, saturate: 0.9 }, halftone: { size: 6, opacity: 0.16, color: "#3b2a12" }, paper: { color: "#f0dfb0", opacity: 0.2 }, grain: 0.25, vignette: 0.4 }, note: "Old pulp-magazine cover." },
+  "matrix-terminal": { status: "ready", recipe: { gradientMap: ["#000a02", "#0b3d14", "#22c55e", "#d9ffe0"], scan: 0.14, bloom: 4, overlay: "crt", grade: { contrast: 1.15 } }, note: "Green phosphor terminal." },
+  blueprint: { status: "ready", recipe: { gradientMap: ["#0a2a5e", "#1d4f9c", "#9fd3ff", "#ffffff"], overlay: "grid", grade: { contrast: 1.15 }, vignette: 0.25 }, note: "Engineering blueprint with grid." },
+  "night-vision": { status: "ready", recipe: { gradientMap: ["#010a02", "#0f4d12", "#5cff6a", "#eaffe6"], grain: 0.4, scan: 0.1, bloom: 3, vignette: 0.75, grade: { contrast: 1.2, brightness: 1.15 } }, note: "Infrared camcorder green." },
+  "thermal-cam": { status: "ready", recipe: { gradientMap: ["#000020", "#2b0a7a", "#b0127a", "#ff4b1f", "#ffd21f", "#ffffff"], grain: 0.12, scan: 0.06, vignette: 0.3 }, note: "Heat-camera palette." },
+  candlelight: { status: "ready", recipe: { grade: { contrast: 1.2, brightness: 0.85, saturate: 0.9 }, tint: { color: "#ff8c2a", opacity: 0.2, blend: "soft-light" }, flicker: 0.06, vignette: 0.8, vignetteColor: "#0a0400", grain: 0.2 }, note: "Diya / candle-lit room, flickering." },
+  "crayon-kids": { status: "approx", recipe: { wobble: { scale: 4, freq: 0.03, boil: 3 }, ink: 0.35, posterize: 9, paper: { color: "#fff4dc", opacity: 0.2 }, grain: 0.3, hold: 2, grade: { saturate: 1.2 } }, note: "Crayon drawing with line boil." },
+  "pastel-dream": { status: "ready", recipe: { grade: { saturate: 0.8, brightness: 1.1, contrast: 0.92 }, tint: { color: "#ffc6e0", opacity: 0.14, blend: "soft-light" }, bloom: 4, paper: { color: "#fff6ea", opacity: 0.1 }, vignette: 0.15 }, note: "Soft pastel bedtime glow." }
+};
+
+/** 49 catalogue styles + the channel pack. */
+export const STYLES: StyleSpec[] = [...CATALOGUE, ...EXTRA_CATALOGUE].map((c) => {
+  const r = R[c.id] ?? X[c.id];
   if (!r) throw new Error(`style recipe missing for ${c.id}`);
   return { ...c, ...r };
 });
 export const STYLE_BY_ID = Object.fromEntries(STYLES.map((s) => [s.id, s])) as Record<string, StyleSpec>;
-export type StyleId = (typeof CATALOGUE)[number]["id"];
+export type StyleId = string;
+/** Ids of the channel pack (extras.ts). */
+export const EXTRA_STYLE_IDS: string[] = EXTRA_CATALOGUE.map((c) => c.id);
 export const STYLE_IDS: string[] = STYLES.map((s) => s.id);
 export const stylesByStatus = (s: StyleStatus) => STYLES.filter((x) => x.status === s);
