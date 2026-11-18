@@ -9,9 +9,11 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { HighlightReelSchema, ShortClipSchema } from "../../engines/short-clip/src/model";
 import { planTighten, cutFilter } from "./tighten";
-import { ClipsSchema, cleanClips, clipWords, fallbackClips, highlightsPrompt, rankClips, reelPlan, type Clip, type Segment } from "./shorts";
+import { ClipsSchema, clipRange, cleanClips, clipWords, fallbackClips, highlightsPrompt, rankClips, reelPlan, type Clip, type Segment } from "./shorts";
 import { renderComposition, renderStillComposition } from "./render";
 import { downloadFile, sendMessage, sendPhoto, sendVideo } from "./telegram";
 import { JobCancelled, jobTracker } from "./jobs";
@@ -25,7 +27,7 @@ const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? a
 const local = arg("local");
 const job = (local ? { chatId: 0, count: Number(arg("count") ?? 2), seconds: Number(arg("seconds") ?? 40) } : JSON.parse(process.env.PAYLOAD || "{}")) as Job;
 const count = Math.max(1, Math.min(10, Number(job.count) || 10));
-const target = Math.max(20, Math.min(60, Number(job.seconds) || 45));
+const target = Math.max(15, Math.min(120, Number(job.seconds) || 60));
 const root = process.cwd();
 const jobId = `s${Date.now().toString(36)}`;
 const dir = path.join(root, "public", "tg", jobId);
@@ -92,6 +94,34 @@ function tightenClip(key: string, c: { start: number; end: number }, words: { st
   }
 }
 
+/** Download through the OVD worker (OVD_WORKER_URL + OVD_WORKER_KEY). Returns false when not configured or it failed. */
+async function viaOvdWorker(url: string, to: string): Promise<boolean> {
+  const base = process.env.OVD_WORKER_URL?.trim().replace(/\/+$/, ""), key = process.env.OVD_WORKER_KEY?.trim();
+  if (!base || !key) return false;
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    try {
+      const res = await fetch(`${base}/download`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "X-Worker-Key": key, authorization: `Bearer ${key}` },
+        body: JSON.stringify({ url, kind: "video", height: 1080 }),
+        signal: AbortSignal.timeout(15 * 60_000)
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; url?: string; error?: string };
+      if (res.status === 429) { console.warn(`[ovd] worker busy, retry ${attempt}/6`); await new Promise((r) => setTimeout(r, 20_000)); continue; }
+      if (!res.ok || !data.ok || !data.url) throw new Error(data.error || `HTTP ${res.status}`);
+      const file = await fetch(data.url, { signal: AbortSignal.timeout(15 * 60_000) });
+      if (!file.ok || !file.body) throw new Error(`file ${file.status}`);
+      await pipeline(Readable.fromWeb(file.body as never), fs.createWriteStream(to));
+      console.log(`[ovd] downloaded via worker: ${(fs.statSync(to).size / 1048576).toFixed(1)} MB`);
+      return true;
+    } catch (e) {
+      console.warn(`[ovd] worker download failed: ${(e as Error).message.slice(0, 300)} — falling back to local yt-dlp`);
+      return false;
+    }
+  }
+  return false;
+}
+
 async function fetchSource(to: string) {
   if (local) { fs.copyFileSync(local, to); return; }
   if (job.fileId) { fs.writeFileSync(to, await downloadFile(job.fileId)); return; }
@@ -102,6 +132,9 @@ async function fetchSource(to: string) {
       fs.writeFileSync(to, Buffer.from(await res.arrayBuffer()));
       return;
     }
+    // 1) OVD worker (residential/VPS IP that YouTube accepts): POST /download -> { ok, url } -> stream that file.
+    if (await viaOvdWorker(job.url, to)) return;
+    // 2) Fallback: yt-dlp on this machine.
     const downloaderArgs = [
       "-f", "bv*[height<=1080]+ba/b[height<=1080]/b",
       "--merge-output-format", "mp4",
@@ -152,7 +185,7 @@ async function gemini(prompt: string): Promise<string> {
 async function pickClips(segs: Segment[], duration: number): Promise<Clip[]> {
   try {
     const raw = ClipsSchema.parse(JSON.parse((await gemini(highlightsPrompt(segs, count, target, job.language ?? "hinglish"))).replace(/^```(?:json)?\s*|```\s*$/g, "")));
-    const c = cleanClips(raw.clips, segs, duration, count);
+    const c = cleanClips(raw.clips, segs, duration, count, Math.max(90, clipRange(target)[1]));
     if (c.length) return c;
   } catch (e) { console.warn(`[highlights] ${(e as Error).message} — using fallback`); }
   return fallbackClips(segs, count, target);

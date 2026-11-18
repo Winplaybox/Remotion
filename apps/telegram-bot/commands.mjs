@@ -29,6 +29,9 @@ export const LANGUAGES = { hinglish: "Hinglish", hindi: "हिंदी", engli
 export const IDEA_STATUSES = ["PENDING_REVIEW", "APPROVED", "REJECTED", "IN_PRODUCTION", "COMPLETED", "MERGED"];
 const FINAL = new Set(["COMPLETED", "FAILED", "CANCELLED"]);
 const PENDING_TTL_MS = 10 * 60_000;
+/** Short lengths offered as buttons after a /shorts request (seconds). */
+export const SHORT_LENGTHS = [30, 60, 120];
+const shortsLengthKeyboard = () => [SHORT_LENGTHS.map((s) => ({ text: `⏱ ${s} sec`, data: `shorts:len:${s}` }))];
 
 import fs from "node:fs";
 /** Channels a bot video can be published to (same secrets as channels/channels.ts; test checks). */
@@ -175,11 +178,15 @@ export async function handle(update, ctx) {
     const url = (shortsCmd.args.match(/https?:\/\/\S+/) || [""])[0];
     const nums = shortsCmd.args.replace(url, "").match(/\d+/g)?.map(Number) ?? [];
     const count = Math.max(1, Math.min(10, nums.find((n) => n <= 10) ?? 10));
-    const seconds = Math.max(20, Math.min(60, nums.find((n) => n >= 15) ?? 45));
-    if (!vid && !url) return { replies: [{ text: "✂️ Lambi video bhejo (caption: /shorts 3) ya link: /shorts https://… 3\n10 = kitne best Shorts (max 10, default 10), 45 = har Short ke second.\nAakhir mein 🏆 Top-10 best-of reel + thumbnail bhi milegi." }] };
+    const given = nums.find((n) => n >= 15);
+    if (!vid && !url) return { replies: [{ text: "✂️ Lambi video bhejo (caption: /shorts 3) ya link: /shorts https://… 3\n3 = kitne best Shorts (max 10, default 10). Phir main poochunga: 30 / 60 / 120 sec.\nAakhir mein 🏆 Top-10 best-of reel + thumbnail bhi milegi." }] };
     if (!allowed) return addIdea(S, `[shorts] ${url || "video"}`, "🔒 Shorts banana abhi sirf invited users ke liye hai. Aapka request idea ke roop mein save ho gaya ✅");
     if (vid && (vid.file_size || 0) > MAX_VIDEO_MB * 1024 * 1024) return { replies: [{ text: `📦 Telegram bot sirf ${MAX_VIDEO_MB} MB tak ki video le sakta hai. Badi video ke liye link bhejo: /shorts https://… 3` }] };
-    return startJob(S, "shorts", { ...(vid ? { fileId: vid.file_id } : { url }), count, seconds, language: prefs.language }, "tg-shorts");
+    const input = { ...(vid ? { fileId: vid.file_id } : { url }), count, language: prefs.language };
+    // Length typed in the command (/shorts <link> 5 60) -> start now; otherwise ask 30 / 60 / 120 sec with buttons.
+    if (given) return startJob(S, "shorts", { ...input, seconds: Math.max(15, Math.min(120, given)) }, "tg-shorts");
+    ctx.pending.set(user.id, { action: "shorts", at: Date.now(), input, base });
+    return { replies: [{ text: `✂️ Har Short kitne second ka chahiye? (${count} best viral highlights banenge)`, keyboard: shortsLengthKeyboard() }] };
   }
 
   // ---- script as a .txt/.md document (caption /script ... or reply /script to the document)
@@ -196,7 +203,7 @@ export async function handle(update, ctx) {
 
   if (!c) {
     const pend = ctx.pending.get(user.id);
-    if (pend && Date.now() - pend.at < PENDING_TTL_MS && msg.text) {
+    if (pend && pend.action !== "shorts" && Date.now() - pend.at < PENDING_TTL_MS && msg.text) {
       ctx.pending.delete(user.id);
       if (pend.action === "topic") return topicOrScript(S, "topic", msg.text);
       if (pend.action === "script") return topicOrScript(S, "script", msg.text);
@@ -518,6 +525,16 @@ async function handleButton(q, ctx) {
     if (action === "render") return { answer: "▶️", ...(await renderPreview(S, arg)) };
     if (action === "cancel") return { answer: "🛑", ...(await cancel(S, arg)) };
     if (action === "retry") return { answer: "🔁", ...(await retry(S, arg)) };
+  }
+  if (kind === "shorts" && action === "len") {
+    const seconds = Number(arg);
+    if (!SHORT_LENGTHS.includes(seconds)) return { answer: "?", replies: [] };
+    const pend = ctx.pending.get(user.id);
+    if (!pend || pend.action !== "shorts" || Date.now() - pend.at > PENDING_TTL_MS) return { answer: "⌛", replies: [{ text: "⌛ Ye request purani ho gayi. Video ya link dobara bhejo: /shorts https://…" }] };
+    if (!S.allowed) return { answer: "🔒", replies: [] };
+    ctx.pending.delete(user.id);
+    const r = await startJob({ ...S, base: pend.base }, "shorts", { ...pend.input, seconds }, "tg-shorts");
+    return { answer: `⏱ ${seconds}s`, edit: { text: `✂️ Shorts: ${seconds} sec har ek ✅` }, ...r };
   }
   if (kind === "pub") return pubButton(S, action, arg, ...restParts.slice(1));
   if (kind === "idea") {
