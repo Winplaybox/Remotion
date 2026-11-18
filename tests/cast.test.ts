@@ -67,10 +67,10 @@ describe("motion library", () => {
   });
 });
 
-describe("visual style catalogue (49)", () => {
-  it("registers all 49 styles with recipe + status, 13 requested ones present", () => {
-    expect(STYLES).toHaveLength(49);
-    expect(new Set(STYLES.map((s) => s.id)).size).toBe(49);
+describe("visual style catalogue (49 + 20 channel pack)", () => {
+  it("registers all 49 catalogue styles + 20 channel-pack styles with recipe + status, 13 requested ones present", () => {
+    expect(STYLES).toHaveLength(69);
+    expect(new Set(STYLES.map((s) => s.id)).size).toBe(69);
     expect(STYLES.filter((s) => s.requested)).toHaveLength(13);
     for (const s of STYLES) expect(["ready", "approx", "planned"]).toContain(s.status);
     expect(STYLE_BY_ID["pixel-art"]!.status).toBe("ready");

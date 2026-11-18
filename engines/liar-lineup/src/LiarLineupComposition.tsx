@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { StyledScene } from "@visuals/styles";
 import { FONT, useBundledFonts } from "@visuals/fonts";
 import { VoiceCues } from "@visuals/VoiceCues";
 import { SoundBed, duckFromCues, type Sfx } from "@visuals/Sound";
@@ -70,7 +71,7 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
     return inBeat ? cur.r : "";
   })();
 
-  return (
+  const body = (
     <AbsoluteFill style={{ background: "#120A14", overflow: "hidden" }}>
       <VoiceCues cues={p.voice} />
       {p.sound ? <SoundBed music="sfx/music_puzzle.mp3" musicVolume={0.12} duck={duckFromCues(p.voice, 3.4)} sfx={sfx} /> : null}
@@ -157,4 +158,6 @@ export const LiarLineupComposition: React.FC<LiarLineup> = (p) => {
       ) : null}
     </AbsoluteFill>
   );
+  // Channel look (channels/looks.ts). Absent = the original look, byte for byte.
+  return p.style ? <StyledScene style={p.style}>{body}</StyledScene> : body;
 };

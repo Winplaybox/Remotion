@@ -15,6 +15,7 @@ import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../en
 import { trainBattleForDay, trainBattleMeta } from "../content/alltrainreels/battles";
 import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
 import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
+import { CHANNEL_LOOKS, lookFor } from "./looks";
 // @engine-builder:imports
 
 export interface PostMeta {
@@ -511,6 +512,27 @@ function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
 }
 
 export type ChannelId = keyof typeof CHANNELS;
+
+/**
+ * Channel looks (channels/looks.ts): from LOOKS_FROM each post's props get a `style` from its channel's rotation.
+ * Earlier posts are untouched. A colour-coded Chakra "tint" puzzle always gets the channel's signature (hue-safe) look.
+ */
+export function withLook<T>(channel: string, n: number, props: T): T {
+  const cfg = CHANNEL_LOOKS[channel];
+  if (!cfg || !props || typeof props !== "object") return props;
+  let date: string;
+  try { date = dateOfPost(channel as ChannelId, n); } catch { return props; }
+  let style = lookFor(channel, n, date);
+  if (!style) return props;
+  if (cfg.colourSafe && (props as { oddRule?: string }).oddRule === "tint") style = cfg.signature;
+  return { ...props, style };
+}
+for (const id of Object.keys(CHANNEL_LOOKS)) {
+  const cfg = (CHANNELS as Record<string, ChannelConfig>)[id];
+  if (!cfg) continue;
+  const base = cfg.resolve;
+  cfg.resolve = (n) => withLook(id, n, base(n));
+}
 
 /** Today's date in Asia/Kolkata as YYYY-MM-DD. */
 export function todayIST(now = new Date()): string {

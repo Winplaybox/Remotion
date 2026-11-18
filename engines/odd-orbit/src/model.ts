@@ -11,6 +11,8 @@ export const ODD_RULES = ["reverse", "faster", "slower", "tint", "shape"] as con
 export const DIFFICULTIES = ["easy", "medium", "hard", "expert"] as const;
 
 export const OddOrbitSchema = z.object({
+  /** Channel look from the style catalogue (see channels/looks.ts). Optional, no default: published props unchanged. */
+  style: z.string().optional(),
   /** Narration clips (seconds from start). Filled by scripts/post.ts --auto-narrate. */
   voice: z.array(z.object({ src: z.string(), at: z.number().min(0) })).default([]),
   brand: z.string(),

@@ -25,6 +25,8 @@ const SuspectSchema = z.object({
 });
 
 export const LiarLineupSchema = z.object({
+  /** Channel look from the style catalogue (see channels/looks.ts). Optional, no default: published props unchanged. */
+  style: z.string().optional(),
   voice: z.array(z.object({ src: z.string(), at: z.number().min(0) })).default([]),
   sound: z.boolean().default(true),
   brand: z.string(),
