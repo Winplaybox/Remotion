@@ -33,10 +33,13 @@ export function transcriptForPrompt(segs: Segment[], maxChars = 24_000): string 
   return lines.join("\n");
 }
 
+/** Allowed clip length for a requested Short length: 30 -> 22-38s, 60 -> 45-72s, 120 -> 90-140s. */
+export const clipRange = (target: number): [number, number] => [Math.max(12, Math.round(target * 0.75)), Math.round(target * 1.17) + 3];
+
 export function highlightsPrompt(segs: Segment[], count: number, target: number, language: string): string {
-  return `You are a viral YouTube Shorts / Reels editor. From this timestamped transcript of a long video, find the ${count} MOST VIRAL, trending-worthy moments (return ${Math.min(20, count + 4)} candidates; the best ${count} will be kept).
+  return `You are a viral YouTube Shorts / Reels editor. From this timestamped transcript of a long video, find the ${count} MOST VIRAL, trending-worthy moments that work as standalone ${target}-second Shorts (return ${Math.min(20, count + 4)} candidates; the best ${count} will be kept).
 Score every moment 0-100 for virality using: scroll-stopping hook in the first 2 seconds, strong emotion (shock, laughter, anger, awe), curiosity gap or surprising fact, quotable punchline or controversy, clear payoff, and it makes sense WITHOUT the rest of the video. Be strict: only truly great moments get 80+.
-Each clip: about ${target} seconds (between ${Math.max(15, target - 15)} and ${Math.min(90, target + 20)}), starts at the beginning of a sentence and ends at the end of a sentence (use the timestamps given), does not overlap other clips.
+Each clip: about ${target} seconds (between ${clipRange(target)[0]} and ${clipRange(target)[1]}), starts at the beginning of a sentence and ends at the end of a sentence (use the timestamps given), does not overlap other clips.
 For each clip give: start, end (seconds), score (0-100), reason (max 12 words: why it will go viral), title (YouTube Shorts title, max 70 chars, ${language === "english" ? "English" : "Hinglish in Roman script"}), hook (max 6 words shown on screen in the first 3 seconds), intro (one short punchy voice-over line, max 14 words, that teases this moment for a countdown reel; ${language === "english" ? "English" : "Hindi written in DEVANAGARI script (the text-to-speech voice cannot read Roman Hinglish), no digits — write numbers as words"}), hashtags (4-6, include #shorts).
 Never cut in the middle of a sentence or a dialogue. Output ONLY JSON: {"clips":[{"start":0,"end":0,"score":0,"reason":"","title":"","hook":"","intro":"","hashtags":[]}]}
 
@@ -65,13 +68,13 @@ export function snapToSentences(segs: Segment[], start: number, end: number): [n
 }
 
 /** Validate AI clips: snap to sentences, clamp duration, drop overlaps, sort. */
-export function cleanClips(raw: z.infer<typeof ClipsSchema>["clips"], segs: Segment[], duration: number, count: number): Clip[] {
+export function cleanClips(raw: z.infer<typeof ClipsSchema>["clips"], segs: Segment[], duration: number, count: number, maxLen = 90): Clip[] {
   const out: Clip[] = [];
   // Best first: the highest scores win overlaps and the count limit (stable for equal / missing scores).
   for (const c of [...raw].sort((a, b) => b.score - a.score)) {
     if (c.end <= c.start || c.start >= duration) continue;
     let [s, e] = snapToSentences(segs, c.start, Math.min(c.end, duration));
-    if (e - s > 90) e = snapToSentences(segs, s, s + 90)[1];
+    if (e - s > maxLen) e = snapToSentences(segs, s, s + maxLen)[1];
     if (e - s < 8) continue;
     if (out.some((o) => s < o.end && e > o.start)) continue;
     out.push({ start: +s.toFixed(2), end: +e.toFixed(2), title: c.title.trim(), hook: (c.hook || c.title).trim().slice(0, 80), score: c.score || viralScore(segs.filter((x) => x.end > s && x.start < e).map((x) => x.text).join(" "), e - s), reason: c.reason.trim(), intro: c.intro.trim(), hashtags: (c.hashtags.length ? c.hashtags : ["#shorts"]).map((h) => (h.startsWith("#") ? h : `#${h}`).replace(/\s+/g, "")) });

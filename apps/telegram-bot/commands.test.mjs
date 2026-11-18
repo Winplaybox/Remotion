@@ -209,8 +209,12 @@ test("/shorts from a video caption, a reply, or a link; limits and defaults", as
   const cap = await handle(msg(undefined, CREATOR, { video: { file_id: "L1", file_size: 10_000_000 }, caption: "/shorts 2 30" }), c);
   assert.equal(cap.dispatch.event, "tg-shorts");
   assert.deepEqual([cap.dispatch.payload.fileId, cap.dispatch.payload.count, cap.dispatch.payload.seconds], ["L1", 2, 30]);
-  const link = await handle(msg("/shorts https://example.com/talk.mp4", CREATOR), c);
-  assert.deepEqual([link.dispatch.payload.url, link.dispatch.payload.count, link.dispatch.payload.seconds], ["https://example.com/talk.mp4", 10, 45]); // default: best 10 viral clips
+  const ask = await handle(msg("/shorts https://example.com/talk.mp4", CREATOR), c);
+  assert.equal(ask.dispatch, undefined); // no length given -> asks 30 / 60 / 120 first
+  assert.deepEqual(ask.replies[0].keyboard[0].map((b) => b.data), ["shorts:len:30", "shorts:len:60", "shorts:len:120"]);
+  const link = await handle(press("shorts:len:120", CREATOR), c);
+  assert.deepEqual([link.dispatch.payload.url, link.dispatch.payload.count, link.dispatch.payload.seconds], ["https://example.com/talk.mp4", 10, 120]); // default: best 10 viral clips
+  assert.equal((await handle(press("shorts:len:60", CREATOR), c)).dispatch, undefined); // used up
   const capped = await handle(msg("/shorts https://example.com/talk.mp4 10 60", CREATOR), c);
   assert.deepEqual([capped.dispatch.payload.count, capped.dispatch.payload.seconds], [10, 60]);
   const big = await handle(msg(undefined, CREATOR, { video: { file_id: "L", file_size: 80_000_000 }, caption: "/shorts" }), c);

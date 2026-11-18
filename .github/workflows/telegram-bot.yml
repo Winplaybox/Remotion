@@ -5,7 +5,7 @@ name: Telegram Bot Jobs
 #   tg-style: real video (Telegram file) -> Remotion ToonVideo (cartoon/anime/comic/sketch/watercolor) -> sent back
 #   tg-shorts: long video / link -> faster-whisper transcript -> Gemini highlights (sentence boundaries) -> ShortClip x N
 #   tg-idea : idea appended to content/ideas/inbox.jsonl on branch bot-data, admin notified
-# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (job progress; optional), YOUTUBE_COOKIES_B64 (optional Netscape cookies for YouTube links blocked by bot checks). Variables: TG_ADMIN_ID, GEMINI_MODEL (optional).
+# Secrets: TELEGRAM_BOT_TOKEN, GEMINI_API_KEY, SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (job progress; optional), YOUTUBE_COOKIES_B64 (optional Netscape cookies for YouTube links blocked by bot checks), OVD_WORKER_KEY (OVD worker key; YouTube/IG links download through it). Variables: TG_ADMIN_ID, GEMINI_MODEL (optional), OVD_WORKER_URL (e.g. https://worker.winplaybox.in), SHORTS_RUNNER (optional, ["self-hosted","vps"]).
 on:
   repository_dispatch:
     types: [tg-video, tg-style, tg-shorts, tg-idea]
@@ -40,7 +40,8 @@ jobs:
 
   shorts:
     if: github.event.action == 'tg-shorts'
-    runs-on: ubuntu-latest
+    # Set repo variable SHORTS_RUNNER to ["self-hosted","vps"] to run on the VPS runner (docs/VPS_RUNNER.md); unset = GitHub-hosted.
+    runs-on: ${{ vars.SHORTS_RUNNER && fromJSON(vars.SHORTS_RUNNER) || 'ubuntu-latest' }}
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
@@ -53,8 +54,12 @@ jobs:
       - uses: actions/cache@v4
         with: { path: ~/.kokoro, key: kokoro-v1.0 }
       - uses: denoland/setup-deno@v2
-      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg && python -m pip install --quiet faster-whisper yt-dlp kokoro-onnx soundfile edge-tts
-      - run: npm ci
+        if: runner.environment == 'github-hosted'
+      - if: runner.environment == 'github-hosted'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+      # Packages stay installed on the VPS, so this is a few seconds there; -U keeps yt-dlp current.
+      - run: python -m pip install --quiet -U yt-dlp faster-whisper kokoro-onnx soundfile edge-tts
+      - run: npm ci --prefer-offline --no-audit --no-fund
       - name: Make and send the Shorts
         env:
           PAYLOAD: ${{ toJSON(github.event.client_payload.job || github.event.client_payload) }}
@@ -64,6 +69,9 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           WHISPER_MODEL: ${{ vars.WHISPER_MODEL || 'small' }}
+          OVD_WORKER_URL: ${{ vars.OVD_WORKER_URL }}
+          OVD_WORKER_KEY: ${{ secrets.OVD_WORKER_KEY }}
+          YOUTUBE_COOKIES_B64: ${{ secrets.YOUTUBE_COOKIES_B64 }}
           PYTHON: python
         run: npx ts-node scripts/telegram/make-shorts.ts
 
