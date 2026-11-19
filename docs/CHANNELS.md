@@ -158,8 +158,10 @@ It checks every token opens the right channel, stores it as `YT_TOKEN_<ID>`, set
 Note: because all repo variables now reach the jobs, an existing `LIVE_DHARM_SANKAT` / `LIVE_KAUN_HOON_MAIN` variable
 takes effect after this change (before, those two variables were never passed to the workflows).
 
-### Stickman riddles (ready, not wired to a channel)
+### Bachke Dikhao — stickman riddles (new channel, disabled)
 
-`content/stickman/riddles.ts` + the original `stickman` / `threeDoors` props: English "Can you survive?" riddles with the
-A/B/C AskOutro, built for Dimaag Lock. To use it, point the `dimaag-lock` channel's `resolve`/`meta` at it (keep the
-published Code Lock posts locked) or give it its own channel.
+`content/stickman/riddles.ts` + the original `stickman` / `threeDoors` props: Hinglish survival riddles with the A/B/C
+AskOutro, answer in the next video and as a comment. Channel id `bachke-dikhao` (handle `@BachkeDikhao` — change
+`STICK_HANDLE` + `youtubeHandle` if the channel gets another one). To launch: create the YouTube channel, then
+`node scripts/publish/auth-youtube.mjs` → secret `YT_TOKEN_BACHKE_DIKHAO`, and set `START_BACHKE_DIKHAO` + `LIVE_BACHKE_DIKHAO=true`.
+5 riddles written.

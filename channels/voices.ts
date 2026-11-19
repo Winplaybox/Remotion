@@ -74,6 +74,7 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "liar-lineup": DETECTIVE,
   "dimaag-lock": CODE_HOST_EN,
   alltrainreels: RAIL_HOST,
+  "bachke-dikhao": CHASE_COMMENTATOR,
   "indian-horror-tapes": HORROR_NARRATOR,
   "mindnest-hi": bedtime("Hindi", "hf_alpha", "Leda", "hi-IN-SwaraNeural"),
   "mindnest-es": bedtime("Spanish", "ef_dora", "Leda", "es-MX-DaliaNeural"),

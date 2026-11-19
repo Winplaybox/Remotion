@@ -1,7 +1,8 @@
 import { creditLines, creditsFor, photoKey, pickCommons } from "../scripts/photos/commons";
 import { horrorTapeCount, horrorTapeForDay } from "../content/indian-horror-tapes/tapes";
 import { trainBattleCount, trainBattleForDay } from "../content/alltrainreels/battles";
-import { stickRiddleCount, stickRiddleForDay } from "../content/stickman/riddles";
+import { stickRiddleCount, stickRiddleForDay, stickRiddleMeta, STICK_CTA_VOICE } from "../content/stickman/riddles";
+import { CHANNELS, isLive } from "../channels/channels";
 import { StoryDioramaSchema } from "../engines/story-diorama/src/model";
 
 const page = (title: string, license: string, w = 1600, h = 1067, index = 1) => ({
@@ -36,13 +37,21 @@ describe("Wikimedia Commons photos", () => {
   });
 });
 
-describe("stickman riddles (original rig)", () => {
-  it("parse, end on the A/B/C AskOutro, fail closed", () => {
+describe("Bachke Dikhao — stickman riddles (original rig), own channel", () => {
+  it("parse, Hinglish voice, end on the A/B/C AskOutro, fail closed; not on Dimaag Lock", () => {
     for (let n = 1; n <= stickRiddleCount(); n++) {
       const p = stickRiddleForDay(n);
       expect(() => StoryDioramaSchema.parse(p)).not.toThrow();
       expect(p.ask!.options).toEqual(["A", "B", "C"]);
+      expect(p.brand).toBe("BACHKE DIKHAO");
+      expect(p.scenes.at(-1)!.narration.endsWith(STICK_CTA_VOICE)).toBe(true);
+      for (const s of p.scenes) expect(/[ऀ-ॿ]/.test(s.narration)).toBe(true);
+      for (const s of p.scenes) for (const l of s.layers) for (const it of ((l as { data?: { items?: string[] } }).data?.items ?? [])) expect(it.length).toBeLessThanOrEqual(18);
+      expect(stickRiddleMeta(n).title.length).toBeLessThanOrEqual(100);
     }
+    expect((CHANNELS["bachke-dikhao"] as { autoPublish: boolean }).autoPublish).toBe(false);
+    expect(isLive("bachke-dikhao")).toBe(false);
+    expect(JSON.stringify(CHANNELS["dimaag-lock"].resolve(1))).not.toContain("stickman");
     expect(() => stickRiddleForDay(stickRiddleCount() + 1)).toThrow(/not written/);
   });
 });

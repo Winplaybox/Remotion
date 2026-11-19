@@ -15,6 +15,7 @@ import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../en
 import { trainBattleForDay, trainBattleMeta } from "../content/alltrainreels/battles";
 import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
 import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
+import { stickRiddleAnswer, stickRiddleForDay, stickRiddleMeta } from "../content/stickman/riddles";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
 // @engine-builder:imports
 
@@ -476,6 +477,25 @@ export const CHANNELS = {
     pinterestSecretPrefix: "PINTEREST_INDIAN_HORROR_TAPES",
     resolve: (n) => horrorTapeForDay(n),
     meta: (n) => horrorTapeMeta(n)
+  },
+  // Bachke Dikhao — Hinglish stickman survival riddles on a NEW channel (original stickman rig, A/B/C AskOutro,
+  // answer in the next video + as a comment). DISABLED until the YouTube channel exists and LIVE_BACHKE_DIKHAO=true.
+  "bachke-dikhao": {
+    name: "Bachke Dikhao",
+    composition: "EpicBharatSaga",
+    startDate: "2099-01-01",
+    slots: ["19:45"],
+    narrated: true,
+    fitScenesToVoice: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_BACHKE_DIKHAO",
+    metaSecretPrefix: "META_BACHKE_DIKHAO",
+    youtubeHandle: "@BachkeDikhao",
+    pinterestSecretPrefix: "PINTEREST_BACHKE_DIKHAO",
+    resolve: (n) => stickRiddleForDay(n),
+    meta: (n) => stickRiddleMeta(n),
+    answer: (n) => stickRiddleAnswer(n),
+    answerInNextFrom: 1
   },
   // @engine-builder:channels
   // MindNest Tales — one master fable a day, rendered in every language channel (see content/mindnest/fables.ts).
