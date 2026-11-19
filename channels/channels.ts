@@ -609,9 +609,17 @@ export function startDateOf(channel: ChannelId): string {
   return repoVar(`START_${envKey(channel)}`) || CHANNELS[channel].startDate;
 }
 
-/** Whether the hourly publisher may post this channel. */
-export function isLive(channel: ChannelId): boolean {
-  return CHANNELS[channel].autoPublish || repoVar(`LIVE_${envKey(channel)}`) === "true";
+/** Whether the hourly publisher may post this channel. Supports PAUSE_<CHANNEL>_UNTIL (ISO date) and LIVE_<CHANNEL>=false. */
+export function isLive(channel: ChannelId, now: number = Date.now()): boolean {
+  const until = repoVar(`PAUSE_${envKey(channel)}_UNTIL`);
+  if (until) {
+    const t = Date.parse(until);
+    if (!isNaN(t) && now < t) return false;
+  }
+  const v = repoVar(`LIVE_${envKey(channel)}`);
+  if (v === "false") return false;
+  if (v === "true") return true;
+  return CHANNELS[channel].autoPublish;
 }
 
 const weekdaysOf = (channel: ChannelId): readonly number[] | undefined => (CHANNELS[channel] as ChannelConfig).weekdays;
