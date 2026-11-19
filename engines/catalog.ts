@@ -11,6 +11,7 @@ import { epicBharatSagaForDay, authoredEpisodes } from "../content/epicbharatsag
 import { TemplateSchema, templateForDay, templateDuration, templateVoiceLines, templateAnswerComment } from "./_template/src/model";
 import { LiarLineupSchema, liarLineupForDay, liarLineupDuration, liarLineupVoiceLines, liarLineupAnswerComment } from "./liar-lineup/src/model";
 import { CodeLockSchema, codeLockForDay, codeLockDuration, codeLockVoiceLines, codeLockAnswerComment } from "./code-lock/src/model";
+import { UnpaperShortSchema, unpaperShortForDay, unpaperShortDuration, unpaperEpisodes } from "./unpaper-short/src/model";
 // @engine-builder:imports
 
 export interface VoiceLine { file: string; text: string; at: number }
@@ -71,6 +72,10 @@ export const ENGINE_CATALOG: EngineEntry[] = [
     slug: "code-lock", compositionId: "CodeLock", schema: CodeLockSchema, forDay: codeLockForDay,
     durationFrames: codeLockDuration as (p: never) => number, voiceLines: codeLockVoiceLines as (p: never) => VoiceLine[],
     answer: (n) => codeLockAnswerComment(codeLockForDay(n)), seconds: [25, 40], days: () => range(30), askFrom: 1
+  },
+  {
+    slug: "unpaper-short", compositionId: "UnpaperShort", schema: UnpaperShortSchema, forDay: unpaperShortForDay,
+    durationFrames: unpaperShortDuration as (p: never) => number, seconds: [150, 180], days: unpaperEpisodes
   },
   // @engine-builder:catalog
 ];

@@ -16,6 +16,7 @@ import { trainBattleForDay, trainBattleMeta } from "../content/alltrainreels/bat
 import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
 import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
+import { unpaperShortForDay } from "../engines/unpaper-short/src/model";
 // @engine-builder:imports
 
 export interface PostMeta {
@@ -476,6 +477,31 @@ export const CHANNELS = {
     pinterestSecretPrefix: "PINTEREST_INDIAN_HORROR_TAPES",
     resolve: (n) => horrorTapeForDay(n),
     meta: (n) => horrorTapeMeta(n)
+  },
+  "unpaper-short": {
+    name: "Unpaper",
+    composition: "UnpaperShort",
+    // Disabled until approved: set repo variables START_UNPAPER_SHORT=<date> and LIVE_UNPAPER_SHORT=true.
+    startDate: "2099-01-01",
+    slots: ["09:00", "19:00"],
+    narrated: false,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_UNPAPER_SHORT",
+    metaSecretPrefix: "META_UNPAPER_SHORT",
+    youtubeHandle: "@Unpaper",
+    pinterestSecretPrefix: "PINTEREST_UNPAPER_SHORT",
+    resolve: (n) => unpaperShortForDay(n),
+    meta: (n) => {
+      const ep = unpaperShortForDay(n).episode;
+      return {
+        title: `${ep.title} | Unpaper #shorts`.slice(0, 100),
+        description: `${ep.title}\nSource: ${ep.source.url ?? ep.source.title ?? ""}\nHar claim paper ke page se verified.\n\nUnpaper — Decode What Matters. Subscribe @Unpaper\n#AI #research #hinglish #shorts`,
+        tags: ["AI", "research paper", "explained", "hinglish", "unpaper", "shorts"],
+        caption: `${ep.title}\nUnpaper — Decode What Matters.\n#AI #research #hinglish #reels`,
+        language: "hi",
+        categoryId: "27"
+      };
+    }
   },
   // @engine-builder:channels
   // MindNest Tales — one master fable a day, rendered in every language channel (see content/mindnest/fables.ts).
