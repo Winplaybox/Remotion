@@ -58,7 +58,8 @@ jobs:
       - if: runner.environment == 'github-hosted'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       # Packages stay installed on the VPS, so this is a few seconds there; -U keeps yt-dlp current.
-      - run: python -m pip install --quiet -U yt-dlp faster-whisper kokoro-onnx soundfile edge-tts
+      # PyAV 19 dropped av.open(metadata_errors=...), which faster-whisper 1.2.1 still passes.
+      - run: python -m pip install --quiet -U yt-dlp faster-whisper kokoro-onnx soundfile edge-tts "av<19"
       - run: npm ci --prefer-offline --no-audit --no-fund
       - name: Make and send the Shorts
         env:
