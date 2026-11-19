@@ -274,6 +274,49 @@ const RailFinish: React.FC = () => (
   <AbsoluteFill style={{ pointerEvents: "none", background: "radial-gradient(ellipse 90% 75% at 50% 50%, transparent 65%, rgba(0,0,0,.3))" }} />
 );
 
+/* ---------- real photo backdrop (scene.photos) ---------- */
+
+type Photo = NonNullable<StoryScene["photos"]>[number];
+
+/** Cover-fit photo with a slow Ken Burns move following the scene camera; handheld drift for the night grade. */
+const PhotoPane: React.FC<{ photo: Photo; frame: number; sceneP: number; camera: StoryScene["camera"]; grade: "night" | "clean"; top: number; height: number; seed: string; dim: number }> = ({ photo, frame, sceneP, camera, grade, top, height, seed, dim }) => {
+  const zoom = 1.12 + (camera === "push" ? 0.1 * sceneP : camera === "still" ? 0.02 * sceneP : 0.04);
+  const pan = camera === "panLeft" ? -50 * sceneP + 25 : camera === "panRight" ? 50 * sceneP - 25 : 0;
+  const shake = grade === "night" ? { x: Math.sin(frame / 9) * 5 + (random(`${seed}x${Math.floor(frame / 2)}`) - 0.5) * 4, y: Math.cos(frame / 11) * 4 + (random(`${seed}y${Math.floor(frame / 2)}`) - 0.5) * 3 } : { x: 0, y: 0 };
+  const filter = grade === "night" ? `brightness(${0.62 - dim}) contrast(1.18) saturate(.55) sepia(.12) hue-rotate(-8deg)` : `brightness(${1.02 - dim}) contrast(1.06) saturate(1.12)`;
+  return (
+    <div style={{ position: "absolute", left: 0, right: 0, top, height, overflow: "hidden", background: "#000" }}>
+      <Img src={staticFile(photo.src)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: `${photo.focus[0] * 100}% ${photo.focus[1] * 100}%`, transform: `translate(${pan + shake.x}px, ${shake.y}px) scale(${zoom})`, filter }} />
+      {grade === "night" ? <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,14,30,.25), rgba(4,8,16,.15) 45%, rgba(0,0,0,.55))", mixBlendMode: "multiply" }} /> : null}
+    </div>
+  );
+};
+
+const PhotoBackdrop: React.FC<{ scene: StoryScene; frame: number; sceneP: number }> = ({ scene, frame, sceneP }) => {
+  const photos = scene.photos!;
+  const grade = scene.grade ?? "clean";
+  const dim = scene.dim ?? 0;
+  if (photos.length === 1) return <PhotoPane photo={photos[0]!} frame={frame} sceneP={sceneP} camera={scene.camera} grade={grade} top={0} height={H} seed={scene.id} dim={dim} />;
+  return (
+    <>
+      <PhotoPane photo={photos[0]!} frame={frame} sceneP={sceneP} camera={scene.camera} grade={grade} top={0} height={H / 2 - 6} seed={`${scene.id}a`} dim={dim} />
+      <PhotoPane photo={photos[1]!} frame={frame} sceneP={sceneP} camera={scene.camera === "push" ? "push" : "panRight"} grade={grade} top={H / 2 + 6} height={H / 2 - 6} seed={`${scene.id}b`} dim={dim} />
+      <div style={{ position: "absolute", left: 0, right: 0, top: H / 2 - 6, height: 12, background: "#FFD23F", boxShadow: "0 0 24px rgba(0,0,0,.6)" }} />
+    </>
+  );
+};
+
+/** Attribution for every photo on screen (CC BY / BY-SA need it); kept small, above the bottom safe edge. */
+const PhotoCredit: React.FC<{ photos: Photo[] }> = ({ photos }) => {
+  const rep = photos.some((p) => p.representative);
+  const text = [...new Set(photos.map((p) => p.credit))].join("  ·  ");
+  return (
+    <div style={{ position: "absolute", left: 40, right: 40, bottom: 26, textAlign: "center", fontFamily: FONT.ui, fontWeight: 600, fontSize: 19, lineHeight: 1.25, color: "rgba(255,255,255,.78)", textShadow: "0 1px 3px rgba(0,0,0,.9)" }}>
+      {rep ? <span style={{ fontWeight: 800, color: "#FFD23F", marginRight: 10 }}>SANKETIK TASVEER</span> : null}📷 {text}
+    </div>
+  );
+};
+
 /* ---------- scene ---------- */
 
 const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean; captions: boolean; headline?: boolean }> = ({ scene, pal, tf, first, captions, headline = true }) => {
@@ -285,8 +328,10 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean;
   const base = scene.tone === "light" ? pal.paper : pal.ink;
   return (
     <AbsoluteFill style={{ clipPath: wipe < 1 ? `inset(${(1 - wipe) * 100}% 0 0 0)` : undefined, background: `linear-gradient(180deg, ${scene.sky[0]}, ${scene.sky[1]})` }}>
+      {scene.photos ? <PhotoBackdrop scene={scene} frame={frame} sceneP={sceneP} /> : null}
+      {scene.photos ? <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0) 72%, rgba(0,0,0,.5) 100%)" }} /> : null}
       <Particles kind={scene.particles === "stars" ? "stars" : "none"} frame={frame} seed={scene.id} />
-      {scene.ground ? <div style={{ position: "absolute", left: 0, right: 0, top: scene.ground.y, bottom: 0, background: scene.ground.color, boxShadow: "0 -6px 16px rgba(0,0,0,.25)" }} /> : null}
+      {scene.ground && !scene.photos ? <div style={{ position: "absolute", left: 0, right: 0, top: scene.ground.y, bottom: 0, background: scene.ground.color, boxShadow: "0 -6px 16px rgba(0,0,0,.25)" }} /> : null}
       {scene.layers.map((layer, i) => <Layer key={i} layer={layer} frame={frame} fps={fps} sceneP={sceneP} scene={scene} pal={pal} />)}
       {scene.particles !== "stars" ? <Particles kind={scene.particles} frame={frame} seed={scene.id} /> : null}
       {scene.labels.map((l, i) => <Label key={i} l={l} frame={frame} fps={fps} pal={pal} />)}
@@ -296,6 +341,7 @@ const Scene: React.FC<{ scene: StoryScene; pal: Pal; tf: number; first: boolean;
       <div style={{ position: "absolute", top: 196, left: 62, right: 62, height: 2, background: base, opacity: 0.35 }} />
       {headline ? <Headline scene={scene} frame={frame} fps={fps} pal={pal} base={base} /> : null}
       {captions ? <Captions text={scene.caption} frame={frame} fps={fps} seconds={scene.seconds} pal={pal} /> : null}
+      {scene.photos ? <PhotoCredit photos={scene.photos} /> : null}
       {!first && wipe < 1 ? <div style={{ position: "absolute", left: 0, right: 0, top: `${(1 - wipe) * 100}%`, height: 14, background: pal.paper, boxShadow: "0 -8px 20px rgba(0,0,0,.4)" }} /> : null}
     </AbsoluteFill>
   );

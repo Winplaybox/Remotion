@@ -1,4 +1,5 @@
 import { askOutro } from "../../engines/ask-outro";
+import { creditLines, photo } from "../commons";
 import { P, StoryDioramaSchema, type StoryDiorama, type StoryDioramaInput } from "../../engines/story-diorama/src/model";
 
 /**
@@ -215,7 +216,7 @@ const PAL = { paper: "#ECE6D8", ink: "#0C0A10", accent: "#FF3B2F", accent2: "#F2
 const SKIES: [string, string][] = [["#06070E", "#1A1626"], ["#0A0C14", "#22202E"], ["#07090C", "#1C2420"], ["#0B0710", "#2A1A22"]];
 
 export const HORROR_HANDLE = "@IndianHorrorTapes";
-export const HORROR_CTA_VOICE = "आपको क्या लगता है? सच, या अफ़वाह? कमेंट में लिखो, और अगली टेप के लिए फॉलो करो।";
+export const HORROR_CTA_VOICE = "आपको क्या लगता है? सच, या अफ़वाह? कमेंट में लिखो।";
 export const horrorTapeCount = () => TAPES.length;
 
 export function horrorTape(n: number): Tape {
@@ -226,54 +227,70 @@ export function horrorTape(n: number): Tape {
 
 type Scene = Omit<StoryDioramaInput["scenes"][number], "fig">;
 
-/** The set for a tape: building / road / forest / shore + moon + optional lantern. */
-function set(t: Tape, n: number, shadowAt?: number) {
-  const layers = [P("moon", 820, 640, { depth: 0.1, idle: "pulse", data: { phase: 1 } })];
-  if (t.ruin === "road") layers.push(P("road", 540, 1000, { depth: 0.5, enter: "none", data: { sign: t.h2.includes("DHABA") ? "DHABA" : "" } }));
-  else if (t.ruin === "forest") layers.push(...[180, 420, 700, 930].map((x, i) => P("tree", x, 1500 - (i % 2) * 40, { depth: 0.3 + i * 0.15, scale: 1.3 - (i % 2) * 0.2, idle: "sway" })));
-  else if (t.ruin === "shore") layers.push(P("water", 540, 1420, { depth: 0.4, data: { color: "#16202A" } }));
-  else layers.push(P("ruin", 540, 1480, { depth: 0.5, scale: 1.1, data: { kind: t.ruin } }));
-  if (t.ruin !== "road" && n % 2 === 0) layers.push(P("lantern", 950, 200, { depth: 0.9, enter: "fade" }));
-  if (shadowAt !== undefined) layers.push(P("shadow", t.ruin === "road" ? 760 : 820, 1560, { depth: 1, at: shadowAt, enter: "none", data: { kind: t.shadow, eyes: t.shadow !== "boy" } }));
-  return layers;
+/**
+ * Real photos per tape (Wikimedia Commons, content/commons-photos.json): [establishing, detail]. Places with no free
+ * photo use a representative one, which the video labels "SANKETIK TASVEER". Same order as TAPES.
+ */
+const TAPE_PHOTOS: [string, string][] = [
+  ["horror-bhangarh-1", "horror-bhangarh-2"], ["horror-kuldhara-1", "horror-kuldhara-2"], ["horror-dowhill-1", "horror-dowhill-2"],
+  ["horror-shaniwar-2", "horror-shaniwar-1"], ["horror-dumas-1", "horror-dumas-2"], ["horror-baoli-1", "horror-baoli-2"],
+  ["horror-brijraj-1", "horror-brijraj-2"], ["horror-jatinga-1", "horror-jatinga-2"], ["horror-mukesh-1", "horror-mukesh-2"],
+  ["horror-sanjayvan-1", "horror-sanjayvan-2"], ["horror-cantt-2", "horror-cantt-1"], ["horror-chawl-2", "horror-chawl-2"],
+  ["horror-lambidehar-2", "horror-lambidehar-1"], ["horror-highway-1", "horror-highway-2"]
+];
+export const tapePhotoIds = (n: number): [string, string] => {
+  const ids = TAPE_PHOTOS[Math.floor(n) - 1];
+  if (!ids) throw new Error(`Horror Tape #${n} has no photos in TAPE_PHOTOS`);
+  return ids;
+};
+
+/** Publish slot (IST) — must match channels.ts "indian-horror-tapes".slots (tested). Used in the daily "kal" CTA. */
+export const HORROR_SLOT = "21:30";
+/** Tomorrow's tape, teased in today's ending so viewers come back (falls back to a generic line after the last tape). */
+export function nextTapeTeaser(n: number): { line: string; voice: string } {
+  const next = TAPES[Math.floor(n)];
+  if (!next) return { line: "KAL RAAT 9:30 — NAYI TAPE", voice: "कल रात साढ़े नौ बजे, एक नई टेप। फॉलो करो, मिस मत करना।" };
+  return { line: `KAL RAAT 9:30 — TAPE #${String(n + 1).padStart(2, "0")}: ${next.place}`, voice: "कल रात साढ़े नौ बजे, अगली टेप। और भी डरावनी। फॉलो करो, मिस मत करना।" };
 }
 
 /** Post n -> a found-footage Short on the story-diorama engine (VHS finish) with the shared AskOutro ending. */
 export function horrorTapeForDay(n: number): StoryDiorama {
   const t = horrorTape(n);
   const sky = SKIES[(n - 1) % SKIES.length]!;
-  const ground = t.ruin === "road" ? undefined : { color: "#0E0D12", y: 1480 };
   const tape = `TAPE #${String(n).padStart(2, "0")}`;
+  const [p1, p2] = tapePhotoIds(n);
+  const night = { grade: "night" as const };
+  const kal = nextTapeTeaser(n);
   const scenes: Scene[] = [
     {
-      id: "cold-open", seconds: 6, location: `${t.place} · ${t.region}`, sky, ground, tone: "light", particles: "none", camera: "push",
-      narration: t.hookHi, caption: t.hookEn, sfx: ["wind"],
+      id: "cold-open", seconds: 6, location: `${t.place} · ${t.region}`, sky, tone: "light", particles: "none", camera: "push",
+      narration: t.hookHi, caption: t.hookEn, sfx: ["wind"], photos: [photo(p1)], ...night,
       headlines: [{ at: 0, lines: [{ text: t.h1 }, { text: t.h2, tone: "accent" }] }],
-      layers: set(t, n)
+      layers: []
     },
     {
-      id: "place", seconds: 8, location: t.region, sky, ground, tone: "light", particles: "none", camera: "panLeft",
-      narration: t.placeHi, caption: t.placeEn, sfx: ["creak"],
+      id: "place", seconds: 8, location: t.region, sky, tone: "light", particles: "none", camera: "panLeft",
+      narration: t.placeHi, caption: t.placeEn, sfx: ["creak"], photos: [photo(p2)], ...night,
       headlines: [{ at: 0, lines: [{ text: "YE JAGAH" }, { text: "ASLI HAI", tone: "accent2" }] }],
-      layers: set(t, n + 1)
+      layers: []
     },
     {
-      id: "legend", seconds: 9.5, location: "LOK KATHA", sky, ground, tone: "light", particles: t.ruin === "shore" ? "none" : "rain", camera: "push",
-      narration: t.legendHi, caption: t.legendEn, sfx: ["heartbeat", "stinger"],
+      id: "legend", seconds: 9.5, location: "LOK KATHA", sky, tone: "light", particles: t.ruin === "shore" ? "none" : "rain", camera: "push",
+      narration: t.legendHi, caption: t.legendEn, sfx: ["heartbeat", "stinger"], photos: [photo(p1, [0.35, 0.5])], ...night, dim: 0.12,
       headlines: [{ at: 0, lines: [{ text: "LOG KEHTE" }, { text: "HAIN...", tone: "accent" }] }],
-      layers: set(t, n, 3.5)
+      layers: []
     },
     {
-      id: "today", seconds: 7.5, location: t.todayTitle, sky, ground, tone: "light", particles: "none", camera: "still",
-      narration: t.todayHi, caption: t.todayEn,
+      id: "today", seconds: 7.5, location: t.todayTitle, sky, tone: "light", particles: "none", camera: "still",
+      narration: t.todayHi, caption: t.todayEn, photos: [photo(p2, [0.6, 0.5])], ...night,
       headlines: [{ at: 0, lines: [{ text: t.todayTitle.length <= 16 ? t.todayTitle : "AAJ" }] }],
-      layers: [...set(t, n + 1), P("noteCard", 540, 980, { depth: 0.8, at: 0.4, enter: "drop", scale: 0.82, data: { title: t.todayTitle, items: t.today } })]
+      layers: [P("noteCard", 540, 980, { depth: 0.8, at: 0.4, enter: "drop", scale: 0.82, data: { title: t.todayTitle, items: t.today } })]
     },
     {
-      id: "ask", seconds: 9.5, location: tape, sky, ground, tone: "light", particles: "none", camera: "still",
-      narration: `${HORROR_CTA_VOICE}`, caption: "",
+      id: "ask", seconds: 10, location: tape, sky, tone: "light", particles: "none", camera: "still",
+      narration: `${HORROR_CTA_VOICE} ${kal.voice}`, caption: "", photos: [photo(p1, [0.65, 0.5])], ...night, dim: 0.1,
       headlines: [{ at: 0, lines: [{ text: "SACH YA" }, { text: "AFWAAH?", tone: "accent" }] }],
-      layers: set(t, n, 0.6)
+      layers: []
     }
   ];
   return StoryDioramaSchema.parse({
@@ -284,7 +301,7 @@ export function horrorTapeForDay(n: number): StoryDiorama {
     scenes: scenes.map((s, i) => ({ ...s, fig: `REC ${i + 1}/5` })),
     ask: askOutro({
       question: "SACH YA AFWAAH?", options: ["A: SACH", "B: AFWAAH"], voiceQuestion: "आपको क्या लगता है? सच, या अफ़वाह?",
-      cta: "COMMENT KARO: A YA B 👇", ctaSub: "Agli tape ke liye FOLLOW karo!", voiceCta: "कमेंट में लिखो, और अगली टेप के लिए फॉलो करो।",
+      cta: "COMMENT KARO: A YA B 👇", ctaSub: kal.line, voiceCta: kal.voice,
       handle: HORROR_HANDLE, questionSeconds: 4, ctaSeconds: 5.5
     })
   });
@@ -300,7 +317,8 @@ export function horrorTapeMeta(n: number) {
       "",
       "⚠️ Ye lok-kathayein aur kisse hain, entertainment ke liye. Kisi bhi jagah par raat ko, bina ijazat ya akele na jaayein.",
       `Source / context: ${t.sources}`,
-      "", "Har roz ek nayi tape — subscribe @IndianHorrorTapes",
+      "", `⏰ ${nextTapeTeaser(n).line.replace("KAL RAAT", "Kal raat")} — subscribe @IndianHorrorTapes 🔔`,
+      "", ...creditLines(tapePhotoIds(n)),
       "#IndianHorror #HorrorStories #HauntedIndia #Bhoot #HindiHorror #shorts"
     ].join("\n"),
     tags: ["indian horror", "horror story hindi", "haunted places in india", "bhoot", "real horror", ...t.tags, "shorts"].slice(0, 20),

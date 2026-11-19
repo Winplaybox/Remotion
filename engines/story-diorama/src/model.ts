@@ -37,6 +37,16 @@ export const LayerSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("image"), src: z.string().min(1), width: z.number().positive(), ...LayerBase })
 ]);
 
+/** A real photo (Wikimedia Commons, see content/commons.ts) filling the scene. `credit` is drawn small at the bottom. */
+export const PhotoSchema = z.object({
+  src: z.string().min(1),
+  credit: z.string().min(1),
+  /** Crop centre 0..1 (cover fit). */
+  focus: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]).default([0.5, 0.5]),
+  /** Not the exact place: shows "SANKETIK TASVEER" (representative image) next to the credit. */
+  representative: z.boolean().default(false)
+});
+
 export const SceneSchema = z.object({
   id: z.string(),
   seconds: z.number().positive(),
@@ -57,7 +67,16 @@ export const SceneSchema = z.object({
   audio: z.string().optional(),
   camera: z.enum(["still", "push", "panLeft", "panRight"]).default("push"),
   /** Extra one-shot SFX for this scene, e.g. ["bell", "footsteps", "horn"] (files in public/sfx). Ambience follows `particles`. */
-  sfx: z.array(z.string()).default([])
+  sfx: z.array(z.string()).default([]),
+  /**
+   * Real photo backdrop(s) instead of the sky/ground set. One photo = full frame; two = split (top / bottom) for A vs B.
+   * `grade`: "night" = dark cold found-footage grade (horror), "clean" = bright (trains). Optional, no default, so
+   * published props stay byte-identical.
+   */
+  photos: z.array(PhotoSchema).min(1).max(2).optional(),
+  grade: z.enum(["night", "clean"]).optional(),
+  /** Darken the photo further (0..0.8), e.g. under stat bars. */
+  dim: z.number().min(0).max(0.8).optional()
 });
 
 export const StoryDioramaSchema = z.object({
