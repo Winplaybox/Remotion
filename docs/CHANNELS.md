@@ -114,14 +114,34 @@ until you switch each one on.
 |---|---|---|---|---|
 | `alltrainreels` | Train Battle: A vs B, stat rounds, twist, "A ya B?" | `content/alltrainreels/battles.ts` (14 written) | 18:45 | Hindi, documentary host |
 | `indian-horror-tapes` | Found-footage folklore "TAPE #NN", VHS finish, "Sach ya afwaah?" | `content/indian-horror-tapes/tapes.ts` (14 written) | 21:30 | Hindi, late-night storyteller |
-| `mindnest-hi/es/ar/de/ja/ko/fil` | One fable a day in every language, storybook finish, made for kids | `content/mindnest/fables.ts` (7 written) | staggered 15:30-22:30 | Bedtime voice per language |
+| `mindnest-hi/en/es/pt/fr/de/ar/ja/ko/vi/fil` (11) | One fable a day in every language, storybook finish, made for kids | `content/mindnest/fables.ts` (7 written) | staggered, near each audience's evening | Bedtime voice per language |
 
 Shared new parts: `engines/story-diorama/src/props-channels.tsx` (train, rails, statBars, ruin, lantern, shadow, road,
 animal, moralCard, butterfly, mango), `finish` ("vhs" | "storybook" | "rail") on the story schema, original sounds from
 `scripts/sound/synth_channels.py`. Narrated scenes on these channels stretch to their voice (`fitScenesToVoice`), so a
 slower language is never cut off. EpicBharatSaga does not use that option and is unchanged.
 
-### Switching one on
+### Real photos (AllTrainReels, Indian Horror Tapes)
+
+Scenes ask for photos by search terms (`photos: [{ query: [...] }]`). `scripts/photos/commons.ts` takes the first
+**freely licensed** Wikimedia Commons result (CC0 / public domain / CC BY / CC BY-SA, never NC or ND), saves it once as
+`photos/<key>.jpg` on render-queue (Prepare Voice fetches; Claude's render reuses it) and adds author, licence and link
+to the YouTube description. If no free photo is found, the drawn illustration (`art: true` layers) is used instead.
+
+### Switching one on — from colab-YT, one command (no new sign-in)
+
+The tokens colab-YT's authenticate scripts saved on your PC are reused:
+
+```bash
+gh auth login      # once
+node scripts/publish/setup-secrets.mjs --colab-dir C:/path/to/colab-YT --start 2026-11-17 --live --disable-old
+```
+
+It checks every token opens the right channel, stores it as `YT_TOKEN_<ID>`, sets `START_<ID>` / `LIVE_<ID>`, and with
+`--disable-old` turns off colab-YT's old schedulers for those channels so nothing posts twice. Leave out `--live
+--disable-old` to only copy the tokens.
+
+### Switching one on — by hand
 
 1. Token: `node scripts/publish/auth-youtube.mjs` signed in as that YouTube channel, then save it as the secret named in
    the table below (`setup-secrets.mjs` does the same).
@@ -137,3 +157,11 @@ slower language is never cut off. EpicBharatSaga does not use that option and is
 
 Note: because all repo variables now reach the jobs, an existing `LIVE_DHARM_SANKAT` / `LIVE_KAUN_HOON_MAIN` variable
 takes effect after this change (before, those two variables were never passed to the workflows).
+
+### Bachke Dikhao — stickman riddles (new channel, disabled)
+
+`content/stickman/riddles.ts` + the original `stickman` / `threeDoors` props: Hinglish survival riddles with the A/B/C
+AskOutro, answer in the next video and as a comment. Channel id `bachke-dikhao` (handle `@BachkeDikhao` — change
+`STICK_HANDLE` + `youtubeHandle` if the channel gets another one). To launch: create the YouTube channel, then
+`node scripts/publish/auth-youtube.mjs` → secret `YT_TOKEN_BACHKE_DIKHAO`, and set `START_BACHKE_DIKHAO` + `LIVE_BACHKE_DIKHAO=true`.
+5 riddles written.

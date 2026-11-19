@@ -10,7 +10,7 @@ export const PROP_NAMES = [
   "threeSteps", "greatBow", "setu", "feather", "horse",
   "shivling", "firePillar", "tripura",
   // props-channels.tsx: AllTrainReels, Indian Horror Tapes, MindNest Tales
-  "train", "rails", "statBars", "ruin", "lantern", "shadow", "road", "animal", "moralCard", "butterfly", "mango"
+  "train", "rails", "statBars", "ruin", "lantern", "shadow", "road", "animal", "moralCard", "butterfly", "mango", "stickman", "threeDoors"
 ] as const;
 export type PropName = (typeof PROP_NAMES)[number];
 
@@ -28,7 +28,9 @@ const LayerBase = {
   idle: IDLE.default("none"),
   /** 0 = background (barely moves with camera), 1 = foreground. */
   depth: z.number().min(0).max(1.5).default(0.5),
-  flip: z.boolean().default(false)
+  flip: z.boolean().default(false),
+  /** Drawn stand-in for a real photo: hidden when the scene's photo is available (optional; absent = always drawn). */
+  art: z.boolean().optional()
 };
 
 export const LayerSchema = z.discriminatedUnion("kind", [

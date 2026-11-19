@@ -20,6 +20,7 @@ import { fanout } from "./publish/social";
 import { narrateArgs } from "../channels/voices";
 import { spaceCues } from "./voice-timing";
 import { ledgerEnabled, ledgerRecord, ledgerSocial, ledgerStatus } from "./ledger";
+import { creditLines, creditsFor, ensurePhotos, readCredits } from "./photos/commons";
 
 const args = process.argv.slice(2);
 const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
@@ -110,7 +111,14 @@ async function main() {
     voiced = cues.length > 0;
     console.log(`[voice] ${cues.length}/${lines.length} clips`);
   }
-  const meta = cfg.meta(n);
+  // Real photos (Wikimedia Commons) for scenes that ask for them; credits go into the description.
+  let photoCredits = creditsFor(props as { scenes?: [] }, readCredits());
+  if (!prerendered) photoCredits = await ensurePhotos(props as { scenes?: [] });
+  else if (!photoCredits.length && JSON.stringify(props).includes('"photos"')) {
+    try { photoCredits = creditsFor(props as { scenes?: [] }, JSON.parse(execFileSync("git", ["show", "FETCH_HEAD:photos/credits.json"]).toString())); } catch { /* no photos on the queue */ }
+  }
+  const baseMeta = cfg.meta(n);
+  const meta = photoCredits.length ? { ...baseMeta, description: `${baseMeta.description}${creditLines(photoCredits)}`.slice(0, 4900) } : baseMeta;
   const propsFile = path.join(outDir, `${tag}.json`);
   fs.writeFileSync(propsFile, JSON.stringify(props, null, 2));
   fs.writeFileSync(path.join(outDir, `${tag}.meta.json`), JSON.stringify({ ...meta, publishAt, channel, n }, null, 2));

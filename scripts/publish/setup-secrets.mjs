@@ -12,6 +12,15 @@
  *     [--only-jasoos --client C:/path/client_secret.json]   # connect ONLY Jasoos Bhai Cases -> YT_TOKEN_LIAR_LINEUP (pick @JasoosBhaiCases)
  *     [--ebs-silent]                               # let EpicBharatSaga post with captions until IndicF5 narration exists
  *
+ *   Move AllTrainReels / Indian Horror Tapes / MindNest Tales over from colab-YT (no new sign-in needed):
+ *   node scripts/publish/setup-secrets.mjs --colab-dir C:/path/to/colab-YT [--start 2026-11-17] [--live] [--disable-old]
+ *     reads the tokens colab-YT's authenticate scripts saved on this PC (channels/AllTrainReels/token.json,
+ *     channels/IndianHorrorTapes/token.json, channels/MindNestTales/credentials/token_<lang>.json), checks each one
+ *     opens the right channel, and stores it as YT_TOKEN_ALLTRAINREELS / YT_TOKEN_INDIAN_HORROR_TAPES / YT_TOKEN_MINDNEST_<LANG>.
+ *     --start sets START_<ID>, --live sets LIVE_<ID>=true for every channel that got a token,
+ *     --disable-old turns off colab-YT's old schedulers for those channels (no double posting). Use --live and
+ *     --disable-old together.
+ *
  * For each puzzle channel a browser opens: sign in as dailysnapdose@gmail.com and pick the channel it names.
  */
 import fs from "node:fs";
@@ -64,8 +73,54 @@ function consent(clientJson, expected, port, account = "dailysnapdose@gmail.com"
   });
 }
 
+/** colab-YT tokens -> Remotion secrets (see the header). */
+async function fromColab(dir) {
+  const MINDNEST = { hi: "Hindi", en: "English", es: "Spanish", pt: "Portuguese", fr: "French", de: "German", ar: "Arabic", ja: "Japanese", ko: "Korean", vi: "Vietnamese", fil: "Filipino" };
+  const jobs = [
+    { id: "ALLTRAINREELS", file: "channels/AllTrainReels/token.json", expect: /train/i, old: "all_train_reels_scheduler.yml" },
+    { id: "INDIAN_HORROR_TAPES", file: "channels/IndianHorrorTapes/token.json", expect: /horror/i, old: "indian_horror_tapes_scheduler.yml" },
+    ...Object.entries(MINDNEST).map(([l, n]) => ({ id: `MINDNEST_${l.toUpperCase()}`, file: `channels/MindNestTales/credentials/token_${l}.json`, expect: new RegExp(`${n}.*mind ?nest`, "i"), old: "mindnest_tales_scheduler.yml" }))
+  ];
+  const rootClient = ["youtube_client_secret.json", "channels/MindNestTales/youtube_client_secret.json"].map((f) => path.join(dir, f)).find((f) => fs.existsSync(f));
+  const done = [];
+  for (const j of jobs) {
+    const f = path.join(dir, j.file);
+    if (!fs.existsSync(f)) { console.log(`  · ${j.id}: no ${j.file} on this PC — skipped (run colab-YT's authenticate script for it first)`); continue; }
+    const raw = fs.readFileSync(f, "utf8");
+    const t = JSON.parse(raw);
+    const local = path.join(path.dirname(f), "..", "youtube_client_secret.json");
+    const clientFile = [path.join(path.dirname(f), "youtube_client_secret.json"), local, rootClient].find((x) => x && fs.existsSync(x));
+    const c = t.client_id && t.client_secret ? { client_id: t.client_id, client_secret: t.client_secret } : clientFile ? clientOf(fs.readFileSync(clientFile, "utf8")) : null;
+    if (!c || !t.refresh_token) { console.log(`  ✖ ${j.id}: token has no refresh_token/client — re-run colab-YT's authenticate script`); continue; }
+    const auth = new google.auth.OAuth2(c.client_id, c.client_secret, "http://localhost");
+    auth.setCredentials({ refresh_token: t.refresh_token });
+    let name;
+    try { name = await channelName(auth); } catch (e) { console.log(`  ✖ ${j.id}: token rejected by Google (${e.message}) — re-authenticate in colab-YT`); continue; }
+    if (!j.expect.test(name)) { console.log(`  ✖ ${j.id}: ${j.file} opens "${name}" — not this channel, skipped`); continue; }
+    console.log(`  ✔ ${j.id}: "${name}"`);
+    setSecret(`YT_TOKEN_${j.id}`, raw);
+    if (!t.client_id && clientFile) setSecret(`YT_TOKEN_${j.id}_CLIENT`, fs.readFileSync(clientFile, "utf8"));
+    done.push(j);
+  }
+  const start = arg("start");
+  for (const j of done) {
+    if (start) setVar(`START_${j.id}`, start);
+    if (flag("live")) setVar(`LIVE_${j.id}`, "true");
+  }
+  if (flag("disable-old")) {
+    if (!flag("live")) throw new Error("--disable-old needs --live (otherwise those channels would post nowhere)");
+    for (const wf of [...new Set(done.map((j) => j.old))]) {
+      try { gh(["workflow", "disable", wf, "--repo", "Winplaybox/colab-YT"]); console.log(`  ✔ colab-YT ${wf} disabled`); } catch { console.log(`  · colab-YT ${wf}: already disabled or not found`); }
+    }
+  }
+  setVar("AUTO_PUBLISH", "true");
+  console.log(`\nDone: ${done.length} channel(s) connected.${flag("live") ? "" : " Next: set LIVE_<ID>=true (or re-run with --live --disable-old)."}`);
+}
+
 async function main() {
   gh(["auth", "status"]);
+  const colabDir = arg("colab-dir");
+  if (colabDir) { await fromColab(colabDir); return; }
   if (flag("only-jasoos")) {
     const clientPath = arg("client");
     if (!clientPath) throw new Error("--client path/to/client_secret.json is required");

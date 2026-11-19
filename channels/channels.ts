@@ -15,6 +15,7 @@ import { codeLockForDay, codeLockVoiceLines, codeLockAnswerComment } from "../en
 import { trainBattleForDay, trainBattleMeta } from "../content/alltrainreels/battles";
 import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
 import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
+import { stickRiddleAnswer, stickRiddleForDay, stickRiddleMeta } from "../content/stickman/riddles";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
 import { unpaperShortForDay } from "../engines/unpaper-short/src/model";
 // @engine-builder:imports
@@ -478,6 +479,25 @@ export const CHANNELS = {
     resolve: (n) => horrorTapeForDay(n),
     meta: (n) => horrorTapeMeta(n)
   },
+  // Bachke Dikhao — Hinglish stickman survival riddles on a NEW channel (original stickman rig, A/B/C AskOutro,
+  // answer in the next video + as a comment). DISABLED until the YouTube channel exists and LIVE_BACHKE_DIKHAO=true.
+  "bachke-dikhao": {
+    name: "Bachke Dikhao",
+    composition: "EpicBharatSaga",
+    startDate: "2099-01-01",
+    slots: ["19:45"],
+    narrated: true,
+    fitScenesToVoice: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_BACHKE_DIKHAO",
+    metaSecretPrefix: "META_BACHKE_DIKHAO",
+    youtubeHandle: "@BachkeDikhao",
+    pinterestSecretPrefix: "PINTEREST_BACHKE_DIKHAO",
+    resolve: (n) => stickRiddleForDay(n),
+    meta: (n) => stickRiddleMeta(n),
+    answer: (n) => stickRiddleAnswer(n),
+    answerInNextFrom: 1
+  },
   "unpaper-short": {
     name: "Unpaper",
     composition: "UnpaperShort",
@@ -495,9 +515,16 @@ export const CHANNELS = {
       const ep = unpaperShortForDay(n).episode;
       return {
         title: `${ep.title} | Unpaper #shorts`.slice(0, 100),
-        description: `${ep.title}\nSource: ${ep.source.url ?? ep.source.title ?? ""}\nHar claim paper ke page se verified.\n\nUnpaper — Decode What Matters. Subscribe @Unpaper\n#AI #research #hinglish #shorts`,
+        description: `${ep.title}
+Source: ${ep.source.url ?? ep.source.title ?? ""}
+Har claim paper ke page se verified.
+
+Unpaper — Decode What Matters. Subscribe @Unpaper
+#AI #research #hinglish #shorts`,
         tags: ["AI", "research paper", "explained", "hinglish", "unpaper", "shorts"],
-        caption: `${ep.title}\nUnpaper — Decode What Matters.\n#AI #research #hinglish #reels`,
+        caption: `${ep.title}
+Unpaper — Decode What Matters.
+#AI #research #hinglish #reels`,
         language: "hi",
         categoryId: "27"
       };
@@ -521,8 +548,8 @@ function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
       name: `MindNest Tales (${LANGS[lang].name})`,
       composition: "EpicBharatSaga",
       startDate: "2026-11-18",
-      // Staggered so seven renders/uploads never land in the same hour.
-      slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15"][i]!],
+      // Staggered (and near each audience's evening: en 05:30 IST = US evening, pt 03:45 IST = Brazil evening).
+      slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15", "05:30", "03:45", "21:45", "17:05"][i]!],
       narrated: true,
       fitScenesToVoice: true,
       autoPublish: false,

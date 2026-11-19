@@ -101,7 +101,11 @@ if (cmd === "plan") {
       console.warn(`[voice] ${p.channel} ${p.tag} failed: ${(e as Error).message}`);
     }
   }
+  // Photos fetched while voicing (Actions can reach Wikimedia Commons) travel with the voice on render-queue.
+  if (hasFiles(path.join("public", "photos"))) { copyDir(path.join("public", "photos"), path.join(queue, "photos")); console.log("[photos] synced to queue"); }
 } else if (cmd === "render") {
+  // Claude's sandbox cannot reach Commons: use the photos Actions fetched (render-queue photos/).
+  if (hasFiles(path.join(queue, "photos"))) copyDir(path.join(queue, "photos"), path.join("public", "photos"));
   // Render every post whose voice is on the queue but whose video is not. Actions decides what is due
   // (it can read the repo variables), so this needs no START_/LIVE_ variables.
   const failed: string[] = [];
