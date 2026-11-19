@@ -1,3 +1,4 @@
+import { creditLines, photo } from "../commons";
 import { askOutro } from "../../engines/ask-outro";
 import { P, StoryDioramaSchema, type StoryDiorama, type StoryDioramaInput } from "../../engines/story-diorama/src/model";
 
@@ -261,7 +262,7 @@ const PAL = { paper: "#F6F7FB", ink: "#12151C", accent: "#FF4D3D", accent2: "#FF
 const SKIES: [string, string][] = [["#0E1A33", "#1E3A66"], ["#141428", "#2E2A5A"], ["#0F2230", "#1F4A5A"], ["#1A1426", "#3A2A4A"]];
 
 export const TRAIN_HANDLE = "@AllTrainReels";
-export const TRAIN_CTA_VOICE = "अपना जवाब कमेंट में लिखो, A या B! और रोज़ नई ट्रेन बैटल के लिए फॉलो करो।";
+export const TRAIN_CTA_VOICE = "अपना जवाब कमेंट में लिखो, A या B!";
 export const trainBattleCount = () => BATTLES.length;
 
 export function trainBattle(n: number): Battle {
@@ -273,44 +274,65 @@ export function trainBattle(n: number): Battle {
 type Scene = Omit<StoryDioramaInput["scenes"][number], "fig">;
 
 /** Post n -> a Short on the story-diorama engine (rail finish) with the shared AskOutro ending. */
+/** Real photo (Wikimedia Commons register id) for every side name used in BATTLES. Tested: no side without a photo. */
+const SIDE_PHOTO: Record<string, string> = {
+  "VANDE BHARAT": "train-vandebharat", SHATABDI: "train-shatabdi", SHINKANSEN: "train-shinkansen", TGV: "train-tgv",
+  "JAPAN MAGLEV": "train-maglev", STEAM: "train-steam", ELECTRIC: "train-electric", "SUPER VASUKI": "train-supervasuki",
+  "BHP AUSTRALIA": "train-bhp", "VIVEK EXPRESS": "train-vivek", "TRANS-SIBERIAN": "train-transsiberian", "KALKA-SHIMLA": "train-kalkashimla",
+  DARJEELING: "train-darjeeling", FUXING: "train-fuxing", RAJDHANI: "train-rajdhani", "BULLET (PLAN)": "train-bullet",
+  GOTTHARD: "train-gotthard", SEIKAN: "train-seikan", HUBBALLI: "train-hubballi", GORAKHPUR: "train-gorakhpur",
+  "CHENAB BRIDGE": "train-chenab", "EIFFEL TOWER": "train-eiffel", INDIA: "train-india", CHINA: "train-china"
+};
+export function sidePhotoId(name: string): string {
+  const id = SIDE_PHOTO[name];
+  if (!id) throw new Error(`AllTrainReels: no photo for side "${name}" in SIDE_PHOTO`);
+  return id;
+}
+export const battlePhotoIds = (n: number): [string, string] => { const q = trainBattle(n); return [sidePhotoId(q.a.name), sidePhotoId(q.b.name)]; };
+
+/** Publish slot (IST) — must match channels.ts alltrainreels.slots (tested). Used in the daily "kal" CTA. */
+export const TRAIN_SLOT = "18:45";
+/** Tomorrow's battle, teased in today's ending. */
+export function nextBattleTeaser(n: number): { line: string; voice: string } {
+  const next = BATTLES[Math.floor(n)];
+  if (!next) return { line: "KAL SHAAM 6:45 — NAYI BATTLE", voice: "कल शाम पौने सात बजे, नई ट्रेन बैटल। फॉलो करो!" };
+  return { line: `KAL 6:45 PM: ${next.a.name} VS ${next.b.name}`, voice: "कल शाम पौने सात बजे, अगली ट्रेन बैटल। फॉलो करो, मिस मत करना!" };
+}
+
 export function trainBattleForDay(n: number): StoryDiorama {
   const q = trainBattle(n);
   const sky = SKIES[(n - 1) % SKIES.length]!;
-  const ground = { color: "#2A2E36", y: 1430 };
-  const pair = (at = 0.2) => [
-    P("rails", 540, 980, { depth: 0.6, at: 0, enter: "none", data: { speed: 0 } }),
-    P("train", 540, 980, { depth: 0.8, at, enter: "none", scale: 0.92, data: { ...q.a.train, speed: 1, label: q.a.name } }),
-    P("rails", 540, 1420, { depth: 0.8, at: 0, enter: "none", data: { speed: 0 } }),
-    P("train", 540, 1420, { depth: 1, at: at + 0.5, enter: "none", scale: 0.92, data: { ...q.b.train, speed: 1, dir: -1, label: q.b.name } })
+  const [pa, pb] = battlePhotoIds(n);
+  const split = [photo(pa), photo(pb)];
+  const kal = nextBattleTeaser(n);
+  const names = (at = 0.3) => [
+    { text: `A · ${q.a.name}`, x: 540, y: 880, toX: 540, toY: 880, at },
+    { text: `B · ${q.b.name}`, x: 540, y: 1040, toX: 540, toY: 1040, at: at + 0.4 }
   ];
   const scenes: Scene[] = [
     {
-      id: "hook", seconds: 5.5, location: `TRAIN BATTLE #${String(n).padStart(2, "0")}`, sky, ground, particles: "none", camera: "push",
-      narration: q.hookHi, caption: q.hookEn, sfx: ["train_horn"],
+      id: "hook", seconds: 5.5, location: `TRAIN BATTLE #${String(n).padStart(2, "0")}`, sky, particles: "none", camera: "push",
+      narration: q.hookHi, caption: q.hookEn, sfx: ["train_horn"], photos: split, grade: "clean",
       headlines: [{ at: 0, lines: [{ text: q.h1 }, { text: q.h2, tone: "accent2" }] }],
-      layers: pair(0.1)
+      layers: [], labels: names()
     },
     {
       id: "rounds", seconds: 10.5, location: "ROUND BY ROUND", sky, particles: "none", camera: "still",
-      narration: q.roundsHi, caption: q.roundsEn,
+      narration: q.roundsHi, caption: q.roundsEn, photos: split, grade: "clean", dim: 0.55,
       headlines: [{ at: 0, lines: [{ text: "ROUND BY" }, { text: "ROUND", tone: "accent3" }] }],
       layers: [P("statBars", 540, 1000, { depth: 0.6, at: 0.2, enter: "rise", scale: 1, data: { aName: q.a.name, bName: q.b.name, rows: q.rounds, stepSeconds: 10 / Math.max(2, q.rounds.length + 1) } })]
     },
     {
-      id: "twist", seconds: 7, location: q.twist.title, sky, ground, particles: "none", camera: "push",
-      narration: q.twist.hi, caption: q.twist.en,
+      id: "twist", seconds: 7, location: q.twist.title, sky, particles: "none", camera: "push",
+      narration: q.twist.hi, caption: q.twist.en, photos: [photo(pa)], grade: "clean", dim: 0.15,
       headlines: [{ at: 0, lines: [{ text: q.twist.title.length <= 16 ? q.twist.title : "TWIST" }] }],
-      layers: [
-        P("rails", 540, 1420, { depth: 0.8, enter: "none" }),
-        P("train", 540, 1420, { depth: 1, at: 0, enter: "none", scale: 0.92, data: { ...q.a.train, speed: 1 } }),
-        P("noteCard", 540, 900, { depth: 0.7, at: 0.5, enter: "drop", scale: 0.85, data: { title: q.twist.title, items: q.twist.items } })
-      ]
+      layers: [P("noteCard", 540, 900, { depth: 0.7, at: 0.5, enter: "drop", scale: 0.85, data: { title: q.twist.title, items: q.twist.items } })]
     },
     {
-      id: "ask", seconds: 9.5, location: "AAPKA FAISLA", sky, ground, particles: "none", camera: "still",
-      narration: `${q.askHi} ${TRAIN_CTA_VOICE}`, caption: "",
+      id: "ask", seconds: 10, location: "AAPKA FAISLA", sky, particles: "none", camera: "still",
+      narration: `${q.askHi} ${TRAIN_CTA_VOICE} ${kal.voice}`, caption: "", photos: split, grade: "clean",
       headlines: [{ at: 0, lines: [{ text: "A YA B?" }] }],
-      layers: pair(0)
+      layers: [], labels: names(0)
     }
   ];
   return StoryDioramaSchema.parse({
@@ -321,7 +343,7 @@ export function trainBattleForDay(n: number): StoryDiorama {
     scenes: scenes.map((s, i) => ({ ...s, fig: `ROUND ${i + 1}` })),
     ask: askOutro({
       question: q.ask, options: [`A: ${q.a.name}`, `B: ${q.b.name}`], voiceQuestion: q.askHi,
-      cta: "A YA B? COMMENT KARO! 👇", ctaSub: "Roz nayi Train Battle — FOLLOW karo!", voiceCta: TRAIN_CTA_VOICE,
+      cta: "A YA B? COMMENT KARO! 👇", ctaSub: kal.line, voiceCta: `${TRAIN_CTA_VOICE} ${kal.voice}`,
       handle: TRAIN_HANDLE, questionSeconds: 4, ctaSeconds: 5.5
     })
   });
@@ -335,7 +357,8 @@ export function trainBattleMeta(n: number) {
       q.title,
       `A: ${q.a.name} · B: ${q.b.name} — aapka faisla comment mein likho 👇`,
       `Source: ${q.sources}`,
-      "", "Roz ek nayi Train Battle — subscribe @AllTrainReels",
+      "", `⏰ ${nextBattleTeaser(n).line.replace("KAL", "Kal")} — subscribe @AllTrainReels 🔔`,
+      "", ...creditLines(battlePhotoIds(n)),
       "#Trains #Railways #IndianRailways #TrainBattle #Locomotives #shorts"
     ].join("\n"),
     tags: ["trains", "railways", "indian railways", "train battle", "train facts", ...q.tags, "shorts"].slice(0, 20),

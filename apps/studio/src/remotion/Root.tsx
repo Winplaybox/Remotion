@@ -46,6 +46,8 @@ import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from 
 // Keep the refined schema for generation/QA and expose its underlying object here.
 const CodeLockRemotionSchema = CodeLockSchema._def.schema;
 import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
+import { UnpaperShortSchema, unpaperShortDuration, unpaperShortForDay, type UnpaperShort } from "../../../../engines/unpaper-short/src/model";
+import { UnpaperShortComposition } from "../../../../engines/unpaper-short/src/UnpaperShortComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -85,6 +87,10 @@ export const Root: React.FC = () => (
       <Still id="ChannelLogo" component={ChannelArt as unknown as React.FC<Record<string, unknown>>} width={800} height={800} defaultProps={{ ...{ kind: "banner", title: "CHAKRA PUZZLE", tagline: "Kitna tez hai tumhara dimaag?", handle: "@ChakraPuzzle", schedule: "Roz 3 puzzles", colors: { bg1: "#120B33", bg2: "#3B1C7A", accent: "#FFD23F", text: "#FFFFFF" }, icon: "chakra" } satisfies ChannelArtProps, kind: "logo" } as unknown as Record<string, unknown>} />
       <Still id="ChannelWatermark" component={ChannelArt as unknown as React.FC<Record<string, unknown>>} width={300} height={300} defaultProps={{ ...{ kind: "banner", title: "CHAKRA PUZZLE", tagline: "Kitna tez hai tumhara dimaag?", handle: "@ChakraPuzzle", schedule: "Roz 3 puzzles", colors: { bg1: "#120B33", bg2: "#3B1C7A", accent: "#FFD23F", text: "#FFFFFF" }, icon: "chakra" } satisfies ChannelArtProps, kind: "watermark" } as unknown as Record<string, unknown>} />
       <Composition id="CharacterSheetMotion" component={CharacterSheet} {...video} durationInFrames={150} defaultProps={{ category: "detective" as const, action: "talk" as const }} />
+    </Folder>
+    <Folder name="UnpaperShort">
+      <Composition id="UnpaperShort" component={UnpaperShortComposition} schema={UnpaperShortSchema} {...video} durationInFrames={unpaperShortDuration(unpaperShortForDay(1))} defaultProps={unpaperShortForDay(1)}
+        calculateMetadata={({ props }: { props: UnpaperShort }) => ({ durationInFrames: unpaperShortDuration(props) })} />
     </Folder>
 {/* @engine-builder:compositions */}
     <Folder name="NarratorVideo">

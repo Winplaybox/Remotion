@@ -1,0 +1,75 @@
+{
+ "train-vandebharat": {
+  "file": "File:Vande Bharat Express train.jpg"
+ },
+ "train-shatabdi": {
+  "file": "File:Chennai Central\u2013Mysuru Shatabdi Express passing Mandya 04.jpg"
+ },
+ "train-shinkansen": {
+  "file": "File:Series-N700S-J2.jpg"
+ },
+ "train-tgv": {
+  "file": "File:SNCF TGV Duplex Viaduc de Cize - Bolozon.jpg"
+ },
+ "train-maglev": {
+  "file": "File:JR Central SCMaglev L0 Series Shinkansen 201408081002.jpg"
+ },
+ "train-steam": {
+  "file": "File:Side Locomotive NBL 22782 Mysore Apr22 A7C 01895.jpg"
+ },
+ "train-electric": {
+  "file": "File:Vadodra based WAP-7 leading Golden Temple Mail.jpg"
+ },
+ "train-supervasuki": {
+  "file": "File:Freight train in Ghaziabad, India.jpg",
+  "representative": true
+ },
+ "train-bhp": {
+  "file": "File:BHPB Iron Ore 4344 + 5649.JPG"
+ },
+ "train-vivek": {
+  "file": "File:Vivek Superfast Express.jpg"
+ },
+ "train-transsiberian": {
+  "file": "File:Trans-Siberia035.jpg"
+ },
+ "train-kalkashimla": {
+  "file": "File:Train at Summer Hill railway station on the Kalka\u2013Shimla Railway,1.jpg"
+ },
+ "train-darjeeling": {
+  "file": "File:Darjeeling Himalayan Railway,toy train (8).jpg"
+ },
+ "train-fuxing": {
+  "file": "File:CR400BF-3009 at Suzhou-20181022.jpg"
+ },
+ "train-rajdhani": {
+  "file": "File:12952 Mumbai Rajdhani Express with a WAP 7 engine at New Delhi.jpg"
+ },
+ "train-bullet": {
+  "file": "File:Series-E5-U15 Yamabiko-50.jpg"
+ },
+ "train-gotthard": {
+  "file": "File:SBB - Gotthard Base Tunnel GBT (29814272146).jpg"
+ },
+ "train-seikan": {
+  "file": "File:Seikan Tunnel entrance - dual-gauge track.jpg"
+ },
+ "train-hubballi": {
+  "file": "File:Main Platform of Hubli Railway Station from the overbridge - panoramio.jpg"
+ },
+ "train-gorakhpur": {
+  "file": "File:Gorakhpur Railway station.jpeg"
+ },
+ "train-chenab": {
+  "file": "File:View of Kauri side, Chenab Bridge in 2013 - 7770b (9288239078).jpg"
+ },
+ "train-eiffel": {
+  "file": "File:Tour Eiffel Wikimedia Commons.jpg"
+ },
+ "train-india": {
+  "file": "File:Indian Railways Train in 2025.jpg"
+ },
+ "train-china": {
+  "file": "File:\u52a8\u8f66\u7ec4 CRH (China Railway High-speed-train ) - panoramio.jpg"
+ }
+}

@@ -19,7 +19,7 @@ interface LangInfo {
   handle: string;
   /** "Moral" label on the card. */
   moral: string;
-  /** Last line spoken after the moral: subscribe CTA. `{m}` = the moral. */
+  /** Last line spoken after the moral: the daily "see you tomorrow" return line (made for kids: no comment / subscribe push). `{m}` = the moral. */
   outro: string;
   /** Latin script: headlines can split words; others are kept as one unit per line (bidi / CJK safe). */
   latin: boolean;
@@ -28,13 +28,13 @@ interface LangInfo {
 }
 
 export const LANGS: Record<MindNestLang, LangInfo> = {
-  hi: { code: "hi", name: "Hindi", handle: "@HindiMindNestTales", moral: "आज की सीख", outro: "आज की सीख: {m} नई कहानी के लिए सब्सक्राइब करें!", latin: false, hashtags: "#kahani #bachonkikahani #moralstories #hindistories #shorts", series: "Bachchon ki Kahani" },
-  es: { code: "es", name: "Spanish", handle: "@SpanishMindNestTales", moral: "MORALEJA", outro: "La moraleja de hoy: {m} ¡Suscríbete para un nuevo cuento!", latin: true, hashtags: "#cuentos #cuentosinfantiles #fabulas #cuentosparaniños #shorts", series: "Cuentos" },
-  ar: { code: "ar", name: "Arabic", handle: "@ArabicMindNestTales", moral: "العبرة", outro: "عبرة اليوم: {m} اشتركوا لقصة جديدة!", latin: false, hashtags: "#قصص_اطفال #حكايات #قصص #shorts", series: "قصص أطفال" },
-  de: { code: "de", name: "German", handle: "@GermanMindNestTales", moral: "DIE MORAL", outro: "Die Moral von heute: {m} Abonniere für eine neue Geschichte!", latin: true, hashtags: "#gutenachtgeschichte #kindergeschichten #fabeln #märchen #shorts", series: "Geschichten" },
-  ja: { code: "ja", name: "Japanese", handle: "@JapaneseMindNestTales", moral: "きょうのおしえ", outro: "きょうのおしえ。{m} あたらしいおはなしは、チャンネル登録してね！", latin: false, hashtags: "#絵本 #童話 #読み聞かせ #子供向け #shorts", series: "おはなし" },
-  ko: { code: "ko", name: "Korean", handle: "@KoreanMindNestTales", moral: "오늘의 교훈", outro: "오늘의 교훈: {m} 새로운 이야기를 보려면 구독해 주세요!", latin: false, hashtags: "#동화 #어린이동화 #교훈 #동화책 #shorts", series: "동화" },
-  fil: { code: "fil", name: "Filipino", handle: "@FilipinoMindNestTales", moral: "ARAL", outro: "Ang aral ngayon: {m} Mag-subscribe para sa bagong kuwento!", latin: true, hashtags: "#kwentongpambata #pabula #kwento #aralingbuhay #shorts", series: "Kwentong Pambata" }
+  hi: { code: "hi", name: "Hindi", handle: "@HindiMindNestTales", moral: "आज की सीख", outro: "आज की सीख: {m} कल फिर मिलेंगे, एक नई कहानी के साथ!", latin: false, hashtags: "#kahani #bachonkikahani #moralstories #hindistories #shorts", series: "Bachchon ki Kahani" },
+  es: { code: "es", name: "Spanish", handle: "@SpanishMindNestTales", moral: "MORALEJA", outro: "La moraleja de hoy: {m} ¡Mañana volvemos con un cuento nuevo!", latin: true, hashtags: "#cuentos #cuentosinfantiles #fabulas #cuentosparaniños #shorts", series: "Cuentos" },
+  ar: { code: "ar", name: "Arabic", handle: "@ArabicMindNestTales", moral: "العبرة", outro: "عبرة اليوم: {m} نلتقي غدًا مع قصة جديدة!", latin: false, hashtags: "#قصص_اطفال #حكايات #قصص #shorts", series: "قصص أطفال" },
+  de: { code: "de", name: "German", handle: "@GermanMindNestTales", moral: "DIE MORAL", outro: "Die Moral von heute: {m} Morgen gibt es eine neue Geschichte!", latin: true, hashtags: "#gutenachtgeschichte #kindergeschichten #fabeln #märchen #shorts", series: "Geschichten" },
+  ja: { code: "ja", name: "Japanese", handle: "@JapaneseMindNestTales", moral: "きょうのおしえ", outro: "きょうのおしえ。{m} あしたも、あたらしいおはなしで、あおうね！", latin: false, hashtags: "#絵本 #童話 #読み聞かせ #子供向け #shorts", series: "おはなし" },
+  ko: { code: "ko", name: "Korean", handle: "@KoreanMindNestTales", moral: "오늘의 교훈", outro: "오늘의 교훈: {m} 내일 새로운 이야기로 다시 만나요!", latin: false, hashtags: "#동화 #어린이동화 #교훈 #동화책 #shorts", series: "동화" },
+  fil: { code: "fil", name: "Filipino", handle: "@FilipinoMindNestTales", moral: "ARAL", outro: "Ang aral ngayon: {m} Bukas, may bagong kuwento ulit!", latin: true, hashtags: "#kwentongpambata #pabula #kwento #aralingbuhay #shorts", series: "Kwentong Pambata" }
 };
 
 interface Text { title: [string, string]; s: [string, string, string, string]; moral: [string, string] }
