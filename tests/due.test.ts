@@ -28,4 +28,27 @@ describe("due slots", () => {
   it("no catch-up without the ledger", () => {
     expect(keys(candidates(at("2026-11-09T05:00:00Z"), 1, undefined, false))).toEqual([]);
   });
+
+  it("pauses a channel until PAUSE_<CHANNEL>_UNTIL and auto-resumes after", () => {
+    // 2026-11-19 13:00 UTC = 18:30 IST -> EpicBharatSaga 19:00 IST is normally due
+    const runTime = at("2026-11-19T13:00:00Z");
+    const pauseTime = "2026-11-20T00:00:00Z";
+
+    // Set pause until future
+    process.env.PAUSE_EPICBHARATSAGA_UNTIL = pauseTime;
+    expect(keys(candidates(runTime, 1, "epicbharatsaga", false))).toEqual([]);
+
+    // After pause expired, it is candidates again
+    const afterPause = at("2026-11-20T13:00:00Z");
+    expect(keys(candidates(afterPause, 1, "epicbharatsaga", false))).toEqual(["epicbharatsaga:2026-11-20:0"]);
+
+    delete process.env.PAUSE_EPICBHARATSAGA_UNTIL;
+  });
+
+  it("pauses when LIVE_<CHANNEL>=false", () => {
+    const runTime = at("2026-11-19T13:00:00Z");
+    process.env.LIVE_EPICBHARATSAGA = "false";
+    expect(keys(candidates(runTime, 1, "epicbharatsaga", false))).toEqual([]);
+    delete process.env.LIVE_EPICBHARATSAGA;
+  });
 });
