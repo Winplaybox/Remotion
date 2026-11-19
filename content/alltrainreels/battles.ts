@@ -1,3 +1,4 @@
+import { creditLines, photo } from "../commons";
 import { askOutro } from "../../engines/ask-outro";
 import { P, StoryDioramaSchema, type StoryDiorama, type StoryDioramaInput } from "../../engines/story-diorama/src/model";
 
@@ -10,8 +11,7 @@ import { P, StoryDioramaSchema, type StoryDiorama, type StoryDioramaInput } from
  * sources differ, and every post carries its sources in the description. Post n = BATTLES[n - 1]; unwritten posts fail closed.
  */
 
-/** `photo` = Wikimedia Commons search terms in order of preference (scripts/photos/commons.ts). */
-type Side = { name: string; train: Record<string, unknown>; photo: string[] };
+type Side = { name: string; train: Record<string, unknown> };
 export interface Round { label: string; a: number; b: number; aText: string; bText: string; win: "a" | "b" | "none" }
 export interface Battle {
   /** Headline lines, <= 16 chars each. */
@@ -50,7 +50,7 @@ const BATTLES: Battle[] = [
     h1: "VANDE BHARAT", h2: "VS SHATABDI",
     hookHi: "वंदे भारत या शताब्दी? भारत की दो सबसे तेज़ ट्रेनें, आज आमने सामने।",
     hookEn: "Vande Bharat ya Shatabdi? Bharat ki do sabse tez trains, aaj aamne saamne.",
-    a: { name: "VANDE BHARAT", train: VB, photo: ["Vande Bharat Express", "Vande Bharat train"] }, b: { name: "SHATABDI", train: SHATABDI, photo: ["Shatabdi Express", "Shatabdi Express train"] },
+    a: { name: "VANDE BHARAT", train: VB }, b: { name: "SHATABDI", train: SHATABDI },
     rounds: [
       { label: "MAX SERVICE SPEED (KM/H)", a: 160, b: 150, aText: "160", bText: "150", win: "a" },
       { label: "SHURUAAT (SAAL)", a: 2019, b: 1988, aText: "2019", bText: "1988", win: "none" }
@@ -65,7 +65,7 @@ const BATTLES: Battle[] = [
     h1: "SHINKANSEN", h2: "VS TGV",
     hookHi: "जापान की शिंकानसेन या फ़्रांस की टीजीवी? दुनिया की दो सबसे मशहूर बुलेट ट्रेनें।",
     hookEn: "Japan ki Shinkansen ya France ki TGV? Duniya ki do sabse mashhoor bullet trains.",
-    a: { name: "SHINKANSEN", train: SHINKANSEN, photo: ["Shinkansen N700", "Shinkansen"] }, b: { name: "TGV", train: TGV, photo: ["TGV Duplex", "TGV train"] },
+    a: { name: "SHINKANSEN", train: SHINKANSEN }, b: { name: "TGV", train: TGV },
     rounds: [
       { label: "SHURUAAT (SAAL)", a: 1964, b: 1981, aText: "1964", bText: "1981", win: "a" },
       { label: "SERVICE SPEED (KM/H)", a: 320, b: 320, aText: "320", bText: "320", win: "none" },
@@ -81,7 +81,7 @@ const BATTLES: Battle[] = [
     h1: "MAGLEV", h2: "VS TGV",
     hookHi: "एक ट्रेन पहियों पर, दूसरी हवा में तैरती हुई। सबसे तेज़ कौन?",
     hookEn: "Ek train pahiyon par, doosri hawa mein tairti hui. Sabse tez kaun?",
-    a: { name: "JAPAN MAGLEV", train: MAGLEV, photo: ["SCMaglev L0 Series", "L0 Series maglev"] }, b: { name: "TGV", train: TGV, photo: ["TGV Duplex", "TGV train"] },
+    a: { name: "JAPAN MAGLEV", train: MAGLEV }, b: { name: "TGV", train: TGV },
     rounds: [
       { label: "SPEED RECORD (KM/H)", a: 603, b: 574.8, aText: "603", bText: "574.8", win: "a" },
       { label: "RECORD SAAL", a: 2015, b: 2007, aText: "2015", bText: "2007", win: "none" }
@@ -96,7 +96,7 @@ const BATTLES: Battle[] = [
     h1: "STEAM", h2: "VS ELECTRIC",
     hookHi: "भाप वाला इंजन या बिजली वाला? सौ साल का फ़र्क़, एक बैटल में।",
     hookEn: "Bhaap wala engine ya bijli wala? Sau saal ka farak, ek battle mein.",
-    a: { name: "STEAM", train: STEAM, photo: ["Darjeeling Himalayan Railway steam locomotive", "Indian steam locomotive"] }, b: { name: "ELECTRIC", train: ELECTRIC, photo: ["WAP-7 locomotive", "Indian Railways electric locomotive"] },
+    a: { name: "STEAM", train: STEAM }, b: { name: "ELECTRIC", train: ELECTRIC },
     rounds: [
       { label: "INDIA MEIN PEHLI BAAR", a: 1853, b: 1925, aText: "1853", bText: "1925", win: "a" },
       { label: "EFFICIENCY (LAGBHAG %)", a: 8, b: 85, aText: "~8%", bText: "~85%", win: "b" }
@@ -111,7 +111,7 @@ const BATTLES: Battle[] = [
     h1: "SUPER VASUKI", h2: "VS AUSTRALIA",
     hookHi: "भारत की सबसे लंबी मालगाड़ी, सुपर वासुकी, बनाम दुनिया की सबसे लंबी ट्रेन।",
     hookEn: "Bharat ki sabse lambi maalgaadi, Super Vasuki, banaam duniya ki sabse lambi train.",
-    a: { name: "SUPER VASUKI", train: FREIGHT_IN, photo: ["Indian Railways coal freight train", "Indian freight train"] }, b: { name: "BHP AUSTRALIA", train: FREIGHT_AU, photo: ["Pilbara iron ore train", "BHP iron ore train"] },
+    a: { name: "SUPER VASUKI", train: FREIGHT_IN }, b: { name: "BHP AUSTRALIA", train: FREIGHT_AU },
     rounds: [
       { label: "LAMBAI (KM)", a: 3.5, b: 7.35, aText: "3.5", bText: "7.35", win: "b" },
       { label: "DIBBE (WAGONS)", a: 295, b: 682, aText: "295", bText: "682", win: "b" }
@@ -126,7 +126,7 @@ const BATTLES: Battle[] = [
     h1: "VIVEK EXPRESS", h2: "VS RUSSIA",
     hookHi: "भारत का सबसे लंबा रूट बनाम दुनिया का सबसे लंबा रेल रूट। कौन कितना चलता है?",
     hookEn: "Bharat ka sabse lamba route banaam duniya ka sabse lamba rail route. Kaun kitna chalta hai?",
-    a: { name: "VIVEK EXPRESS", train: EXPRESS, photo: ["Vivek Express", "Dibrugarh railway station"] }, b: { name: "TRANS-SIBERIAN", train: RUSSIA, photo: ["Trans-Siberian Railway train", "Rossiya train Trans-Siberian"] },
+    a: { name: "VIVEK EXPRESS", train: EXPRESS }, b: { name: "TRANS-SIBERIAN", train: RUSSIA },
     rounds: [
       { label: "DOORI (KM, LAGBHAG)", a: 4150, b: 9289, aText: "4,150+", bText: "9,289", win: "b" },
       { label: "SAFAR (GHANTE, LAGBHAG)", a: 75, b: 144, aText: "~75", bText: "~144", win: "b" }
@@ -141,7 +141,7 @@ const BATTLES: Battle[] = [
     h1: "KALKA SHIMLA", h2: "VS DARJEELING",
     hookHi: "पहाड़ों की दो टॉय ट्रेनें, दोनों यूनेस्को धरोहर। कालका शिमला या दार्जिलिंग?",
     hookEn: "Pahadon ki do toy trains, dono UNESCO dharohar. Kalka-Shimla ya Darjeeling?",
-    a: { name: "KALKA-SHIMLA", train: TOY_RED, photo: ["Kalka-Shimla Railway", "Kalka Shimla toy train"] }, b: { name: "DARJEELING", train: TOY_BLUE, photo: ["Darjeeling Himalayan Railway", "Darjeeling toy train"] },
+    a: { name: "KALKA-SHIMLA", train: TOY_RED }, b: { name: "DARJEELING", train: TOY_BLUE },
     rounds: [
       { label: "LAMBAI (KM)", a: 96, b: 88, aText: "96", bText: "88", win: "a" },
       { label: "SHURUAAT (SAAL)", a: 1903, b: 1881, aText: "1903", bText: "1881", win: "b" },
@@ -157,7 +157,7 @@ const BATTLES: Battle[] = [
     h1: "FUXING", h2: "VS SHINKANSEN",
     hookHi: "चीन की फ़ूशिंग या जापान की शिंकानसेन? रोज़ की सर्विस में सबसे तेज़ कौन?",
     hookEn: "China ki Fuxing ya Japan ki Shinkansen? Roz ki service mein sabse tez kaun?",
-    a: { name: "FUXING", train: FUXING, photo: ["CR400AF Fuxing", "Fuxing Hao train"] }, b: { name: "SHINKANSEN", train: SHINKANSEN, photo: ["Shinkansen N700", "Shinkansen"] },
+    a: { name: "FUXING", train: FUXING }, b: { name: "SHINKANSEN", train: SHINKANSEN },
     rounds: [
       { label: "SERVICE SPEED (KM/H)", a: 350, b: 320, aText: "350", bText: "320", win: "a" },
       { label: "SHURUAAT (SAAL)", a: 2017, b: 1964, aText: "2017", bText: "1964", win: "b" }
@@ -172,7 +172,7 @@ const BATTLES: Battle[] = [
     h1: "RAJDHANI", h2: "VS SHATABDI",
     hookHi: "राजधानी और शताब्दी, भारत की दो सबसे इज़्ज़तदार ट्रेनें। असली फ़र्क़ क्या है?",
     hookEn: "Rajdhani aur Shatabdi, Bharat ki do sabse izzatdar trains. Asli farak kya hai?",
-    a: { name: "RAJDHANI", train: RAJDHANI, photo: ["Rajdhani Express", "Rajdhani Express train"] }, b: { name: "SHATABDI", train: SHATABDI, photo: ["Shatabdi Express", "Shatabdi Express train"] },
+    a: { name: "RAJDHANI", train: RAJDHANI }, b: { name: "SHATABDI", train: SHATABDI },
     rounds: [
       { label: "SHURUAAT (SAAL)", a: 1969, b: 1988, aText: "1969", bText: "1988", win: "a" },
       { label: "SAFAR", a: 1, b: 1, aText: "RAAT", bText: "DIN", win: "none" }
@@ -187,7 +187,7 @@ const BATTLES: Battle[] = [
     h1: "BULLET TRAIN", h2: "VS VANDE BHARAT",
     hookHi: "भारत की आने वाली बुलेट ट्रेन बनाम आज की वंदे भारत। रफ़्तार में कितना फ़र्क़?",
     hookEn: "Bharat ki aane wali bullet train banaam aaj ki Vande Bharat. Raftaar mein kitna farak?",
-    a: { name: "BULLET (PLAN)", train: BULLET_IN, photo: ["E5 Series Shinkansen", "Shinkansen E5"] }, b: { name: "VANDE BHARAT", train: VB_ORANGE, photo: ["Vande Bharat Express saffron", "Vande Bharat Express"] },
+    a: { name: "BULLET (PLAN)", train: BULLET_IN }, b: { name: "VANDE BHARAT", train: VB_ORANGE },
     rounds: [
       { label: "DESIGN SPEED (KM/H)", a: 320, b: 180, aText: "320", bText: "180", win: "a" },
       { label: "SERVICE SPEED (KM/H)", a: 320, b: 160, aText: "320*", bText: "160", win: "a" }
@@ -202,7 +202,7 @@ const BATTLES: Battle[] = [
     h1: "GOTTHARD", h2: "VS SEIKAN",
     hookHi: "पहाड़ के नीचे या समुद्र के नीचे? दुनिया की दो सबसे लंबी रेल सुरंगें।",
     hookEn: "Pahaad ke neeche ya samundar ke neeche? Duniya ki do sabse lambi rail surangein.",
-    a: { name: "GOTTHARD", train: ELECTRIC, photo: ["Gotthard Base Tunnel", "Gotthard Base Tunnel portal"] }, b: { name: "SEIKAN", train: SHINKANSEN, photo: ["Seikan Tunnel", "Seikan Tunnel entrance"] },
+    a: { name: "GOTTHARD", train: ELECTRIC }, b: { name: "SEIKAN", train: SHINKANSEN },
     rounds: [
       { label: "LAMBAI (KM)", a: 57, b: 53.9, aText: "57", bText: "53.9", win: "a" },
       { label: "KHULI (SAAL)", a: 2016, b: 1988, aText: "2016", bText: "1988", win: "none" }
@@ -217,7 +217,7 @@ const BATTLES: Battle[] = [
     h1: "HUBBALLI", h2: "VS GORAKHPUR",
     hookHi: "दुनिया का सबसे लंबा रेलवे प्लेटफ़ॉर्म भारत में है। पर कौन सा? हुबली या गोरखपुर?",
     hookEn: "Duniya ka sabse lamba railway platform Bharat mein hai. Par kaunsa? Hubballi ya Gorakhpur?",
-    a: { name: "HUBBALLI", train: EXPRESS, photo: ["Hubballi Junction railway station", "Hubli railway station platform"] }, b: { name: "GORAKHPUR", train: RAJDHANI, photo: ["Gorakhpur Junction railway station", "Gorakhpur railway station"] },
+    a: { name: "HUBBALLI", train: EXPRESS }, b: { name: "GORAKHPUR", train: RAJDHANI },
     rounds: [
       { label: "PLATFORM (METER)", a: 1507, b: 1366, aText: "1,507", bText: "1,366", win: "a" }
     ],
@@ -231,7 +231,7 @@ const BATTLES: Battle[] = [
     h1: "CHENAB BRIDGE", h2: "VS EIFFEL TOWER",
     hookHi: "भारत का चिनाब ब्रिज, पेरिस के एफ़िल टावर से भी ऊँचा? चलो नापते हैं।",
     hookEn: "Bharat ka Chenab bridge, Paris ke Eiffel Tower se bhi ooncha? Chalo naapte hain.",
-    a: { name: "CHENAB BRIDGE", train: VB, photo: ["Chenab Rail Bridge", "Chenab bridge Reasi"] }, b: { name: "EIFFEL TOWER", train: TGV, photo: ["Eiffel Tower", "Tour Eiffel"] },
+    a: { name: "CHENAB BRIDGE", train: VB }, b: { name: "EIFFEL TOWER", train: TGV },
     rounds: [
       { label: "UNCHAI (METER)", a: 359, b: 330, aText: "359", bText: "330", win: "a" }
     ],
@@ -245,7 +245,7 @@ const BATTLES: Battle[] = [
     h1: "INDIA RAIL", h2: "VS CHINA RAIL",
     hookHi: "भारत का रेल नेटवर्क बनाम चीन का। कौन कितना बड़ा?",
     hookEn: "Bharat ka rail network banaam China ka. Kaun kitna bada?",
-    a: { name: "INDIA", train: RAJDHANI, photo: ["Indian Railways train", "Indian Railways express train"] }, b: { name: "CHINA", train: FUXING, photo: ["China Railway CRH high-speed train", "China high-speed train"] },
+    a: { name: "INDIA", train: RAJDHANI }, b: { name: "CHINA", train: FUXING },
     rounds: [
       { label: "ROUTE (HAZAAR KM, LAGBHAG)", a: 69, b: 160, aText: "~69", bText: "~160", win: "b" },
       { label: "PEHLI TRAIN (SAAL)", a: 1853, b: 1876, aText: "1853", bText: "1876", win: "a" }
@@ -262,7 +262,7 @@ const PAL = { paper: "#F6F7FB", ink: "#12151C", accent: "#FF4D3D", accent2: "#FF
 const SKIES: [string, string][] = [["#0E1A33", "#1E3A66"], ["#141428", "#2E2A5A"], ["#0F2230", "#1F4A5A"], ["#1A1426", "#3A2A4A"]];
 
 export const TRAIN_HANDLE = "@AllTrainReels";
-export const TRAIN_CTA_VOICE = "अपना जवाब कमेंट में लिखो, A या B! और रोज़ नई ट्रेन बैटल के लिए फॉलो करो।";
+export const TRAIN_CTA_VOICE = "अपना जवाब कमेंट में लिखो, A या B!";
 export const trainBattleCount = () => BATTLES.length;
 
 export function trainBattle(n: number): Battle {
@@ -274,46 +274,65 @@ export function trainBattle(n: number): Battle {
 type Scene = Omit<StoryDioramaInput["scenes"][number], "fig">;
 
 /** Post n -> a Short on the story-diorama engine (rail finish) with the shared AskOutro ending. */
+/** Real photo (Wikimedia Commons register id) for every side name used in BATTLES. Tested: no side without a photo. */
+const SIDE_PHOTO: Record<string, string> = {
+  "VANDE BHARAT": "train-vandebharat", SHATABDI: "train-shatabdi", SHINKANSEN: "train-shinkansen", TGV: "train-tgv",
+  "JAPAN MAGLEV": "train-maglev", STEAM: "train-steam", ELECTRIC: "train-electric", "SUPER VASUKI": "train-supervasuki",
+  "BHP AUSTRALIA": "train-bhp", "VIVEK EXPRESS": "train-vivek", "TRANS-SIBERIAN": "train-transsiberian", "KALKA-SHIMLA": "train-kalkashimla",
+  DARJEELING: "train-darjeeling", FUXING: "train-fuxing", RAJDHANI: "train-rajdhani", "BULLET (PLAN)": "train-bullet",
+  GOTTHARD: "train-gotthard", SEIKAN: "train-seikan", HUBBALLI: "train-hubballi", GORAKHPUR: "train-gorakhpur",
+  "CHENAB BRIDGE": "train-chenab", "EIFFEL TOWER": "train-eiffel", INDIA: "train-india", CHINA: "train-china"
+};
+export function sidePhotoId(name: string): string {
+  const id = SIDE_PHOTO[name];
+  if (!id) throw new Error(`AllTrainReels: no photo for side "${name}" in SIDE_PHOTO`);
+  return id;
+}
+export const battlePhotoIds = (n: number): [string, string] => { const q = trainBattle(n); return [sidePhotoId(q.a.name), sidePhotoId(q.b.name)]; };
+
+/** Publish slot (IST) — must match channels.ts alltrainreels.slots (tested). Used in the daily "kal" CTA. */
+export const TRAIN_SLOT = "18:45";
+/** Tomorrow's battle, teased in today's ending. */
+export function nextBattleTeaser(n: number): { line: string; voice: string } {
+  const next = BATTLES[Math.floor(n)];
+  if (!next) return { line: "KAL SHAAM 6:45 — NAYI BATTLE", voice: "कल शाम पौने सात बजे, नई ट्रेन बैटल। फॉलो करो!" };
+  return { line: `KAL 6:45 PM: ${next.a.name} VS ${next.b.name}`, voice: "कल शाम पौने सात बजे, अगली ट्रेन बैटल। फॉलो करो, मिस मत करना!" };
+}
+
 export function trainBattleForDay(n: number): StoryDiorama {
   const q = trainBattle(n);
   const sky = SKIES[(n - 1) % SKIES.length]!;
-  const ground = { color: "#2A2E36", y: 1430 };
-  // Drawn trains are the stand-in (art: true) and disappear when the real photos are available.
-  const pair = (at = 0.2) => [
-    P("rails", 540, 980, { depth: 0.6, at: 0, enter: "none", art: true, data: { speed: 0 } }),
-    P("train", 540, 980, { depth: 0.8, at, enter: "none", art: true, scale: 0.92, data: { ...q.a.train, speed: 1, label: q.a.name } }),
-    P("rails", 540, 1420, { depth: 0.8, at: 0, enter: "none", art: true, data: { speed: 0 } }),
-    P("train", 540, 1420, { depth: 1, at: at + 0.5, enter: "none", art: true, scale: 0.92, data: { ...q.b.train, speed: 1, dir: -1, label: q.b.name } })
+  const [pa, pb] = battlePhotoIds(n);
+  const split = [photo(pa), photo(pb)];
+  const kal = nextBattleTeaser(n);
+  const names = (at = 0.3) => [
+    { text: `A · ${q.a.name}`, x: 540, y: 880, toX: 540, toY: 880, at },
+    { text: `B · ${q.b.name}`, x: 540, y: 1040, toX: 540, toY: 1040, at: at + 0.4 }
   ];
-  const both = [{ query: q.a.photo, label: q.a.name }, { query: q.b.photo, label: q.b.name }];
   const scenes: Scene[] = [
     {
-      id: "hook", seconds: 5.5, location: `TRAIN BATTLE #${String(n).padStart(2, "0")}`, sky, ground, particles: "none", camera: "push",
-      narration: q.hookHi, caption: q.hookEn, sfx: ["train_horn"], photos: both,
+      id: "hook", seconds: 5.5, location: `TRAIN BATTLE #${String(n).padStart(2, "0")}`, sky, particles: "none", camera: "push",
+      narration: q.hookHi, caption: q.hookEn, sfx: ["train_horn"], photos: split, grade: "clean",
       headlines: [{ at: 0, lines: [{ text: q.h1 }, { text: q.h2, tone: "accent2" }] }],
-      layers: pair(0.1)
+      layers: [], labels: names()
     },
     {
       id: "rounds", seconds: 10.5, location: "ROUND BY ROUND", sky, particles: "none", camera: "still",
-      narration: q.roundsHi, caption: q.roundsEn, photos: [{ query: q.a.photo }],
+      narration: q.roundsHi, caption: q.roundsEn, photos: split, grade: "clean", dim: 0.55,
       headlines: [{ at: 0, lines: [{ text: "ROUND BY" }, { text: "ROUND", tone: "accent3" }] }],
       layers: [P("statBars", 540, 1000, { depth: 0.6, at: 0.2, enter: "rise", scale: 1, data: { aName: q.a.name, bName: q.b.name, rows: q.rounds, stepSeconds: 10 / Math.max(2, q.rounds.length + 1) } })]
     },
     {
-      id: "twist", seconds: 7, location: q.twist.title, sky, ground, particles: "none", camera: "push",
-      narration: q.twist.hi, caption: q.twist.en, photos: [{ query: q.a.photo }],
+      id: "twist", seconds: 7, location: q.twist.title, sky, particles: "none", camera: "push",
+      narration: q.twist.hi, caption: q.twist.en, photos: [photo(pa)], grade: "clean", dim: 0.15,
       headlines: [{ at: 0, lines: [{ text: q.twist.title.length <= 16 ? q.twist.title : "TWIST" }] }],
-      layers: [
-        P("rails", 540, 1420, { depth: 0.8, enter: "none", art: true }),
-        P("train", 540, 1420, { depth: 1, at: 0, enter: "none", art: true, scale: 0.92, data: { ...q.a.train, speed: 1 } }),
-        P("noteCard", 540, 900, { depth: 0.7, at: 0.5, enter: "drop", scale: 0.85, data: { title: q.twist.title, items: q.twist.items } })
-      ]
+      layers: [P("noteCard", 540, 900, { depth: 0.7, at: 0.5, enter: "drop", scale: 0.85, data: { title: q.twist.title, items: q.twist.items } })]
     },
     {
-      id: "ask", seconds: 9.5, location: "AAPKA FAISLA", sky, ground, particles: "none", camera: "still",
-      narration: `${q.askHi} ${TRAIN_CTA_VOICE}`, caption: "", photos: both,
+      id: "ask", seconds: 10, location: "AAPKA FAISLA", sky, particles: "none", camera: "still",
+      narration: `${q.askHi} ${TRAIN_CTA_VOICE} ${kal.voice}`, caption: "", photos: split, grade: "clean",
       headlines: [{ at: 0, lines: [{ text: "A YA B?" }] }],
-      layers: pair(0)
+      layers: [], labels: names(0)
     }
   ];
   return StoryDioramaSchema.parse({
@@ -324,7 +343,7 @@ export function trainBattleForDay(n: number): StoryDiorama {
     scenes: scenes.map((s, i) => ({ ...s, fig: `ROUND ${i + 1}` })),
     ask: askOutro({
       question: q.ask, options: [`A: ${q.a.name}`, `B: ${q.b.name}`], voiceQuestion: q.askHi,
-      cta: "A YA B? COMMENT KARO! 👇", ctaSub: "Roz nayi Train Battle — FOLLOW karo!", voiceCta: TRAIN_CTA_VOICE,
+      cta: "A YA B? COMMENT KARO! 👇", ctaSub: kal.line, voiceCta: `${TRAIN_CTA_VOICE} ${kal.voice}`,
       handle: TRAIN_HANDLE, questionSeconds: 4, ctaSeconds: 5.5
     })
   });
@@ -338,7 +357,8 @@ export function trainBattleMeta(n: number) {
       q.title,
       `A: ${q.a.name} · B: ${q.b.name} — aapka faisla comment mein likho 👇`,
       `Source: ${q.sources}`,
-      "", "Roz ek nayi Train Battle — subscribe @AllTrainReels",
+      "", `⏰ ${nextBattleTeaser(n).line.replace("KAL", "Kal")} — subscribe @AllTrainReels 🔔`,
+      "", ...creditLines(battlePhotoIds(n)),
       "#Trains #Railways #IndianRailways #TrainBattle #Locomotives #shorts"
     ].join("\n"),
     tags: ["trains", "railways", "indian railways", "train battle", "train facts", ...q.tags, "shorts"].slice(0, 20),

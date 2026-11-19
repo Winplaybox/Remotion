@@ -28,7 +28,8 @@ describe("AllTrainReels — Train Battle", () => {
       expect(p.scenes.map((s) => s.id)).toEqual(["hook", "rounds", "twist", "ask"]);
       expect(p.finish).toBe("rail");
       expect(p.ask!.options).toHaveLength(2);
-      expect(p.scenes.at(-1)!.narration.endsWith(TRAIN_CTA_VOICE)).toBe(true);
+      expect(p.scenes.at(-1)!.narration).toContain(TRAIN_CTA_VOICE);
+      expect(p.scenes.at(-1)!.narration).toContain("कल शाम");
       for (const s of p.scenes) expect(/[ऀ-ॿ]/.test(s.narration)).toBe(true);
       headlinesFit(p);
       expect(secs(p)).toBeGreaterThanOrEqual(30);

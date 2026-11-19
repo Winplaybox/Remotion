@@ -1,4 +1,4 @@
-import { creditLines, creditsFor, photoKey, pickCommons } from "../scripts/photos/commons";
+import { creditLines, photoKey, pickCommons } from "../scripts/photos/commons";
 import { horrorTapeCount, horrorTapeForDay } from "../content/indian-horror-tapes/tapes";
 import { trainBattleCount, trainBattleForDay } from "../content/alltrainreels/battles";
 import { stickRiddleCount, stickRiddleForDay, stickRiddleMeta, STICK_CTA_VOICE } from "../content/stickman/riddles";
@@ -22,17 +22,14 @@ describe("Wikimedia Commons photos", () => {
     expect(creditLines([c])).toContain("T.jpg — Jane, CC BY-SA 4.0 — https://c/T");
     expect(creditLines([])).toBe("");
   });
-  it("every tape and battle asks for real photos; drawn stand-ins are marked art", () => {
+  it("every tape and battle asks for real photos", () => {
     for (let n = 1; n <= horrorTapeCount(); n++) {
       const p = horrorTapeForDay(n);
-      expect(p.scenes.every((s) => (s.photos?.length ?? 0) === 1)).toBe(true);
-      expect(p.scenes[0]!.layers.some((l) => l.art === true)).toBe(true);
-      expect(creditsFor(p, {})).toEqual([]);
+      expect(p.scenes.every((s) => (s.photos?.length ?? 0) >= 1)).toBe(true);
     }
     for (let n = 1; n <= trainBattleCount(); n++) {
       const p = trainBattleForDay(n);
       expect(p.scenes[0]!.photos).toHaveLength(2);
-      expect(p.scenes[0]!.layers.filter((l) => l.kind === "prop" && l.prop === "train").every((l) => l.art === true)).toBe(true);
     }
   });
 });
