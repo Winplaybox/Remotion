@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { AbsoluteFill, Sequence, continueRender, delayRender, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { ThreeCanvas } from "@remotion/three";
-import { useThree } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { mindNestForDay } from "../content/mindnest/fables";
 
@@ -20,12 +20,131 @@ const C = {
   mud: "#8A5A36", wing: "#4FA8FF", wing2: "#9BD6FF"
 };
 
-const Fur: React.FC<{ c: string }> = ({ c }) => (
-  <meshPhysicalMaterial color={c} roughness={0.55} clearcoat={0.25} clearcoatRoughness={0.5} sheen={0.8} sheenRoughness={0.6} sheenColor="#fff4d8" />
-);
-const Gloss: React.FC<{ c: string; r?: number }> = ({ c, r = 0.25 }) => <meshPhysicalMaterial color={c} roughness={r} clearcoat={1} clearcoatRoughness={0.08} />;
-const Soft: React.FC<{ c: string }> = ({ c }) => <meshStandardMaterial color={c} roughness={0.9} />;
-const Unlit: React.FC<{ c: string; o?: number }> = ({ c, o = 1 }) => <meshBasicMaterial color={c} transparent={o < 1} opacity={o} depthWrite={o >= 1} />;
+// ---------------------------------------------------------------- looks (visual styles)
+/**
+ * One story, several visual styles. Only materials, lighting, set dressing and overlays change; the characters'
+ * shapes, poses and all text stay identical across looks.
+ */
+export type MindNestLook = "toy3d" | "clay" | "plush" | "toon" | "storybook" | "night";
+export const MINDNEST_LOOKS: MindNestLook[] = ["toy3d", "clay", "plush", "toon", "storybook", "night"];
+const LookCtx = React.createContext<MindNestLook>("toy3d");
+const useLook = () => React.useContext(LookCtx);
+
+const tintCache = new Map<string, string>();
+/** Per-look palette shift (saturation / lightness) so one colour table serves every look. */
+function tint(c: string, look: MindNestLook): string {
+  if (look === "toy3d" || look === "night") return c;
+  const key = look + c;
+  const hit = tintCache.get(key);
+  if (hit) return hit;
+  const col = new THREE.Color(c);
+  const h = { h: 0, s: 0, l: 0 };
+  col.getHSL(h, THREE.SRGBColorSpace);
+  if (look === "clay") { h.s = Math.min(1, h.s * 1.12); h.l *= 0.86; }
+  if (look === "plush") { h.s *= 0.85; h.l = h.l + (1 - h.l) * 0.1; }
+  if (look === "toon") { h.s = Math.min(1, h.s * 1.2); h.l = Math.min(0.95, h.l * 1.03); }
+  if (look === "storybook") { h.s *= 0.55; h.l = h.l + (0.9 - h.l) * 0.12; }
+  col.setHSL(h.h, h.s, h.l, THREE.SRGBColorSpace);
+  const out = "#" + col.getHexString(THREE.SRGBColorSpace);
+  tintCache.set(key, out);
+  return out;
+}
+
+/** Deterministic PRNG so every render of a frame is identical. */
+function rng(seed: number) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+let _toonGrad: THREE.DataTexture | null = null;
+let _storyGrad: THREE.DataTexture | null = null;
+function gradMap(steps: number[]): THREE.DataTexture {
+  const tex = new THREE.DataTexture(new Uint8Array(steps), steps.length, 1, THREE.RedFormat);
+  tex.minFilter = tex.magFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  tex.needsUpdate = true;
+  return tex;
+}
+const toonGrad = () => (_toonGrad ??= gradMap([90, 175, 255]));
+const storyGrad = () => (_storyGrad ??= gradMap([150, 205, 245]));
+
+let _clayBump: THREE.Texture | null = null;
+/** Clay: lumpy thumb-pressed surface with a few fingerprint whorls. */
+function clayBump(): THREE.Texture {
+  if (_clayBump) return _clayBump;
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 512;
+  const g = cv.getContext("2d")!;
+  const r = rng(7);
+  g.fillStyle = "#808080"; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 260; i++) {
+    const x = r() * 512, y = r() * 512, rad = 6 + r() * 26, v = r() < 0.5 ? 255 : 0;
+    const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, `rgba(${v},${v},${v},${0.10 + r() * 0.12})`); gr.addColorStop(1, `rgba(${v},${v},${v},0)`);
+    g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  for (let k = 0; k < 7; k++) {
+    const x = r() * 512, y = r() * 512, rot = r() * Math.PI;
+    for (let j = 1; j < 9; j++) {
+      g.strokeStyle = `rgba(${j % 2 ? 40 : 210},${j % 2 ? 40 : 210},${j % 2 ? 40 : 210},0.12)`; g.lineWidth = 1.6;
+      g.beginPath(); g.ellipse(x, y, j * 3.2, j * 2.3, rot, 0.3, Math.PI * 1.6); g.stroke();
+    }
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(2, 2);
+  return (_clayBump = t);
+}
+let _plushBump: THREE.Texture | null = null;
+/** Plush: fine fuzz noise plus a dashed stitched seam running down the front (u = 0.25 on spheres). */
+function plushBump(): THREE.Texture {
+  if (_plushBump) return _plushBump;
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 512;
+  const g = cv.getContext("2d")!;
+  const img = g.createImageData(512, 512);
+  const r = rng(11);
+  for (let i = 0; i < 512 * 512; i++) { const v = 110 + r() * 40; img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v; img.data[i * 4 + 3] = 255; }
+  g.putImageData(img, 0, 0);
+  // seam groove + stitches
+  g.fillStyle = "rgba(20,20,20,0.85)"; g.fillRect(126, 0, 4, 512);
+  g.fillStyle = "rgba(255,255,255,0.9)";
+  for (let y = 4; y < 512; y += 22) { g.save(); g.translate(128, y + 6); g.rotate(0.5); g.fillRect(-8, -2, 16, 5); g.restore(); }
+  const t = new THREE.CanvasTexture(cv);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return (_plushBump = t);
+}
+
+const Fur: React.FC<{ c: string }> = ({ c }) => {
+  const look = useLook();
+  const col = tint(c, look);
+  if (look === "clay") return <meshStandardMaterial color={col} roughness={0.93} bumpMap={clayBump()} bumpScale={2.2} />;
+  if (look === "plush") return <meshPhysicalMaterial color={col} roughness={1} sheen={1} sheenRoughness={0.4} sheenColor="#ffffff" bumpMap={plushBump()} bumpScale={1.2} />;
+  if (look === "toon") return <meshToonMaterial color={col} gradientMap={toonGrad()} />;
+  if (look === "storybook") return <meshToonMaterial color={col} gradientMap={storyGrad()} />;
+  return <meshPhysicalMaterial color={col} roughness={0.55} clearcoat={0.25} clearcoatRoughness={0.5} sheen={0.8} sheenRoughness={0.6} sheenColor="#fff4d8" />;
+};
+const Gloss: React.FC<{ c: string; r?: number }> = ({ c, r = 0.25 }) => {
+  const look = useLook();
+  const col = tint(c, look);
+  if (look === "clay") return <meshPhysicalMaterial color={col} roughness={Math.max(0.3, r)} clearcoat={0.5} clearcoatRoughness={0.25} />;
+  if (look === "plush") return <meshPhysicalMaterial color={col} roughness={Math.max(0.35, r)} clearcoat={0.4} clearcoatRoughness={0.3} />;
+  if (look === "toon") return <meshToonMaterial color={col} gradientMap={toonGrad()} />;
+  if (look === "storybook") return <meshToonMaterial color={col} gradientMap={storyGrad()} />;
+  return <meshPhysicalMaterial color={col} roughness={r} clearcoat={1} clearcoatRoughness={0.08} />;
+};
+const Soft: React.FC<{ c: string }> = ({ c }) => {
+  const look = useLook();
+  const col = tint(c, look);
+  if (look === "clay") return <meshStandardMaterial color={col} roughness={0.95} bumpMap={clayBump()} bumpScale={2.2} />;
+  if (look === "plush") return <meshPhysicalMaterial color={col} roughness={1} sheen={1} sheenRoughness={0.5} sheenColor="#ffffff" />;
+  if (look === "toon") return <meshToonMaterial color={col} gradientMap={toonGrad()} />;
+  if (look === "storybook") return <meshToonMaterial color={col} gradientMap={storyGrad()} />;
+  return <meshStandardMaterial color={col} roughness={0.9} />;
+};
+const Unlit: React.FC<{ c: string; o?: number }> = ({ c, o = 1 }) => {
+  const look = useLook();
+  return <meshBasicMaterial color={tint(c, look)} transparent={o < 1} opacity={o} depthWrite={o >= 1} />;
+};
 
 /** Soft radial "blob" texture for contact shadows and glows. */
 function useBlob(): THREE.Texture {
@@ -300,13 +419,21 @@ const Tree: React.FC<{ x: number; z: number; s: number; t: number }> = ({ x, z, 
     <mesh position={[0.1, 2.75, 0.1]}><sphereGeometry args={[0.55, 22, 22]} /><Fur c={C.leaf2} /></mesh>
   </group>
 );
-const Cloud: React.FC<{ x: number; y: number; z: number; s: number }> = ({ x, y, z, s }) => (
-  <group position={[x, y, z]} scale={s}>
-    {[[0, 0, 0.6], [0.6, -0.1, 0.45], [-0.6, -0.12, 0.45], [0.25, 0.3, 0.45], [-0.3, 0.22, 0.4]].map(([cx, cy, r], i) => (
-      <mesh key={i} position={[cx!, cy!, 0]}><sphereGeometry args={[r!, 18, 18]} /><meshStandardMaterial color="#ffffff" roughness={1} emissive="#ffffff" emissiveIntensity={0.35} /></mesh>
-    ))}
-  </group>
-);
+const Cloud: React.FC<{ x: number; y: number; z: number; s: number }> = ({ x, y, z, s }) => {
+  const look = useLook();
+  const toonish = look === "toon" || look === "storybook";
+  return (
+    <group position={[x, y, z]} scale={s}>
+      {[[0, 0, 0.6], [0.6, -0.1, 0.45], [-0.6, -0.12, 0.45], [0.25, 0.3, 0.45], [-0.3, 0.22, 0.4]].map(([cx, cy, r], i) => (
+        <mesh key={i} position={[cx!, cy!, 0]}><sphereGeometry args={[r!, 18, 18]} />
+          {toonish ? <meshToonMaterial color={look === "storybook" ? "#FBF6EA" : "#ffffff"} gradientMap={storyGrad()} emissive="#ffffff" emissiveIntensity={0.15} />
+            : look === "night" ? <meshStandardMaterial color="#3E4870" roughness={1} emissive="#1A2344" emissiveIntensity={0.5} transparent opacity={0.85} />
+            : <meshStandardMaterial color="#ffffff" roughness={1} emissive="#ffffff" emissiveIntensity={look === "clay" ? 0.15 : 0.35} />}
+        </mesh>
+      ))}
+    </group>
+  );
+};
 const Flower: React.FC<{ x: number; z: number; c: string; t: number }> = ({ x, z, c, t }) => (
   <group position={[x, 0, z]} rotation={[0, 0, Math.sin(t * 2 + x * 3) * 0.08]}>
     <mesh position={[0, 0.15, 0]}><cylinderGeometry args={[0.012, 0.012, 0.3, 6]} /><Soft c="#4E9B45" /></mesh>
@@ -319,9 +446,16 @@ const Flower: React.FC<{ x: number; z: number; c: string; t: number }> = ({ x, z
 
 const FLOWERS: [number, number, string][] = [[-1.7, 0.6, "#FF8FB1"], [-1.3, 1.4, "#FFFFFF"], [1.5, 1.1, "#FFB347"], [1.9, 0.2, "#FF8FB1"], [-2.2, -0.6, "#C9A0FF"], [2.3, -0.9, "#FFFFFF"], [0.9, 1.9, "#C9A0FF"], [-0.8, 2.1, "#FFB347"], [2.8, 1.6, "#FF8FB1"], [-2.9, 1.2, "#FFFFFF"]];
 
-const Meadow: React.FC<{ t: number }> = ({ t }) => (
+const Meadow: React.FC<{ t: number }> = ({ t }) => {
+  const look = useLook();
+  const night = look === "night";
+  return (
   <>
-    <mesh rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[40, 64]} /><meshStandardMaterial color={C.grass} roughness={1} /></mesh>
+    <mesh rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[40, 64]} />
+      {look === "toon" || look === "storybook" ? <meshToonMaterial color={tint(C.grass, look)} gradientMap={look === "toon" ? toonGrad() : storyGrad()} />
+        : look === "clay" ? <meshStandardMaterial color={tint(C.grass, look)} roughness={1} bumpMap={clayBump()} bumpScale={3} />
+        : <meshStandardMaterial color={tint(C.grass, look)} roughness={1} />}
+    </mesh>
     {/* rolling hills */}
     <mesh position={[-6, -5.2, -14]}><sphereGeometry args={[8, 28, 28]} /><Fur c={C.hill1} /></mesh>
     <mesh position={[7, -6.4, -16]}><sphereGeometry args={[9, 28, 28]} /><Fur c={C.hill2} /></mesh>
@@ -332,26 +466,162 @@ const Meadow: React.FC<{ t: number }> = ({ t }) => (
     <Tree x={5.5} z={-11} s={1.8} t={t} />
     <Cloud x={-2.5 + t * 0.08} y={6.8} z={-12} s={1.3} />
     <Cloud x={3.5 + t * 0.05} y={8.2} z={-16} s={1.7} />
-    {/* sun */}
-    <mesh position={[3.6, 9.5, -20]}><circleGeometry args={[1.4, 48]} /><meshBasicMaterial color="#FFE28A" /></mesh>
-    <mesh position={[3.6, 9.5, -20.1]}><circleGeometry args={[2.2, 48]} /><meshBasicMaterial color="#FFF2B8" transparent opacity={0.5} /></mesh>
+    {/* sun (moon at night) */}
+    <mesh position={[3.6, 9.5, -20]}><circleGeometry args={[1.4, 48]} /><meshBasicMaterial color={night ? "#FFF6DA" : tint("#FFE28A", look)} /></mesh>
+    <mesh position={[3.6, 9.5, -20.1]}><circleGeometry args={[2.2, 48]} /><meshBasicMaterial color={night ? "#AFC4FF" : tint("#FFF2B8", look)} transparent opacity={night ? 0.3 : 0.5} /></mesh>
+    {night && <mesh position={[4.1, 9.8, -19.95]}><circleGeometry args={[1.25, 48]} /><meshBasicMaterial color="#14214A" /></mesh>}
     {FLOWERS.map(([x, z, c], i) => <Flower key={i} x={x} z={z} c={c} t={t} />)}
     {/* grass tufts */}
     {Array.from({ length: 26 }, (_, i) => {
       const x = Math.sin(i * 12.7) * 3.4, z = Math.cos(i * 5.3) * 2.2 - 0.5;
       return <mesh key={i} position={[x, 0.04, z]} scale={[1, 0.5, 1]}><sphereGeometry args={[0.12 + (i % 3) * 0.04, 12, 12]} /><Fur c={i % 2 ? C.grass2 : "#B3E28F"} /></mesh>;
     })}
+    {night && <NightProps t={t} />}
+    {(look === "toon" || look === "storybook") && <Outliner color={look === "toon" ? "#1A1208" : "#5A4430"} thick={look === "toon" ? 0.016 : 0.01} />}
+  </>
+  );
+};
+
+let _glow: THREE.Texture | null = null;
+function glowTex(): THREE.Texture {
+  if (_glow) return _glow;
+  const cv = document.createElement("canvas");
+  cv.width = cv.height = 128;
+  const g = cv.getContext("2d")!;
+  const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  gr.addColorStop(0, "rgba(255,255,255,1)"); gr.addColorStop(0.25, "rgba(255,255,255,0.55)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(cv);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return (_glow = t);
+}
+const Glow: React.FC<{ pos: [number, number, number]; s: number; c: string; o?: number }> = ({ pos, s, c, o = 1 }) => (
+  <sprite position={pos} scale={[s, s, 1]}>
+    <spriteMaterial map={glowTex()} color={c} transparent opacity={o} blending={THREE.AdditiveBlending} depthWrite={false} />
+  </sprite>
+);
+
+const FIREFLIES: [number, number, number][] = [[-1.35, 2.9, -0.6], [-0.1, 3.25, -1.4], [1.35, 3.0, -0.4], [1.75, 1.35, 0.6], [-1.2, 0.75, 1.0], [0.15, 0.55, 1.3], [-1.75, 1.7, -1.8], [1.05, 0.85, 1.2], [2.0, 3.3, -2.4], [-0.6, 3.6, -2.6], [1.6, 2.0, -1.2], [-1.3, 2.1, 0.9]];
+/** Bedtime set dressing: glowing fireflies and a warm lantern (with its light) beside the pair. */
+const NightProps: React.FC<{ t: number }> = ({ t }) => (
+  <>
+    {FIREFLIES.map(([x, y, z], i) => {
+      const p: [number, number, number] = [x + Math.sin(t * 0.7 + i) * 0.15, y + Math.sin(t * 1.1 + i * 2) * 0.12, z];
+      const tw = 0.65 + 0.35 * Math.sin(t * 3 + i * 1.7);
+      return (
+        <group key={i}>
+          <mesh position={p}><sphereGeometry args={[0.035, 10, 10]} /><meshBasicMaterial color="#FFFBD0" /></mesh>
+          <Glow pos={p} s={0.55} c="#E9FF7A" o={tw} />
+        </group>
+      );
+    })}
+    {/* lantern hanging from a little shepherd's-hook pole, just right of the pair */}
+    <group position={[2.08, 0, -1.5]}>
+      <mesh position={[0, 1.6, 0]}><cylinderGeometry args={[0.035, 0.045, 3.2, 10]} /><meshStandardMaterial color="#4A3020" roughness={0.7} /></mesh>
+      <mesh position={[-0.17, 3.2, 0]} rotation={[0, 0, 0]}><torusGeometry args={[0.17, 0.035, 8, 24, Math.PI]} /><meshStandardMaterial color="#4A3020" roughness={0.7} /></mesh>
+      <group position={[-0.34, 2.55, 0]}>
+        <mesh position={[0, 0.5, 0]}><cylinderGeometry args={[0.006, 0.006, 0.42, 6]} /><meshStandardMaterial color="#2B1D12" /></mesh>
+        <mesh position={[0, -0.22, 0]}><cylinderGeometry args={[0.17, 0.19, 0.08, 20]} /><meshStandardMaterial color="#5B3A22" roughness={0.6} /></mesh>
+        <mesh position={[0, 0, 0]}><cylinderGeometry args={[0.13, 0.13, 0.38, 20]} /><meshStandardMaterial color="#FFD27A" emissive="#FFB347" emissiveIntensity={2.4} roughness={0.4} /></mesh>
+        {[0, 1, 2, 3].map((k) => (
+          <mesh key={k} position={[Math.cos(k * Math.PI / 2 + 0.6) * 0.14, 0, Math.sin(k * Math.PI / 2 + 0.6) * 0.14]}><boxGeometry args={[0.03, 0.4, 0.03]} /><meshStandardMaterial color="#5B3A22" /></mesh>
+        ))}
+        <mesh position={[0, 0.26, 0]}><coneGeometry args={[0.21, 0.18, 20]} /><meshStandardMaterial color="#5B3A22" roughness={0.6} /></mesh>
+        <Glow pos={[0, 0, 0.05]} s={1.8} c="#FFB347" o={0.95} />
+        <pointLight position={[-0.5, 0, 0.9]} intensity={9} distance={5} decay={2} color="#FFB45C" />
+      </group>
+    </group>
   </>
 );
 
-const Lights: React.FC = () => (
-  <>
-    <hemisphereLight args={["#E4F4FF", "#E8D7A8", 1.15]} />
-    <directionalLight position={[3, 6, 6]} intensity={2.1} color="#FFF1DA" />
-    <directionalLight position={[-4, 3, -4]} intensity={1.4} color="#FFE2F0" />
-    <directionalLight position={[-3, 2, 5]} intensity={0.55} color="#CDE8FF" />
-  </>
-);
+/** Inverted-hull outlines: a black back-face shell, pushed out along view-space normals, added to every lit mesh. */
+const outlineMats = new Map<string, THREE.MeshBasicMaterial>();
+function outlineMat(color: string, thick: number): THREE.MeshBasicMaterial {
+  const key = color + thick;
+  let m = outlineMats.get(key);
+  if (m) return m;
+  m = new THREE.MeshBasicMaterial({ color, side: THREE.BackSide });
+  m.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace("#include <project_vertex>", `
+      vec4 mvPosition = modelViewMatrix * vec4( transformed, 1.0 );
+      vec3 olN = normalize( normalMatrix * normal );
+      mvPosition.xyz += olN * ${thick.toFixed(4)};
+      gl_Position = projectionMatrix * mvPosition;`);
+  };
+  m.customProgramCacheKey = () => "outline" + key;
+  outlineMats.set(key, m);
+  return m;
+}
+const Outliner: React.FC<{ color: string; thick: number }> = ({ color, thick }) => {
+  const { scene } = useThree();
+  const apply = () => {
+    const mat = outlineMat(color, thick);
+    const todo: THREE.Mesh[] = [];
+    scene.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || m.userData.isOutline) return;
+      const g = m.geometry as THREE.BufferGeometry & { type: string };
+      if (g.type === "PlaneGeometry" || g.type === "CircleGeometry") return;
+      const mm = m.material as THREE.Material;
+      if ((mm as THREE.MeshBasicMaterial).isMeshBasicMaterial || mm.transparent) return;
+      const ex = m.children.find((c) => c.userData.isOutline) as THREE.Mesh | undefined;
+      if (ex) { if (ex.geometry !== m.geometry) ex.geometry = m.geometry; return; }
+      todo.push(m);
+    });
+    for (const m of todo) {
+      const ol = new THREE.Mesh(m.geometry, mat);
+      ol.userData.isOutline = true;
+      ol.raycast = () => {};
+      m.add(ol);
+    }
+  };
+  React.useLayoutEffect(apply);
+  useFrame(apply);
+  return null;
+};
+
+const Lights: React.FC = () => {
+  const look = useLook();
+  if (look === "clay") return (
+    <>
+      <hemisphereLight args={["#D6E4F0", "#8A6A40", 0.75]} />
+      <directionalLight position={[4, 6, 5]} intensity={2.7} color="#FFD7A3" />
+      <directionalLight position={[-4, 3, -4]} intensity={1.0} color="#FFE6CC" />
+      <directionalLight position={[-3, 2, 5]} intensity={0.35} color="#CDE0FF" />
+    </>
+  );
+  if (look === "plush") return (
+    <>
+      <hemisphereLight args={["#FFF4FA", "#E8D8C0", 1.2]} />
+      <directionalLight position={[2, 5, 7]} intensity={1.6} color="#FFF3E6" />
+      <directionalLight position={[-4, 3, -4]} intensity={1.0} color="#FFDDEE" />
+      <directionalLight position={[-3, 2, 5]} intensity={0.6} color="#E2F0FF" />
+    </>
+  );
+  if (look === "toon" || look === "storybook") return (
+    <>
+      {look === "toon" ? <ambientLight intensity={0.9} /> : <hemisphereLight args={["#FFFFFF", "#E8E0C8", 1.3]} />}
+      <directionalLight position={[3, 6, 6]} intensity={look === "toon" ? 2.2 : 1.6} color="#FFFFFF" />
+      <directionalLight position={[-4, 3, -4]} intensity={0.6} color="#FFFFFF" />
+    </>
+  );
+  if (look === "night") return (
+    <>
+      <hemisphereLight args={["#5C7DC4", "#1B2440", 0.75]} />
+      <directionalLight position={[-4, 7, -4]} intensity={2.0} color="#A9C6FF" />
+      <directionalLight position={[2, 3, 7]} intensity={1.25} color="#9DB4EA" />
+      <directionalLight position={[5, 3, 3]} intensity={0.55} color="#FFC88A" />
+    </>
+  );
+  return (
+    <>
+      <hemisphereLight args={["#E4F4FF", "#E8D7A8", 1.15]} />
+      <directionalLight position={[3, 6, 6]} intensity={2.1} color="#FFF1DA" />
+      <directionalLight position={[-4, 3, -4]} intensity={1.4} color="#FFE2F0" />
+      <directionalLight position={[-3, 2, 5]} intensity={0.55} color="#CDE8FF" />
+    </>
+  );
+};
 
 const Cam: React.FC<{ pos: [number, number, number]; target: [number, number, number] }> = ({ pos, target }) => {
   const { camera } = useThree();
@@ -475,15 +745,27 @@ function useMindNestFonts() {
   });
 }
 
-const Caption: React.FC<{ text: string; dur: number }> = ({ text, dur }) => {
+const Caption: React.FC<{ text: string; dur: number; look?: MindNestLook }> = ({ text, dur, look = "toy3d" }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const pop = spring({ frame: f - 4, fps, config: { damping: 14, stiffness: 140 } });
   const out = interpolate(f, [dur - 8, dur], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   return (
     <div style={{ position: "absolute", left: 60, right: 60, top: 1430, display: "flex", justifyContent: "center", opacity: Math.min(pop, out), transform: `translateY(${(1 - pop) * 40}px)` }}>
-      <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 44, padding: "30px 40px", boxShadow: "0 14px 40px rgba(40,70,30,.25)", border: "6px solid #FFD34D",
-        fontFamily: DEVA, fontWeight: 700, fontSize: 50, lineHeight: 1.45, color: "#3A2A1A", textAlign: "center" }}>{text}</div>
+      {look === "storybook" ? (
+        // storybook page card: cream paper, inked double rule, corner flourishes — same words, same size
+        <div style={{ position: "relative", background: "#FBF3DF", borderRadius: 14, padding: "34px 44px", boxShadow: "0 10px 30px rgba(70,50,20,.25)", border: "3px solid #7A5A3A",
+          outline: "2px solid #7A5A3A", outlineOffset: -14, fontFamily: DEVA, fontWeight: 700, fontSize: 50, lineHeight: 1.45, color: "#3E2A18", textAlign: "center" }}>
+          {["0,0", "1,0", "0,1", "1,1"].map((k) => {
+            const [a, b] = k.split(",").map(Number);
+            return <div key={k} style={{ position: "absolute", width: 22, height: 22, borderRadius: 11, background: "#C9A36B", border: "3px solid #7A5A3A", left: a ? undefined : -12, right: a ? -12 : undefined, top: b ? undefined : -12, bottom: b ? -12 : undefined }} />;
+          })}
+          {text}
+        </div>
+      ) : (
+        <div style={{ background: "rgba(255,255,255,0.92)", borderRadius: 44, padding: "30px 40px", boxShadow: "0 14px 40px rgba(40,70,30,.25)", border: "6px solid #FFD34D",
+          fontFamily: DEVA, fontWeight: 700, fontSize: 50, lineHeight: 1.45, color: "#3A2A1A", textAlign: "center" }}>{text}</div>
+      )}
     </div>
   );
 };
@@ -519,12 +801,14 @@ const Fade: React.FC<{ dur: number }> = ({ dur }) => {
   return <AbsoluteFill style={{ background: "#FFF6E0", opacity: o, pointerEvents: "none" }} />;
 };
 
-const SceneCanvas: React.FC<{ S: SceneFC; dur: number }> = ({ S, dur: _d }) => {
+const SceneCanvas: React.FC<{ S: SceneFC; dur: number; look: MindNestLook }> = ({ S, dur: _d, look }) => {
   const f = useCurrentFrame();
   const { width, height, fps } = useVideoConfig();
   return (
     <ThreeCanvas width={width} height={height} camera={{ position: [0, 1.7, 8], fov: 36 }} gl={{ antialias: true, alpha: true }} style={{ position: "absolute", inset: 0 }}>
-      <S f={f} fps={fps} />
+      <LookCtx.Provider value={look}>
+        <S f={f} fps={fps} />
+      </LookCtx.Provider>
     </ThreeCanvas>
   );
 };
@@ -532,7 +816,37 @@ const SceneCanvas: React.FC<{ S: SceneFC; dur: number }> = ({ S, dur: _d }) => {
 export const MINDNEST3D_SCENES = [135, 135, 135, 180] as const;
 export const MINDNEST3D_FRAMES = MINDNEST3D_SCENES.reduce((a, b) => a + b, 0);
 
-export const MindNest3D: React.FC<{ lang?: "hi" | "es" | "ar" | "de" | "ja" | "ko" | "fil"; fable?: number }> = ({ lang = "hi", fable = 1 }) => {
+const SKY: Record<MindNestLook, string> = {
+  toy3d: "linear-gradient(180deg, #7FCBF2 0%, #BDE6F7 45%, #E9F7E1 100%)",
+  clay: "linear-gradient(180deg, #78B6D6 0%, #A9D2E2 45%, #E6D8B8 100%)",
+  plush: "linear-gradient(180deg, #BFE2F6 0%, #DDF0F8 45%, #F8EAF0 100%)",
+  toon: "linear-gradient(180deg, #46B8FF 0%, #8FD8FF 50%, #D8F5FF 100%)",
+  storybook: "linear-gradient(180deg, #B9D6DC 0%, #DCE6DA 50%, #F2EAD3 100%)",
+  night: "linear-gradient(180deg, #081236 0%, #16285E 50%, #2B4577 100%)"
+};
+
+const STARS = Array.from({ length: 90 }, (_, i) => {
+  const r = rng(100 + i);
+  return { x: r() * 1080, y: r() * 1100, s: 2 + r() * 5, o: 0.45 + r() * 0.55 };
+});
+const NightSky: React.FC = () => (
+  <AbsoluteFill>
+    {STARS.map((st, i) => (
+      <div key={i} style={{ position: "absolute", left: st.x, top: st.y, width: st.s, height: st.s, borderRadius: st.s, background: "#FFF8DC", opacity: st.o, boxShadow: `0 0 ${st.s * 2}px rgba(255,248,220,.9)` }} />
+    ))}
+  </AbsoluteFill>
+);
+
+const PAPER = `url("data:image/svg+xml;utf8,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='540' height='540'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' seed='4'/><feColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.24  0 0 0 0.55 0'/></filter><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='3' seed='9'/><feColorMatrix values='0 0 0 0 0.62  0 0 0 0 0.5  0 0 0 0 0.32  0 0 0 0.45 0'/></filter><rect width='100%' height='100%' filter='url(%23w)'/><rect width='100%' height='100%' filter='url(%23n)'/></svg>").replace(/%2523/g, "%23")}")`;
+/** Storybook: watercolour-paper grain + soft vignette over the 3D picture. */
+const StorybookPaper: React.FC = () => (
+  <>
+    <AbsoluteFill style={{ backgroundImage: PAPER, backgroundSize: "540px 540px", mixBlendMode: "multiply", opacity: 0.55, pointerEvents: "none" }} />
+    <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 55%, rgba(90,60,30,.38) 100%)", pointerEvents: "none" }} />
+  </>
+);
+
+export const MindNest3D: React.FC<{ lang?: "hi" | "es" | "ar" | "de" | "ja" | "ko" | "fil"; fable?: number; look?: MindNestLook }> = ({ lang = "hi", fable = 1, look = "toy3d" }) => {
   useMindNestFonts();
   const story = useMemo(() => mindNestForDay(lang, fable), [lang, fable]);
   const titleLines = story.scenes[0]!.headlines[0]!.lines.map((l) => l.text.replace(/\u00a0/g, " "));
@@ -540,17 +854,19 @@ export const MindNest3D: React.FC<{ lang?: "hi" | "es" | "ar" | "de" | "ja" | "k
   const scenes: SceneFC[] = [S1, S2, S3, S4];
   let at = 0;
   return (
-    <AbsoluteFill style={{ background: "linear-gradient(180deg, #7FCBF2 0%, #BDE6F7 45%, #E9F7E1 100%)" }}>
+    <AbsoluteFill style={{ background: SKY[look] }}>
+      {look === "night" && <NightSky />}
       {scenes.map((S, i) => {
         const from = at;
         const dur = MINDNEST3D_SCENES[i]!;
         at += dur;
         return (
           <Sequence key={i} from={from} durationInFrames={dur}>
-            <SceneCanvas S={S} dur={dur} />
+            <SceneCanvas S={S} dur={dur} look={look} />
+            {look === "storybook" && <StorybookPaper />}
             {i === 0 && <Sequence durationInFrames={95}><Title a={titleLines[0] ?? ""} b={titleLines[1] ?? ""} /></Sequence>}
             {i === 3 && moralLayer?.data && <Sequence from={118}><MoralCard label={moralLayer.data.title ?? ""} text={moralLayer.data.text ?? ""} /></Sequence>}
-            <Caption text={story.scenes[i]!.caption ?? ""} dur={dur} />
+            <Caption text={story.scenes[i]!.caption ?? ""} dur={dur} look={look} />
             <div style={{ position: "absolute", top: 70, width: "100%", textAlign: "center", fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: 34, letterSpacing: 6, color: "#ffffff", textShadow: "0 3px 10px rgba(0,60,90,.35)" }}>MINDNEST TALES</div>
             <Fade dur={dur} />
           </Sequence>
