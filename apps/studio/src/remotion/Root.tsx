@@ -99,9 +99,17 @@ export const Root: React.FC = () => (
     <Folder name="BreakingDesk">
       <Composition id="BreakingDesk" component={BreakingDeskComposition} schema={BreakingDeskSchema} {...video} durationInFrames={breakingDeskDuration(breakingDeskForDay(1))} defaultProps={breakingDeskForDay(1)}
         calculateMetadata={({ props }: { props: BreakingDesk }) => ({ durationInFrames: breakingDeskDuration(props) })} />
+      <Composition id="BreakingDesk-Marcus" component={BreakingDeskComposition} schema={BreakingDeskSchema} {...video} durationInFrames={breakingDeskDuration(breakingDeskForDay(2))} defaultProps={breakingDeskForDay(2)}
+        calculateMetadata={({ props }: { props: BreakingDesk }) => ({ durationInFrames: breakingDeskDuration(props) })} />
+      <Composition id="BreakingDesk-Hanuman" component={BreakingDeskComposition} schema={BreakingDeskSchema} {...video} durationInFrames={breakingDeskDuration(breakingDeskForDay(3))} defaultProps={breakingDeskForDay(3)}
+        calculateMetadata={({ props }: { props: BreakingDesk }) => ({ durationInFrames: breakingDeskDuration(props) })} />
     </Folder>
     <Folder name="VersusSplit">
       <Composition id="VersusSplit" component={VersusSplitComposition} schema={VersusSplitSchema} {...video} durationInFrames={versusSplitDuration(versusSplitForDay(1))} defaultProps={versusSplitForDay(1)}
+        calculateMetadata={({ props }: { props: VersusSplit }) => ({ durationInFrames: versusSplitDuration(props) })} />
+      <Composition id="VersusSplit-GokuVsSaitama" component={VersusSplitComposition} schema={VersusSplitSchema} {...video} durationInFrames={versusSplitDuration(versusSplitForDay(2))} defaultProps={versusSplitForDay(2)}
+        calculateMetadata={({ props }: { props: VersusSplit }) => ({ durationInFrames: versusSplitDuration(props) })} />
+      <Composition id="VersusSplit-ReignsVsCena" component={VersusSplitComposition} schema={VersusSplitSchema} {...video} durationInFrames={versusSplitDuration(versusSplitForDay(3))} defaultProps={versusSplitForDay(3)}
         calculateMetadata={({ props }: { props: VersusSplit }) => ({ durationInFrames: versusSplitDuration(props) })} />
     </Folder>
 {/* @engine-builder:compositions */}

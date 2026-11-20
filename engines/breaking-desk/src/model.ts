@@ -15,7 +15,8 @@ export const ChatLineSchema = z.object({
   text: z.string(),
   time: z.string().optional(),
   highlight: z.boolean().optional(),
-  hasReadReceipt: z.boolean().optional()
+  hasReadReceipt: z.boolean().optional(),
+  reactionEmoji: z.string().optional()
 });
 
 export const NewsStorySchema = z.object({
@@ -61,7 +62,71 @@ export type BreakingDesk = z.infer<typeof BreakingDeskSchema>;
 
 const STORIES = [
   // ==========================================
-  // 0. LORD HANUMAN CHAT (Interactive Dialogue)
+  // 1. GOOGLE NEWS BREAKING DISPATCH
+  // ==========================================
+  {
+    category: "BREAKING NEWS",
+    location: "Mountain View, CA",
+    headline: "GOOGLE UNVEILS AUTONOMOUS CODING AGENTS WORLDWIDE",
+    subhead: "AI REVOLUTION · REPORT #1",
+    source: "GOOGLE NEWS WIRE",
+    cardText: "Google has deployed new autonomous software engineering agents that can write, debug, and ship production-ready applications from simple natural language briefs.",
+    highlightLine: "BEATS HUMAN ENGINEERS ACROSS 10,000 REAL BENCHMARKS",
+    reactionPill: "⚡ BREAKING",
+    contactName: "Marcus",
+    contactStatus: "• online",
+    voiceScript: "गूगल न्यूज़ से बड़ी खबर! गूगल ने अपने नए ऑटोनॉमस कोडिंग एजेंट्स पूरी दुनिया के डेवलपर्स के लिए लाइव कर दिए हैं!",
+    question: "Kya AI Agle 2 Saal Mein Junior Coders Ko Replace Karega?",
+    options: ["1. HAAN 100% 🚀", "2. NAHI AS ASSISTANT 👨‍💻", "3. TOO EARLY TO TELL 🤔"],
+    voiceQuestion: "क्या एआई अगले दो साल में जूनियर कोडर्स को पूरी तरह रिप्लेस कर देगा?",
+    answer: "Industry leaders kehte hain AI developers ki speed 10x karega par system architects ki demand badhegi.",
+    ticker: ["GOOGLE AGENT API LIVE WORLDWIDE", "10,000 PRODUCTION BENCHMARKS PASSED", "OPEN SOURCE ADOPTION ACCELERATES"],
+    dialogue: [
+      { id: "m1", sender: "user" as const, text: "did you see what Google News just reported?!", time: "11:41 PM" },
+      { id: "m2", sender: "contact" as const, text: "Google just unveiled autonomous coding agents worldwide.", time: "11:42 PM" },
+      { id: "m3", sender: "user" as const, text: "wait is this officially confirmed??", time: "11:42 PM", hasReadReceipt: true },
+      { id: "m4", sender: "contact" as const, text: "yes, beats human engineers across 10,000 real benchmarks", time: "11:43 PM" },
+      { id: "m5", sender: "contact" as const, text: "free access rolling out to all users right now", time: "11:43 PM" },
+      { id: "m6", sender: "user" as const, text: "this changes literally everything", time: "11:44 PM" },
+      { id: "m7", sender: "contact" as const, text: "server demand already broke records in under an hour", time: "11:44 PM", reactionEmoji: "⚡" }
+    ]
+  },
+
+  // ==========================================
+  // 2. GRAVITYCLAW CHAT STORY BENCHMARK (Exact Screenshot #41)
+  // ==========================================
+  {
+    category: "FICTIONAL STORY",
+    location: "Chat Story Studio",
+    headline: "DID YOU EAT MY LEFTOVER PIZZA?",
+    subhead: "THE MYSTERY OF THE MISSING SIX SLICES",
+    source: "GRAVITYCLAW STYLE #41",
+    cardText: "A high-stakes interrogation between roommates over missing pizza slices takes an unexpected canine turn.",
+    highlightLine: "THE DOG HAS A BIG APPETITE",
+    reactionPill: "🍕 PIZZA GATE",
+    contactName: "Marcus",
+    contactStatus: "• online",
+    voiceScript: "रूममेट की छह स्लाइस पिज्जा गायब हो गई, और फिर जो बहाना सामने आया, उसने इंटरनेट पर सबको हंसा दिया!",
+    question: "Kya Marcus Ne Jaan Bujhkar Pizza Giraya Tha?",
+    options: ["1. 100% ON PURPOSE 😂", "2. GENUINE ACCIDENT 🐶", "3. DOG PLANNED IT 🍕"],
+    voiceQuestion: "क्या मार्कस ने जान बूझकर पिज्जा नीचे गिराया था?",
+    answer: "Chat records confirm dog was waiting under the table 5 minutes prior.",
+    ticker: ["SIX SLICES UNACCOUNTED FOR", "CANINE SUSPECT REMAINS UNREPENTANT", "ROOMMATE TRIAL PENDING"],
+    dialogue: [
+      { id: "m1", sender: "user" as const, text: "did you eat my leftover pizza", time: "11:41 PM" },
+      { id: "m2", sender: "contact" as const, text: "define \"eat\"", time: "11:42 PM" },
+      { id: "m3", sender: "user" as const, text: "MARCUS.", time: "11:42 PM" },
+      { id: "m4", sender: "contact" as const, text: "ok technically the dog ate it", time: "11:43 PM" },
+      { id: "m5", sender: "contact" as const, text: "after i dropped it", time: "11:43 PM" },
+      { id: "m6", sender: "user" as const, text: "you dropped it on purpose??", time: "11:43 PM" },
+      { id: "m7", sender: "contact" as const, text: "i plead the fifth", time: "11:44 PM" },
+      { id: "m8", sender: "user" as const, text: "there were six slices", time: "11:44 PM", hasReadReceipt: true },
+      { id: "m9", sender: "contact" as const, text: "the dog has a big appetite", time: "11:44 PM", reactionEmoji: "😂" }
+    ]
+  },
+
+  // ==========================================
+  // 3. LORD HANUMAN CHAT (Devotional Dialogue)
   // ==========================================
   {
     category: "BHAKTI & SANATAN",
@@ -86,7 +151,7 @@ const STORIES = [
       { id: "m2", sender: "contact" as const, text: "वत्स, भयभीत मत हो। जहाँ श्री राम का नाम है, वहाँ कोई संकट टिक नहीं सकता।", time: "11:42 PM" },
       { id: "m3", sender: "user" as const, text: "प्रभु, क्या आप सच में हर पल मेरी रक्षा करते हैं? 🙏", time: "11:42 PM", hasReadReceipt: true },
       { id: "m4", sender: "contact" as const, text: "सदा! 'संकट कटै मिटै सब पीरा, जो सुमिरै हनुमत बलबीरा॥' तुम बस सच्चे मन से राम नाम का स्मरण करो।", time: "11:43 PM" },
-      { id: "m5", sender: "contact" as const, text: "🚩 मेरा आशीर्वाद और सुरक्षा कवच सदा तुम्हारे साथ है।", time: "11:43 PM", highlight: true },
+      { id: "m5", sender: "contact" as const, text: "🚩 मेरा आशीर्वाद और सुरक्षा कवच सदा तुम्हारे साथ है।", time: "11:43 PM", highlight: true, reactionEmoji: "🙏" },
       { id: "m6", sender: "user" as const, text: "जय श्री राम! जय बजरंगबली! 🚩🙏", time: "11:44 PM" }
     ]
   },
