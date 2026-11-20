@@ -14,12 +14,16 @@ import type { BreakingDesk } from "./model";
  *   then send button pulses and input clears on submit!
  * - Message Becomes Bubble: Pops/slides in with spring physics, and animated checkmark status
  *   (✓ Sent → ✓✓ Delivered → ✓✓ Read).
- * - Receiver Typing: Three animated bouncing dots (...) appear inside a pill before reply.
- * - Receiver Responds: Message bubble springs in after typing.
- * - Message Reactions: ❤️ 😂 👍 😮 😢 🙏 appear as reaction pills with counts and pop scale animation!
+ * - Receiver Typing: Contact status in header switches to "typing...", while three animated
+ *   bouncing dots (...) appear inside a pill before reply.
+ * - Single Reaction Badge: In direct 1-on-1 chat, single reaction emoji (❤️, 🔥, 😂, 👍)
+ *   pops onto the bubble with spring physics without group counts.
+ * - Full Chat History: Trailing message ("That's amazing! 🚀") is typed, submitted, and enters
+ *   the chat history as a real bubble before the poll dialog appears!
  * - Bullets & Multi-line: Clean checklist support (✅ Available worldwide, etc.)
  * - In-Chat Poll / Vote Modal: Native centered card with radio options and 'Vote Now' button!
- * - Header Actions: Back chevron, Avatar, Online status, plus Phone 📞, Camera 📹, More ⋮ icons.
+ * - Header Actions: Single glowing online dot (no double bullets), Contact name ("Viewer"),
+ *   plus Phone 📞, Camera 📹, More ⋮ icons.
  */
 export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
   useBundledFonts();
@@ -44,7 +48,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
     ...askOutroSfx(p.askOutro, p.introSeconds + p.playSeconds)
   ];
 
-  // Resolve chat lines
+  // Resolve chat lines (includes final 'That's amazing! 🚀' so it enters chat history)
   const dialogueLines = p.story.dialogue || [
     {
       id: "m1",
@@ -71,7 +75,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
       sender: "contact" as const,
       text: "Yes! It's officially confirmed. ✅\nThey've started rolling it out today. 🚀",
       time: "11:44 PM",
-      reactions: [{ emoji: "❤️", count: 3 }]
+      reactionEmoji: "❤️"
     },
     {
       id: "m5",
@@ -90,23 +94,27 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
         "Works across all devices"
       ],
       time: "11:45 PM",
-      reactions: [{ emoji: "👍", count: 8 }, { emoji: "🎉", count: 2 }]
+      reactionEmoji: "🔥"
+    },
+    {
+      id: "m7",
+      sender: "user" as const,
+      text: "That's amazing! 🚀",
+      time: "11:45 PM",
+      hasReadReceipt: true
     }
   ];
 
-  // Active trailing typing from story (e.g. "That's amazing!")
-  const activeTyping = p.story.activeTypingInput;
-  const totalSlots = dialogueLines.length + (activeTyping ? 0.8 : 0);
-  const slotDur = Math.floor((p.playSeconds * fps - 45) / totalSlots);
+  // Stagger schedule: evenly spaces all messages across play duration
+  const slotDur = Math.floor((p.playSeconds * fps - 35) / dialogueLines.length);
 
-  // Stagger schedule: calculates typing start, submit frame, bubble start, and reaction frame
   const messagesWithTiming = dialogueLines.map((line, idx) => {
     const slotStart = 10 + idx * slotDur;
     const isUser = line.sender === "user";
 
     // User: types inside input bar, then submits
     const typeDuration = isUser
-      ? Math.min(32, Math.max(16, Math.floor(line.text.length * 0.85)))
+      ? Math.min(30, Math.max(16, Math.floor(line.text.length * 0.85)))
       : 0;
     const submitFrame = isUser ? slotStart + typeDuration : slotStart + 22;
 
@@ -117,7 +125,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
     const bubbleStart = submitFrame;
 
     // Reaction pops in after bubble settles
-    const reactionFrame = bubbleStart + 20;
+    const reactionFrame = bubbleStart + 18;
 
     return {
       ...line,
@@ -134,10 +142,6 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
   const activeUserTypingMsg = messagesWithTiming.find(
     (m) => m.sender === "user" && m.typeStart !== undefined && f >= m.typeStart && f < m.submitFrame
   );
-
-  const lastMsg = messagesWithTiming[messagesWithTiming.length - 1];
-  const trailingStart = lastMsg ? lastMsg.bubbleStart + 35 : 0;
-  const isTrailingTyping = !!activeTyping && f >= trailingStart;
 
   let displayedInputText = "Message";
   let isInputPlaceholder = true;
@@ -157,20 +161,6 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
     const cursor = f % 14 < 7 ? "|" : "";
     displayedInputText = activeUserTypingMsg.text.slice(0, chars) + cursor;
     isInputPlaceholder = false;
-  } else if (isTrailingTyping && activeTyping) {
-    const trailingDuration = 38;
-    const chars = Math.min(
-      activeTyping.length,
-      Math.floor(
-        interpolate(f, [trailingStart, trailingStart + trailingDuration], [0, activeTyping.length], {
-          extrapolateLeft: "clamp",
-          extrapolateRight: "clamp"
-        })
-      )
-    );
-    const cursor = f % 14 < 7 ? "|" : "";
-    displayedInputText = activeTyping.slice(0, chars) + cursor;
-    isInputPlaceholder = false;
   }
 
   // Send button bounce at submit moments
@@ -182,7 +172,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
     : 1;
 
   // NO PREMATURE SCROLLING:
-  // All messages (up to 9) easily fit in the ~1400px vertical chat space!
+  // All messages fit comfortably in the ~1400px vertical chat space!
   const maxNaturalCount = 9;
   const isOverflowing = dialogueLines.length > maxNaturalCount;
   const scrollY = isOverflowing
@@ -207,10 +197,19 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-  // Contact Branding
-  const contactName = p.story.contactName || p.brand || "Marcus";
-  const initialLetter = contactName.slice(0, 1).toUpperCase() || "M";
-  const contactStatus = p.story.contactStatus || "• online";
+  // Contact Branding (Defaults to "Viewer" for news dispatch)
+  const contactName = p.story.contactName || p.brand || "Viewer";
+  const initialLetter = contactName.slice(0, 1).toUpperCase() || "V";
+
+  // Dynamic Contact Typing in Header
+  const isAnyContactTyping = messagesWithTiming.some(
+    (m) => m.sender === "contact" && m.typingFrom !== undefined && f >= m.typingFrom && f < m.bubbleStart
+  );
+
+  // Clean status without double bullets
+  const baseStatus = (p.story.contactStatus || "online").replace(/^[\s•·]+/, "").trim();
+  const currentStatusText = isAnyContactTyping ? "typing..." : baseStatus;
+  const statusDotColor = isAnyContactTyping ? "#14B8A6" : "#22C55E";
 
   // Typing dots animation
   const dot1 = Math.sin(frame * 0.45) * 4;
@@ -229,7 +228,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
       }}
     >
       {/* =========================================================================
-          EXACT GRAVITYCLAW CHAT STORY CARD (White Container with Rounded Corners)
+          EXACT CHAT STORY CARD (White Container with Rounded Corners)
          ========================================================================= */}
       <div
         style={{
@@ -247,7 +246,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
         }}
       >
         {/* -------------------------------------------------------------------------
-            1. EXACT HEADER (< Marcus • online + Phone 📞, Camera 📹, More ⋮)
+            1. HEADER (< Contact • online / typing... + Phone 📞, Camera 📹, More ⋮)
            ------------------------------------------------------------------------- */}
         <div
           style={{
@@ -275,7 +274,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
             ‹
           </div>
 
-          {/* Coral/Pink Circular Avatar with Initial */}
+          {/* Circular Avatar with Initial */}
           <div
             style={{
               width: 76,
@@ -295,7 +294,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
             {initialLetter}
           </div>
 
-          {/* Contact Name & Status */}
+          {/* Contact Name & Dynamic Status (Single Dot, switches to 'typing...') */}
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div
               style={{
@@ -325,15 +324,18 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                   width: 10,
                   height: 10,
                   borderRadius: "50%",
-                  backgroundColor: "#22C55E",
-                  boxShadow: "0 0 8px #22C55E"
+                  backgroundColor: statusDotColor,
+                  boxShadow: `0 0 8px ${statusDotColor}`,
+                  transition: "background-color 0.2s ease"
                 }}
               />
-              {contactStatus}
+              <span style={{ color: "#14B8A6", fontWeight: 700 }}>
+                {currentStatusText}
+              </span>
             </div>
           </div>
 
-          {/* Action Icons on Right: Phone, Video, More (From Infographic) */}
+          {/* Action Icons on Right: Phone, Video, More */}
           <div
             style={{
               marginLeft: "auto",
@@ -380,7 +382,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
         </div>
 
         {/* -------------------------------------------------------------------------
-            2. CHAT STREAM VIEWPORT (Clean, Natural Stack, Plenty of Space)
+            2. CHAT STREAM VIEWPORT
            ------------------------------------------------------------------------- */}
         <div
           style={{
@@ -462,7 +464,11 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
               const isDelivered = framesSinceBubble >= 10;
               const isRead = framesSinceBubble >= 22;
 
-              // Reaction spring
+              // Single reaction emoji for 1-on-1 direct chat
+              const singleReactionEmoji =
+                m.reactionEmoji ||
+                (m.reactions && m.reactions.length > 0 ? m.reactions[0]?.emoji : undefined);
+
               const showReaction = f >= m.reactionFrame;
               const reactionSpring = spring({
                 frame: Math.max(0, f - m.reactionFrame),
@@ -610,70 +616,30 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                           )}
                         </div>
 
-                        {/* Multi-Reaction Pills (From Infographic: ❤️ 3, 👍 8, 🎉 2) */}
-                        {showReaction && m.reactions && m.reactions.length > 0 && (
+                        {/* Single Reaction Badge for 1-on-1 Direct Chat */}
+                        {showReaction && singleReactionEmoji && (
                           <div
                             style={{
                               position: "absolute",
                               bottom: -18,
                               left: isUser ? "auto" : 12,
                               right: isUser ? 12 : "auto",
+                              backgroundColor: "#FFFFFF",
+                              borderRadius: "50%",
+                              width: 44,
+                              height: 44,
                               display: "flex",
-                              gap: 6,
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.12)",
+                              fontSize: 24,
+                              border: "1.5px solid #F1F5F9",
                               zIndex: 25,
                               transform: `scale(${reactionSpring})`,
                               transformOrigin: isUser ? "bottom right" : "bottom left"
                             }}
                           >
-                            {m.reactions.map((r, ri) => (
-                              <div
-                                key={ri}
-                                style={{
-                                  backgroundColor: "#FFFFFF",
-                                  border: "1.5px solid #E2E8F0",
-                                  borderRadius: 99,
-                                  padding: "3px 10px",
-                                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  fontSize: 19,
-                                  fontWeight: 800,
-                                  color: "#1E293B"
-                                }}
-                              >
-                                <span>{r.emoji}</span>
-                                {r.count !== undefined && (
-                                  <span style={{ fontSize: 16, fontWeight: 800, color: "#64748B" }}>
-                                    {r.count}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Backward Compatible Single Reaction Badge */}
-                        {showReaction && !m.reactions && m.reactionEmoji && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              bottom: -16,
-                              right: 12,
-                              backgroundColor: "#FFFFFF",
-                              borderRadius: "50%",
-                              width: 42,
-                              height: 42,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              boxShadow: "0 3px 10px rgba(0, 0, 0, 0.15)",
-                              fontSize: 24,
-                              border: "1.5px solid #F1F5F9",
-                              transform: `scale(${reactionSpring})`
-                            }}
-                          >
-                            {m.reactionEmoji}
+                            {singleReactionEmoji}
                           </div>
                         )}
                       </div>
@@ -686,7 +652,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
         </div>
 
         {/* -------------------------------------------------------------------------
-            3. EXACT FOOTER (Live Typing + Smile + Pulsing Send Button)
+            3. FOOTER (Live Typing + Smile + Pulsing Send Button)
            ------------------------------------------------------------------------- */}
         <div
           style={{

@@ -30,19 +30,23 @@ describe("Breaking Desk News Engine", () => {
     }
   });
 
-  it("configures animated typing, checklist bullets, and multi-reactions for Story 1", () => {
+  it("configures animated typing, checklist bullets, single reactions, and full chat history for Story 1", () => {
     const ep1 = breakingDeskForDay(1);
+    expect(ep1.story.contactName).toBe("Viewer");
+    expect(ep1.story.contactStatus).toBe("online");
     expect(ep1.story.dialogue?.[0]?.text).toBe("did you see what news just reported?!");
-    expect(ep1.story.activeTypingInput).toBe("That's amazing!");
     
-    // Message 4 has heart reaction
-    expect(ep1.story.dialogue?.[3]?.reactions?.[0]?.emoji).toBe("❤️");
-    expect(ep1.story.dialogue?.[3]?.reactions?.[0]?.count).toBe(3);
+    // Message 4 has single heart reaction
+    expect(ep1.story.dialogue?.[3]?.reactionEmoji).toBe("❤️");
 
-    // Message 6 has checklist bullets
+    // Message 6 has checklist bullets and single fire reaction
     expect(ep1.story.dialogue?.[5]?.bullets).toBeDefined();
     expect(ep1.story.dialogue?.[5]?.bullets?.length).toBe(3);
-    expect(ep1.story.dialogue?.[5]?.reactions?.length).toBe(2);
+    expect(ep1.story.dialogue?.[5]?.reactionEmoji).toBe("🔥");
+
+    // Message 7 ("That's amazing! 🚀") entered into chat history
+    expect(ep1.story.dialogue?.length).toBe(7);
+    expect(ep1.story.dialogue?.[6]?.text).toBe("That's amazing! 🚀");
   });
 
   it("configures Marcus Pizza story matching GravityClaw #41 benchmark for Day 2", () => {

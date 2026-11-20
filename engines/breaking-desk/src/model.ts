@@ -81,15 +81,14 @@ const STORIES = [
     cardText: "A breakthrough autonomous AI assistant has just launched worldwide, delivering faster and more accurate capabilities across all devices.",
     highlightLine: "AVAILABLE WORLDWIDE · WORKS ACROSS ALL DEVICES",
     reactionPill: "⚡ BREAKING",
-    contactName: "Marcus",
-    contactStatus: "• online",
+    contactName: "Viewer",
+    contactStatus: "online",
     voiceScript: "न्यूज़ से बड़ी खबर! एक नया एआई असिस्टेंट पूरी दुनिया में लॉन्च हो चुका है, जो सारे डिवाइसेज पर पहले से कहीं ज़्यादा तेज़ और सटीक काम करता है!",
     question: "Should AI replace junior coders in next 2 years?",
     options: ["1. Yes, 100% 🚀", "2. Not as assistant 🤖", "3. Too early to tell 🤔"],
     voiceQuestion: "क्या एआई अगले दो साल में जूनियर कोडर्स को पूरी तरह रिप्लेस कर देगा?",
     answer: "Industry leaders confirm AI will 10x developer productivity while demand for system design surges.",
     ticker: ["AI ASSISTANT ROLLING OUT TO ALL USERS", "FASTER & MORE ACCURATE BENCHMARKS", "FULL CROSS-DEVICE ECOSYSTEM LIVE"],
-    activeTypingInput: "That's amazing!",
     dialogue: [
       {
         id: "m1",
@@ -116,7 +115,7 @@ const STORIES = [
         sender: "contact" as const,
         text: "Yes! It's officially confirmed. ✅\nThey've started rolling it out today. 🚀",
         time: "11:44 PM",
-        reactions: [{ emoji: "❤️", count: 3 }]
+        reactionEmoji: "❤️"
       },
       {
         id: "m5",
@@ -135,7 +134,14 @@ const STORIES = [
           "Works across all devices"
         ],
         time: "11:45 PM",
-        reactions: [{ emoji: "👍", count: 8 }, { emoji: "🎉", count: 2 }]
+        reactionEmoji: "🔥"
+      },
+      {
+        id: "m7",
+        sender: "user" as const,
+        text: "That's amazing! 🚀",
+        time: "11:45 PM",
+        hasReadReceipt: true
       }
     ]
   },
