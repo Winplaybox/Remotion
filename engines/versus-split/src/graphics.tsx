@@ -88,6 +88,60 @@ export const LightningSeam: React.FC<{ frame: number; color?: string }> = ({ fra
   );
 };
 
+export const MiniCrown: React.FC<{ size?: number; color?: string }> = ({ size = 36, color = "#FFD23F" }) => (
+  <svg width={size} height={size * 0.7} viewBox="0 0 100 70" style={{ display: "inline-block", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))" }}>
+    <polygon points="12,62 2,16 34,40 50,6 66,40 98,16 88,62" fill={color} />
+    <circle cx="2" cy="16" r="4.5" fill={color} />
+    <circle cx="50" cy="6" r="5.5" fill={color} />
+    <circle cx="98" cy="16" r="4.5" fill={color} />
+  </svg>
+);
+
+export const CatAvatar: React.FC<{ size?: number }> = ({ size = 210 }) => (
+  <svg width={size} height={size} viewBox="0 0 160 160" style={{ filter: "drop-shadow(0 10px 24px rgba(0,0,0,0.25))" }}>
+    {/* Ears */}
+    <polygon points="34,82 18,22 70,48" fill="#FFFFFF" />
+    <polygon points="34,76 25,32 62,53" fill="#FFAAA6" />
+    <polygon points="126,82 142,22 90,48" fill="#FFFFFF" />
+    <polygon points="126,76 135,32 98,53" fill="#FFAAA6" />
+    {/* Head */}
+    <ellipse cx="80" cy="94" rx="58" ry="46" fill="#FFFFFF" />
+    {/* Eyes */}
+    <ellipse cx="58" cy="86" rx="4.5" ry="8" fill="#1A1A1A" />
+    <ellipse cx="102" cy="86" rx="4.5" ry="8" fill="#1A1A1A" />
+    {/* Nose */}
+    <polygon points="76,98 84,98 80,104" fill="#FFAAA6" />
+    {/* Whiskers */}
+    <line x1="20" y1="90" x2="48" y2="94" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="18" y1="100" x2="48" y2="100" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="20" y1="110" x2="48" y2="106" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="140" y1="90" x2="112" y2="94" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="142" y1="100" x2="112" y2="100" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round" />
+    <line x1="140" y1="110" x2="112" y2="106" stroke="#1A1A1A" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+export const DogAvatar: React.FC<{ size?: number }> = ({ size = 210 }) => (
+  <svg width={size} height={size} viewBox="0 0 160 160" style={{ filter: "drop-shadow(0 10px 24px rgba(0,0,0,0.25))" }}>
+    {/* Brown Floppy Ears */}
+    <ellipse cx="34" cy="74" rx="19" ry="32" transform="rotate(-16 34 74)" fill="#935B30" />
+    <ellipse cx="126" cy="74" rx="19" ry="32" transform="rotate(16 126 74)" fill="#935B30" />
+    {/* White Head */}
+    <ellipse cx="80" cy="85" rx="52" ry="46" fill="#FFFFFF" />
+    {/* Eyes */}
+    <ellipse cx="60" cy="78" rx="6.5" ry="8.5" fill="#1A1A1A" />
+    <circle cx="58" cy="75" r="2.5" fill="#FFFFFF" />
+    <ellipse cx="100" cy="78" rx="6.5" ry="8.5" fill="#1A1A1A" />
+    <circle cx="98" cy="75" r="2.5" fill="#FFFFFF" />
+    {/* Black Nose */}
+    <ellipse cx="80" cy="94" rx="7.5" ry="5.5" fill="#1A1A1A" />
+    {/* Red Tongue */}
+    <path d="M 74 104 Q 80 122 86 104 Z" fill="#EF4444" />
+    {/* Mouth lines */}
+    <path d="M 72 99 Q 80 106 88 99" fill="none" stroke="#1A1A1A" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
 /**
  * 3. 3D METALLIC GOLDEN CROWN (👑)
  * Photorealistic vector crown with 3D gold facets, ruby & sapphire cabochons, and specular light gleams.
@@ -237,6 +291,14 @@ export const FighterEmblem: React.FC<{
   size?: number;
 }> = ({ name, color, size = 160 }) => {
   const n = name.toUpperCase();
+
+  // 0. CAT & DOG (Visual Ground Truth)
+  if (n === "CAT" || n.includes(" CAT") || n.startsWith("CAT ")) {
+    return <CatAvatar size={size} />;
+  }
+  if (n === "DOG" || n.includes(" DOG") || n.startsWith("DOG ")) {
+    return <DogAvatar size={size} />;
+  }
 
   // 1. GOKU EMBLEM (Kanji "悟" GO + Saiyan Aura Ring)
   if (n.includes("GOKU")) {

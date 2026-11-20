@@ -17,6 +17,21 @@ export interface MatchupEntry extends BattlePreset {
 
 export const MASTER_ROSTER: MatchupEntry[] = [
   // ==========================================
+  // 0. SHOWCASE BENCHMARK (Exact Visual Match)
+  // ==========================================
+  {
+    universe: "creatures", subCategory: "Pets Benchmark",
+    a: { name: "CAT", title: "Feline Hunter", franchise: "CREATURES", color: "#FF5B37", signatureMove: "Agile Pounce", signaturePower: 86, speedStat: 88, durabilityStat: 80 },
+    b: { name: "DOG", title: "Canine Tracker", franchise: "CREATURES", color: "#2B6CFF", signatureMove: "Endurance Chase", signaturePower: 89, speedStat: 92, durabilityStat: 90 },
+    r1Name: "SLEEP PER DAY", r1A: "12–16 h", r1B: "12–14 h", r1Win: "a",
+    r2Name: "TOP SPEED", r2A: "48 km/h", r2B: "70 km/h*", r2Win: "b",
+    r3Name: "SCENT RECEPTORS", r3A: "~80 M", r3B: "up to 300 M", r3Win: "b",
+    winner: "b",
+    voiceHook: "बिल्ली बनाम कुत्ता! गति, नींद और सूंघने की क्षमता में कौन बनेगा असली विजेता?",
+    verdictHi: "कुत्ते ने दो राउंड जीतकर बाजी मार ली! असली विजेता बना डॉग!",
+    verdictReason: "* greyhound · typical values"
+  },
+  // ==========================================
   // 1. ANIME & MANGA
   // ==========================================
   {
