@@ -12,6 +12,8 @@ import { TemplateSchema, templateForDay, templateDuration, templateVoiceLines, t
 import { LiarLineupSchema, liarLineupForDay, liarLineupDuration, liarLineupVoiceLines, liarLineupAnswerComment } from "./liar-lineup/src/model";
 import { CodeLockSchema, codeLockForDay, codeLockDuration, codeLockVoiceLines, codeLockAnswerComment } from "./code-lock/src/model";
 import { UnpaperShortSchema, unpaperShortForDay, unpaperShortDuration, unpaperEpisodes } from "./unpaper-short/src/model";
+import { BreakingDeskSchema, breakingDeskForDay, breakingDeskDuration, breakingDeskVoiceLines, breakingDeskAnswerComment } from "./breaking-desk/src/model";
+import { VersusSplitSchema, versusSplitForDay, versusSplitDuration, versusSplitVoiceLines, versusSplitAnswerComment } from "./versus-split/src/model";
 // @engine-builder:imports
 
 export interface VoiceLine { file: string; text: string; at: number }
@@ -76,6 +78,16 @@ export const ENGINE_CATALOG: EngineEntry[] = [
   {
     slug: "unpaper-short", compositionId: "UnpaperShort", schema: UnpaperShortSchema, forDay: unpaperShortForDay,
     durationFrames: unpaperShortDuration as (p: never) => number, seconds: [150, 180], days: unpaperEpisodes
+  },
+  {
+    slug: "breaking-desk", compositionId: "BreakingDesk", schema: BreakingDeskSchema, forDay: breakingDeskForDay,
+    durationFrames: breakingDeskDuration as (p: never) => number, voiceLines: breakingDeskVoiceLines as (p: never) => VoiceLine[],
+    answer: (n) => breakingDeskAnswerComment(breakingDeskForDay(n)), seconds: [20, 35], days: () => range(30), askFrom: 1
+  },
+  {
+    slug: "versus-split", compositionId: "VersusSplit", schema: VersusSplitSchema, forDay: versusSplitForDay,
+    durationFrames: versusSplitDuration as (p: never) => number, voiceLines: versusSplitVoiceLines as (p: never) => VoiceLine[],
+    answer: (n) => versusSplitAnswerComment(versusSplitForDay(n)), seconds: [20, 35], days: () => range(30), askFrom: 1
   },
   // @engine-builder:catalog
 ];

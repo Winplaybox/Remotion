@@ -53,6 +53,14 @@ const HORROR_NARRATOR: VoiceProfile = {
   engines: CHAIN, kokoro: "hm_omega", kokoroSpeed: 0.9, gemini: "Charon",
   geminiStyle: "Say this in Hindi like a late-night horror radio storyteller — low, slow, hushed, with tense pauses", edge: "hi-IN-MadhurNeural", edgeRate: "-4%"
 };
+const NEWS_ANCHOR: VoiceProfile = {
+  engines: CHAIN, kokoro: "hm_psi", kokoroSpeed: 1.05, gemini: "Fenrir",
+  geminiStyle: "Say this in Hindi like a crisp, urgent breaking-news broadcaster — authoritative, punchy, dramatic", edge: "hi-IN-MadhurNeural", edgeRate: "+5%"
+};
+const BATTLE_HYPE: VoiceProfile = {
+  engines: CHAIN, kokoro: "hm_omega", kokoroSpeed: 1.05, gemini: "Zephyr",
+  geminiStyle: "Say this in Hindi like an energetic anime battle tournament announcer — hype, fierce, building up to the winner", edge: "hi-IN-MadhurNeural", edgeRate: "+6%"
+};
 const bedtime = (language: string, kokoro: string, gemini: string, edge: string, engines: TtsEngine[] = CHAIN): VoiceProfile => ({
   engines, kokoro, kokoroSpeed: 0.92, gemini,
   geminiStyle: `Say this in ${language} like a warm, gentle bedtime storyteller for small children — clear, smiling, unhurried`, edge, edgeRate: "-6%"
@@ -76,6 +84,8 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   alltrainreels: RAIL_HOST,
   "bachke-dikhao": CHASE_COMMENTATOR,
   "indian-horror-tapes": HORROR_NARRATOR,
+  "breaking-desk": NEWS_ANCHOR,
+  "versus-split": BATTLE_HYPE,
   "mindnest-hi": bedtime("Hindi", "hf_alpha", "Leda", "hi-IN-SwaraNeural"),
   "mindnest-es": bedtime("Spanish", "ef_dora", "Leda", "es-MX-DaliaNeural"),
   "mindnest-ar": bedtime("Arabic", "af_heart", "Leda", "ar-SA-ZariyahNeural", NO_KOKORO),
