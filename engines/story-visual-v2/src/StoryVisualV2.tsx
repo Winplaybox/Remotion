@@ -13,7 +13,7 @@ export interface StoryVisualV2Props { lang: MindNestLang; fable: number; style: 
 
 /** StoryVisualEngine V2: <SceneLayer> (art, language-free) + <StoryUI> (text). */
 export const StoryVisualV2: React.FC<StoryVisualV2Props> = ({ lang, fable, style, page = 3 }) => {
-  useStoryFonts();
+  useStoryFonts(lang);
   const { durationInFrames } = useVideoConfig();
   const s = STORY_STYLES[style];
   const text = React.useMemo(() => mindNestStoryText(lang, fable, page), [lang, fable, page]);

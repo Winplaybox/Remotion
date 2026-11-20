@@ -36,6 +36,8 @@ p.add_argument("--gemini-voice", default="Charon", help="Gemini prebuilt voice, 
 p.add_argument("--gemini-style", default="", help="how to say it (natural-language direction, prepended to every line)")
 p.add_argument("--only", type=int, help="regenerate a single scene number")
 p.add_argument("--missing-only", action="store_true", help="skip scenes whose WAV already exists")
+p.add_argument("--spec", help="narrate this lines file ([{file, text}]) instead of output/<channel>/post-NNN.narration.json")
+p.add_argument("--out-dir", help="with --spec: where the WAVs go (default public/audio/<channel>/<spec name>)")
 a = p.parse_args()
 
 lo, _, hi = a.n.partition("-")
@@ -53,9 +55,29 @@ def finish(raw_wav: str, dest: str) -> None:
 _kokoro = {}
 
 
+# kokoro-onnx language per Kokoro voice prefix (used when the torch `kokoro` package is not installed).
+KOKORO_ONNX_LANG = {"h": "hi", "e": "es", "j": "ja", "a": "en-us", "b": "en-gb", "f": "fr-fr", "i": "it", "p": "pt-br", "z": "cmn"}
+
+
+def say_kokoro_onnx(text: str, raw: str) -> None:
+    """Same Kokoro-82M voices through kokoro-onnx (CPU, no torch): scripts/telegram/kokoro.py fetches the model files."""
+    import soundfile as sf
+    from kokoro_onnx import Kokoro
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "telegram"))
+    import kokoro as kokoro_cli  # scripts/telegram/kokoro.py
+    kokoro_cli.ensure_models()
+    if "onnx" not in _kokoro:
+        _kokoro["onnx"] = Kokoro(str(kokoro_cli.HOME / kokoro_cli.FILES[0]), str(kokoro_cli.HOME / kokoro_cli.FILES[1]))
+    audio, sr = _kokoro["onnx"].create(text, voice=a.kokoro_voice, speed=a.kokoro_speed, lang=KOKORO_ONNX_LANG.get(a.kokoro_voice[0], "en-us"))
+    sf.write(raw, audio, sr)
+
+
 def say_kokoro(text: str, raw: str) -> None:
     import numpy as np, soundfile as sf
-    from kokoro import KPipeline
+    try:
+        from kokoro import KPipeline
+    except ImportError:
+        return say_kokoro_onnx(text, raw)
     lang = a.kokoro_voice[0]  # voice prefix = language: h Hindi, a American English, b British English
     if lang not in _kokoro:
         _kokoro[lang] = KPipeline(lang_code=lang, repo_id="hexgrad/Kokoro-82M")
@@ -123,10 +145,12 @@ if a.engine == "indicf5":
 def narrate_post(n: int) -> None:
     tag = f"post-{n:03d}"
     spec_path = os.path.join("output", a.channel, f"{tag}.narration.json")
-    if not os.path.exists(spec_path):
+    if a.spec:
+        spec_path, tag = a.spec, os.path.splitext(os.path.basename(a.spec))[0]
+    elif not os.path.exists(spec_path):
         subprocess.run(["npx", "ts-node", "scripts/post.ts", "--channel", a.channel, "--n", str(n), "--dry"], check=True, shell=os.name == "nt")
     scenes = json.load(open(spec_path, encoding="utf-8"))
-    out_dir = os.path.join("public", "audio", a.channel, tag)
+    out_dir = a.out_dir if (a.spec and a.out_dir) else os.path.join("public", "audio", a.channel, tag)
     os.makedirs(out_dir, exist_ok=True)
     if a.engine in ENGINES or a.engine == "auto":
         chain = [e.strip() for e in a.engines.split(",") if e.strip() in ENGINES] if a.engine == "auto" else [a.engine]
@@ -175,7 +199,7 @@ def narrate_post(n: int) -> None:
         print(f"[{a.engine}] {tag} scene {i} -> {dest}")
 
 
-for n in numbers:
+for n in (numbers[:1] if a.spec else numbers):
     narrate_post(n)
 
 print("done. Commit public/audio and push; Actions publishes on schedule.")

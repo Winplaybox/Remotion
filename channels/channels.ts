@@ -16,6 +16,8 @@ import { trainBattleForDay, trainBattleMeta } from "../content/alltrainreels/bat
 import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes/tapes";
 import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
+import { mindNestEpisode } from "../engines/story-visual-v2/src/episode/model";
+import type { StoryStyleId } from "../engines/story-visual-v2/src/presets";
 // @engine-builder:imports
 
 export interface PostMeta {
@@ -66,6 +68,8 @@ export interface ChannelConfig {
    * engines) is never cut off by the next scene. Off by default: EpicBharatSaga's pipeline stays exactly as it is.
    */
   fitScenesToVoice?: boolean;
+  /** StoryVisualEngine V2 preset (MindNest V2 episodes). */
+  storyStyle?: string;
   /** Answer comment posted on the video once it is public (pin it in YouTube Studio). */
   answer?: (n: number) => string;
   /** From this post on the answer is revealed in the next video; the comment is posted once post n+1 is public. */
@@ -83,6 +87,12 @@ const PUZZLE_TAGS = ["puzzle", "brain teaser", "brain test", "odd one out", "iq 
  * Posting slots are chosen for reach: 06:30 and 08:30 IST = US prime time (8-11 PM ET),
  * 19:30 IST = India prime time. All three channels share one schedule file.
  */
+/** Look per MindNest channel (V2). Storybook Classic is the main look; "night-story" is the bedtime preset. */
+export const MINDNEST_STYLE: Record<MindNestLang, StoryStyleId> = {
+  hi: "storybook-classic", es: "storybook-classic", ar: "storybook-classic", de: "storybook-classic",
+  ja: "storybook-classic", ko: "storybook-classic", fil: "storybook-classic"
+};
+
 export const CHANNELS = {
   "chakra-puzzle": {
     name: "Chakra Puzzle",
@@ -483,17 +493,32 @@ export const CHANNELS = {
 } satisfies Record<string, ChannelConfig>;
 
 /**
+ * MindNest render path. "v2" (default): StoryVisualEngine V2 full episode (`MindNestEpisodeV2`: hook, four illustrated
+ * pages, moral card, goodbye; per-page art, pages fit to the voice). "legacy": the previous story-diorama render
+ * (`EpicBharatSaga` composition + mindNestForDay), byte-for-byte as before. Switch with the repo variable / env
+ * MINDNEST_ENGINE=legacy. MindNest has never published from this repo (channels are off until LIVE_MINDNEST_*).
+ */
+export function mindNestEngine(): "v2" | "legacy" {
+  return repoVar("MINDNEST_ENGINE") === "legacy" ? "legacy" : "v2";
+}
+
+
+/**
  * MindNest Tales language channels ("mindnest-hi", "mindnest-es", ...). Same post number = same fable on every channel.
  * DISABLED until a human sets LIVE_MINDNEST_<LANG>=true (+ START_MINDNEST_<LANG>) after adding YT_TOKEN_MINDNEST_<LANG>.
  * Made for kids (COPPA): comments are off on those videos, so there is no comment ask and no answer comment.
+ * V2 FAILS CLOSED: a fable without hand-made art in the channel's style throws (only fable 1 / storybook-classic has
+ * art so far) instead of rendering a mismatched episode; render such a post with MINDNEST_ENGINE=legacy.
  */
 function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
   const out = {} as Record<`mindnest-${MindNestLang}`, ChannelConfig>;
+  const v2 = mindNestEngine() === "v2";
   MINDNEST_LANGS.forEach((lang, i) => {
     const UP = lang.toUpperCase();
+    const storyStyle = MINDNEST_STYLE[lang];
     out[`mindnest-${lang}`] = {
       name: `MindNest Tales (${LANGS[lang].name})`,
-      composition: "EpicBharatSaga",
+      composition: v2 ? "MindNestEpisodeV2" : "EpicBharatSaga",
       startDate: "2026-11-18",
       // Staggered so seven renders/uploads never land in the same hour.
       slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15"][i]!],
@@ -504,7 +529,8 @@ function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
       metaSecretPrefix: `META_MINDNEST_${UP}`,
       youtubeHandle: LANGS[lang].handle,
       pinterestSecretPrefix: `PINTEREST_MINDNEST_${UP}`,
-      resolve: (n) => mindNestForDay(lang, n),
+      storyStyle,
+      resolve: v2 ? (n) => mindNestEpisode(lang, n, storyStyle, { requireArt: true }) : (n) => mindNestForDay(lang, n),
       meta: (n) => mindNestMeta(lang, n)
     };
   });

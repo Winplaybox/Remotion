@@ -1,0 +1,130 @@
+{
+  "lang": "es",
+  "fable": 1,
+  "storyStyle": "storybook-classic",
+  "brand": "MINDNEST TALES",
+  "title": [
+    "Chintu aprende",
+    "a esperar"
+  ],
+  "moralLabel": "MORALEJA",
+  "moral": [
+    "La paciencia trae",
+    "cosas buenas."
+  ],
+  "scenes": [
+    {
+      "kind": "title",
+      "narration": "Chintu aprende a esperar",
+      "seconds": 1.5,
+      "audio": "mindnest-v2/audio/fable-1/es/page-0.mp3",
+      "audioSeconds": 1.488
+    },
+    {
+      "kind": "story",
+      "narration": "En un bosque verde vivía Chintu, un pequeño cachorro de guepardo, con su mamá Rani. A Chintu le encantaba correr rápido.",
+      "seconds": 9.2,
+      "audio": "mindnest-v2/audio/fable-1/es/page-1.mp3",
+      "audioSeconds": 7.44,
+      "cues": [
+        {
+          "text": "En un bosque verde vivía Chintu,",
+          "start": 0,
+          "end": 2.043
+        },
+        {
+          "text": "un pequeño cachorro de guepardo, con su mamá Rani.",
+          "start": 2.263,
+          "end": 5.074
+        },
+        {
+          "text": "A Chintu le encantaba correr rápido.",
+          "start": 5.294,
+          "end": 7.393
+        }
+      ]
+    },
+    {
+      "kind": "story",
+      "narration": "Una mañana vio una mariposa azul brillante. ¡La voy a atrapar!, gritó, y corrió tras ella.",
+      "seconds": 6.9,
+      "audio": "mindnest-v2/audio/fable-1/es/page-2.mp3",
+      "audioSeconds": 5.448,
+      "cues": [
+        {
+          "text": "Una mañana vio una mariposa azul brillante.",
+          "start": 0,
+          "end": 2.667
+        },
+        {
+          "text": "¡La voy a atrapar!, gritó, y corrió tras ella.",
+          "start": 2.887,
+          "end": 5.423
+        }
+      ]
+    },
+    {
+      "kind": "story",
+      "narration": "Pero cuanto más rápido corría, más rápido volaba ella. ¡Plaf! Chintu resbaló y cayó en el lodo.",
+      "seconds": 7.3,
+      "audio": "mindnest-v2/audio/fable-1/es/page-3.mp3",
+      "audioSeconds": 5.592,
+      "cues": [
+        {
+          "text": "Pero cuanto más rápido corría, más rápido volaba ella.",
+          "start": 0,
+          "end": 3.243
+        },
+        {
+          "text": "¡Plaf! Chintu resbaló y cayó en el lodo.",
+          "start": 3.463,
+          "end": 5.548
+        }
+      ]
+    },
+    {
+      "kind": "story",
+      "narration": "Rani sonrió. Quédate quieto y espera, mi amor. Chintu se sentó en silencio... ¡y la mariposa se posó suavemente en su nariz!",
+      "seconds": 9.5,
+      "audio": "mindnest-v2/audio/fable-1/es/page-4.mp3",
+      "audioSeconds": 7.536,
+      "cues": [
+        {
+          "text": "Rani sonrió. Quédate quieto y espera, mi amor.",
+          "start": 0,
+          "end": 2.579
+        },
+        {
+          "text": "Chintu se sentó en silencio...",
+          "start": 2.799,
+          "end": 4.617
+        },
+        {
+          "text": "¡y la mariposa se posó suavemente en su nariz!",
+          "start": 4.837,
+          "end": 7.492
+        }
+      ]
+    },
+    {
+      "kind": "moral",
+      "narration": "La moraleja de hoy: La paciencia trae cosas buenas.",
+      "seconds": 4.9,
+      "audio": "mindnest-v2/audio/fable-1/es/page-5.mp3",
+      "audioSeconds": 3.12
+    },
+    {
+      "kind": "goodbye",
+      "narration": "¡Nos vemos mañana con un cuento nuevo!",
+      "seconds": 3.7,
+      "audio": "mindnest-v2/audio/fable-1/es/page-6.mp3",
+      "audioSeconds": 2.208
+    }
+  ],
+  "music": "mindnest-v2/audio/music-box-loop.mp3",
+  "voice": {
+    "engine": "kokoro",
+    "kokoro": "ef_dora",
+    "speed": 0.92
+  }
+}

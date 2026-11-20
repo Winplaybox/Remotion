@@ -15,7 +15,7 @@ const rng = (seed: number) => {
 interface Mote { x: number; y: number; r: number; phase: number; speed: number; drift: number; depth: number }
 const MOTES = (() => { const r = rng(7); return Array.from({ length: 34 }, () => ({ x: r() * FRAME.width, y: 520 + r() * 1150, r: 0.5 + r(), phase: r() * Math.PI * 2, speed: 0.5 + r(), drift: r() * 2 - 1, depth: 0.4 + r() * 0.6 })); })();
 
-const Particles: React.FC<{ kind: ParticleKind; color: string; t: number }> = ({ kind, color, t }) => {
+export const Particles: React.FC<{ kind: ParticleKind; color: string; t: number }> = ({ kind, color, t }) => {
   if (kind === "none") return null;
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>

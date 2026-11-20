@@ -116,6 +116,11 @@ until you switch each one on.
 | `indian-horror-tapes` | Found-footage folklore "TAPE #NN", VHS finish, "Sach ya afwaah?" | `content/indian-horror-tapes/tapes.ts` (14 written) | 21:30 | Hindi, late-night storyteller |
 | `mindnest-hi/es/ar/de/ja/ko/fil` | One fable a day in every language, storybook finish, made for kids | `content/mindnest/fables.ts` (7 written) | staggered 15:30-22:30 | Bedtime voice per language |
 
+**MindNest on StoryVisualEngine V2 (Nov 2026):** MindNest channels now render the `MindNestEpisodeV2` composition
+(illustrated full episode, style per channel in `MINDNEST_STYLE`, default Storybook Classic). Set the repo variable
+`MINDNEST_ENGINE=legacy` to render with the previous story-diorama path instead. V2 fails closed for fables that have no
+art yet (only fable 1 so far). See `engines/story-visual-v2/README.md`.
+
 Shared new parts: `engines/story-diorama/src/props-channels.tsx` (train, rails, statBars, ruin, lantern, shadow, road,
 animal, moralCard, butterfly, mango), `finish` ("vhs" | "storybook" | "rail") on the story schema, original sounds from
 `scripts/sound/synth_channels.py`. Narrated scenes on these channels stretch to their voice (`fitScenesToVoice`), so a

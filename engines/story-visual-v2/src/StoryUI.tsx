@@ -27,7 +27,7 @@ function quoteEffect(s: StoryStyleConfig): React.CSSProperties {
 
 export const StoryUI: React.FC<{ style: StoryStyleConfig; text: StoryText; captionFrames: number }> = ({ style: s, text, captionFrames }) => {
   const frame = useCurrentFrame();
-  const f = fontsFor(text.script);
+  const f = fontsFor(text.script, text.lang);
   const ty = s.typography;
   const side = FRAME.safeSide;
 

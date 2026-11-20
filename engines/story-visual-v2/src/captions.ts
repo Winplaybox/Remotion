@@ -10,19 +10,30 @@ export const ADVANCE: Record<StoryText["script"], number> = { deva: 0.5, latin: 
 export function chunkCaption(text: string, script: StoryText["script"], fontSize: number, width: number): string[] {
   const perLine = Math.floor(width / (fontSize * ADVANCE[script]));
   const max = Math.floor(perLine * 1.75);
-  const clauses = text.split(/(?<=[।.!?؟،,、。！？])\s*/u).map((s) => s.trim()).filter(Boolean);
+  // Spaced scripts break only at "punctuation + space" (keeps "¡La voy a atrapar!, gritó" and "..." whole); Japanese
+  // breaks after 、。！？ unless a closing quote follows, and is re-joined without spaces.
+  const spaced = /\s/.test(text.trim());
+  const sep = spaced ? " " : "";
+  const clauses = (spaced ? text.split(/(?<=[।.!?؟،,、。！？…])\s+/u) : text.split(/(?<=[、。！？](?![」』）]))/u)).map((s) => s.trim()).filter(Boolean);
   const out: string[] = [];
   let cur = "";
   const push = () => { if (cur.trim()) out.push(cur.trim()); cur = ""; };
   for (const clause of clauses) {
-    if ((cur + " " + clause).trim().length <= max) { cur = (cur + " " + clause).trim(); continue; }
+    if ((cur + sep + clause).trim().length <= max) { cur = (cur + sep + clause).trim(); continue; }
     push();
     if (clause.length <= max) { cur = clause; continue; }
-    const units = script === "cjk" ? [...clause] : clause.split(/\s+/);
+    // Too long for one chunk: the fewest near-equal pieces at word (CJK: character) boundaries, so no chunk is a
+    // lonely last word ("था।").
+    const units = spaced ? clause.split(/\s+/) : [...clause];
+    const join = (u: string[]) => u.join(sep);
+    const target = clause.length / Math.ceil(clause.length / max);
+    let piece: string[] = [];
     for (const u of units) {
-      const next = script === "cjk" ? cur + u : (cur + " " + u).trim();
-      if (next.length > max) { push(); cur = u; } else cur = next;
+      const now = join(piece).length;
+      const next = join([...piece, u]).length;
+      if (piece.length && (next > max || (now >= target * 0.6 && Math.abs(next - target) > Math.abs(now - target)))) { out.push(join(piece)); piece = [u]; } else piece.push(u);
     }
+    cur = join(piece);
   }
   push();
   return out;
@@ -38,4 +49,12 @@ export function chunkAt(chunks: string[], frame: number, frames: number): { inde
     start += len;
   }
   return { index: 0, local: frame };
+}
+
+/** Episode caption box: <= 2 lines inside the Shorts safe area (left margin 90, right action rail 130 + 20). */
+export const EPISODE_CAPTION = { width: 1080 - 90 - 130 - 20, size: (script: StoryText["script"]) => (script === "cjk" ? 46 : 52) } as const;
+
+/** The exact chunks an episode page shows; scripts/mindnest-v2-voice.ts narrates them one by one for exact timing. */
+export function episodeChunks(text: string, script: StoryText["script"]): string[] {
+  return chunkCaption(text, script, EPISODE_CAPTION.size(script), EPISODE_CAPTION.width);
 }
