@@ -18,6 +18,8 @@ import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang 
 import { stickRiddleAnswer, stickRiddleForDay, stickRiddleMeta } from "../content/stickman/riddles";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
 import { unpaperShortForDay } from "../engines/unpaper-short/src/model";
+import { breakingDeskForDay, breakingDeskVoiceLines, breakingDeskAnswerComment } from "../engines/breaking-desk/src/model";
+import { versusSplitForDay, versusSplitVoiceLines, versusSplitAnswerComment } from "../engines/versus-split/src/model";
 // @engine-builder:imports
 
 export interface PostMeta {
@@ -527,6 +529,62 @@ Unpaper — Decode What Matters.
 #AI #research #hinglish #reels`,
         language: "hi",
         categoryId: "27"
+      };
+    }
+  },
+  "breaking-desk": {
+    name: "Breaking Desk",
+    composition: "BreakingDesk",
+    // Disabled until approved: set repo variables START_BREAKING_DESK=<date> and LIVE_BREAKING_DESK=true.
+    startDate: "2099-01-01",
+    slots: ["08:00", "18:00"],
+    narrated: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_BREAKING_DESK",
+    metaSecretPrefix: "META_BREAKING_DESK",
+    youtubeHandle: "@BreakingDeskNews",
+    pinterestSecretPrefix: "PINTEREST_BREAKING_DESK",
+    resolve: (n) => breakingDeskForDay(n),
+    voice: (n) => breakingDeskVoiceLines(breakingDeskForDay(n)),
+    answer: (n) => breakingDeskAnswerComment(breakingDeskForDay(n)),
+    answerInNextFrom: 1,
+    meta: (n) => {
+      const d = breakingDeskForDay(n);
+      return {
+        title: `Breaking Desk: ${d.story.headline} 👀 #${n} #shorts`,
+        description: `${d.story.subhead}\n${ASK_META.description}\n\nSubscribe @BreakingDeskNews\n#news #breaking #shorts`,
+        tags: ["news", "breaking", "shorts", "updates"],
+        caption: `#${n} — ${d.story.subhead}\n${ASK_META.caption}\n#news #reels`,
+        language: "hi",
+        categoryId: "25"
+      };
+    }
+  },
+  "versus-split": {
+    name: "Versus Split",
+    composition: "VersusSplit",
+    // Disabled until approved: set repo variables START_VERSUS_SPLIT=<date> and LIVE_VERSUS_SPLIT=true.
+    startDate: "2099-01-01",
+    slots: ["13:00", "20:00"],
+    narrated: true,
+    autoPublish: false,
+    youtubeTokenSecret: "YT_TOKEN_VERSUS_SPLIT",
+    metaSecretPrefix: "META_VERSUS_SPLIT",
+    youtubeHandle: "@VersusSplitClash",
+    pinterestSecretPrefix: "PINTEREST_VERSUS_SPLIT",
+    resolve: (n) => versusSplitForDay(n),
+    voice: (n) => versusSplitVoiceLines(versusSplitForDay(n)),
+    answer: (n) => versusSplitAnswerComment(versusSplitForDay(n)),
+    answerInNextFrom: 1,
+    meta: (n) => {
+      const d = versusSplitForDay(n);
+      return {
+        title: `Versus Split: ${d.fighterA.name + ' vs ' + d.fighterB.name} 💥 #${n} #shorts`,
+        description: `${d.fighterA.name} vs ${d.fighterB.name} — ${d.verdictReason}\n${ASK_META.description}\n\nSubscribe @VersusSplitClash\n#versus #anime #battle #shorts`,
+        tags: ["versus", "anime", "battle", "dbz", "pokemon", "wwe", "shorts"],
+        caption: `#${n} — ${d.fighterA.name} vs ${d.fighterB.name}\n${ASK_META.caption}\n#versus #anime #reels`,
+        language: "hi",
+        categoryId: "24"
       };
     }
   },

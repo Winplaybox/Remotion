@@ -48,6 +48,10 @@ const CodeLockRemotionSchema = CodeLockSchema._def.schema;
 import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
 import { UnpaperShortSchema, unpaperShortDuration, unpaperShortForDay, type UnpaperShort } from "../../../../engines/unpaper-short/src/model";
 import { UnpaperShortComposition } from "../../../../engines/unpaper-short/src/UnpaperShortComposition";
+import { BreakingDeskSchema, breakingDeskDuration, breakingDeskForDay, type BreakingDesk } from "../../../../engines/breaking-desk/src/model";
+import { BreakingDeskComposition } from "../../../../engines/breaking-desk/src/BreakingDeskComposition";
+import { VersusSplitSchema, versusSplitDuration, versusSplitForDay, type VersusSplit } from "../../../../engines/versus-split/src/model";
+import { VersusSplitComposition } from "../../../../engines/versus-split/src/VersusSplitComposition";
 // @engine-builder:imports
 
 const orbitPuzzle = OrbitPuzzleSchema.parse(ORBIT_PUZZLE_DEMO);
@@ -91,6 +95,14 @@ export const Root: React.FC = () => (
     <Folder name="UnpaperShort">
       <Composition id="UnpaperShort" component={UnpaperShortComposition} schema={UnpaperShortSchema} {...video} durationInFrames={unpaperShortDuration(unpaperShortForDay(1))} defaultProps={unpaperShortForDay(1)}
         calculateMetadata={({ props }: { props: UnpaperShort }) => ({ durationInFrames: unpaperShortDuration(props) })} />
+    </Folder>
+    <Folder name="BreakingDesk">
+      <Composition id="BreakingDesk" component={BreakingDeskComposition} schema={BreakingDeskSchema} {...video} durationInFrames={breakingDeskDuration(breakingDeskForDay(1))} defaultProps={breakingDeskForDay(1)}
+        calculateMetadata={({ props }: { props: BreakingDesk }) => ({ durationInFrames: breakingDeskDuration(props) })} />
+    </Folder>
+    <Folder name="VersusSplit">
+      <Composition id="VersusSplit" component={VersusSplitComposition} schema={VersusSplitSchema} {...video} durationInFrames={versusSplitDuration(versusSplitForDay(1))} defaultProps={versusSplitForDay(1)}
+        calculateMetadata={({ props }: { props: VersusSplit }) => ({ durationInFrames: versusSplitDuration(props) })} />
     </Folder>
 {/* @engine-builder:compositions */}
     <Folder name="NarratorVideo">
