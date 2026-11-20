@@ -13,7 +13,16 @@ p.add_argument("--language", default=None)
 a = p.parse_args()
 
 model = WhisperModel(a.model, device="cpu", compute_type="int8")
-segments, info = model.transcribe(a.audio, language=a.language, word_timestamps=True, vad_filter=True, beam_size=1)
+def run(vad):
+    segs, inf = model.transcribe(a.audio, language=a.language, word_timestamps=True, vad_filter=vad, beam_size=1)
+    return list(segs), inf
+
+segments, info = run(True)
+if not segments:
+    # VAD drops sung vocals over music (songs, bhajans), so retry without it and keep only confident segments.
+    print("[transcribe] VAD found no speech; retrying without VAD (song/music video?)")
+    segments, info = run(False)
+    segments = [s for s in segments if s.no_speech_prob < 0.6 and s.avg_logprob > -1.0 and s.text.strip()]
 out = {"language": info.language, "duration": info.duration, "segments": []}
 for s in segments:
     out["segments"].append({
