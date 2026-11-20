@@ -9,9 +9,18 @@ import type { VoiceLine } from "../../../channels/channels";
 
 export const FPS = 30;
 
+export const ChatLineSchema = z.object({
+  id: z.string(),
+  sender: z.enum(["user", "contact"]),
+  text: z.string(),
+  time: z.string().optional(),
+  highlight: z.boolean().optional(),
+  hasReadReceipt: z.boolean().optional()
+});
+
 export const NewsStorySchema = z.object({
   id: z.string(),
-  category: z.string(), // "AI & TECH", "SPACE", "SCIENCE", "GAMING", "GLOBAL"
+  category: z.string(), // "AI & TECH", "SPACE", "SCIENCE", "BHAKTI", "GLOBAL"
   location: z.string(),
   headline: z.string(),
   subhead: z.string(),
@@ -20,7 +29,11 @@ export const NewsStorySchema = z.object({
   highlightLine: z.string(),
   reactionPill: z.string(),
   voiceScript: z.string(), // Devanagari script for Kokoro/TTS
-  ticker: z.array(z.string()).min(2)
+  ticker: z.array(z.string()).min(2),
+  contactName: z.string().optional(),
+  contactAvatar: z.string().optional(),
+  contactStatus: z.string().optional(),
+  dialogue: z.array(ChatLineSchema).optional()
 });
 
 export const BreakingDeskSchema = z.object({
@@ -47,6 +60,36 @@ export const BreakingDeskSchema = z.object({
 export type BreakingDesk = z.infer<typeof BreakingDeskSchema>;
 
 const STORIES = [
+  // ==========================================
+  // 0. LORD HANUMAN CHAT (Interactive Dialogue)
+  // ==========================================
+  {
+    category: "BHAKTI & SANATAN",
+    location: "Ayodhya Dham",
+    headline: "भयभीत मत हो वत्स, जहाँ श्री राम का नाम है वहाँ कोई संकट टिक नहीं सकता।",
+    subhead: "संकट मोचन हनुमान जी से सीधा संवाद",
+    source: "श्री राम चरित मानस",
+    cardText: "संकट कटै मिटै सब पीरा। जो सुमिरै हनुमत बलबीरा॥ मेरा आशीर्वाद सदा तुम्हारे साथ है।",
+    highlightLine: "जय श्री राम! जय बजरंगबली! 🚩🙏",
+    reactionPill: "🚩 संकटमोचन",
+    contactName: "श्री हनुमान जी 🚩",
+    contactAvatar: "saffron-gada",
+    contactStatus: "सदैव आपके साथ • online",
+    voiceScript: "वत्स, भयभीत मत हो। निष्कपट भाव से प्रभु राम की शरण में आओ। संकट कटै मिटै सब पीरा, जो सुमिरै हनुमत बलबीरा।",
+    question: "क्या आप प्रतिदिन हनुमान चालीसा का पाठ करते हैं?",
+    options: ["1. हाँ, प्रतिदिन 🙏", "2. मंगलवार को 🚩", "3. आज से शुरू करूँगा ✨"],
+    voiceQuestion: "क्या आप प्रतिदिन हनुमान चालीसा का पाठ करते हैं?",
+    answer: "हनुमान चालीसा का नियमित पाठ भय, नकारात्मकता और हर संकट को दूर करता है।",
+    ticker: ["हनुमान चालीसा पाठ से दूर होते हैं सारे संकट", "मंगलवार और शनिवार को करें विशेष ध्यान", "जय बजरंगबली 🚩"],
+    dialogue: [
+      { id: "m1", sender: "user" as const, text: "प्रभु, जीवन में बहुत संकट और अशांति है, क्या करूं? 😔", time: "11:41 PM" },
+      { id: "m2", sender: "contact" as const, text: "वत्स, भयभीत मत हो। जहाँ श्री राम का नाम है, वहाँ कोई संकट टिक नहीं सकता।", time: "11:42 PM" },
+      { id: "m3", sender: "user" as const, text: "प्रभु, क्या आप सच में हर पल मेरी रक्षा करते हैं? 🙏", time: "11:42 PM", hasReadReceipt: true },
+      { id: "m4", sender: "contact" as const, text: "सदा! 'संकट कटै मिटै सब पीरा, जो सुमिरै हनुमत बलबीरा॥' तुम बस सच्चे मन से राम नाम का स्मरण करो।", time: "11:43 PM" },
+      { id: "m5", sender: "contact" as const, text: "🚩 मेरा आशीर्वाद और सुरक्षा कवच सदा तुम्हारे साथ है।", time: "11:43 PM", highlight: true },
+      { id: "m6", sender: "user" as const, text: "जय श्री राम! जय बजरंगबली! 🚩🙏", time: "11:44 PM" }
+    ]
+  },
   {
     category: "AI & TECH",
     location: "San Francisco, USA",
@@ -56,12 +99,22 @@ const STORIES = [
     cardText: "A new autonomous AI system has formulated and verified a novel physics hypothesis in under 48 hours without human intervention.",
     highlightLine: "NO HUMAN INPUT REQUIRED FOR 48 HOURS",
     reactionPill: "⚡ MILESTONE",
+    contactName: "BREAKING WIRE",
+    contactStatus: "• online",
     voiceScript: "ब्रेकिंग न्यूज़! एआई ने पहली बार बिना किसी इंसान की मदद के, अड़तालीस घंटे में खुद एक नई साइंस थ्योरी साबित कर दी!",
     question: "Kya AI Agle 5 Saal Mein Scientists Ko Replace Karega?",
     options: ["1. HAAN 🚀", "2. NAHI 👨‍🔬", "3. PATA NAHI 🤔"],
     voiceQuestion: "क्या एआई अगले पाँच साल में वैज्ञानिकों को पीछे छोड़ देगा?",
     answer: "Experts maante hain AI lab assistant banega, par human intuition ko replace nahi kar sakta.",
-    ticker: ["AI RESEARCH PASSES PEER REVIEW", "GLOBAL CHIP PRODUCTION UP 18%", "SUPERCOMPUTER SPEEDS TRIPLE"]
+    ticker: ["AI RESEARCH PASSES PEER REVIEW", "GLOBAL CHIP PRODUCTION UP 18%", "SUPERCOMPUTER SPEEDS TRIPLE"],
+    dialogue: [
+      { id: "m1", sender: "user" as const, text: "did you see what just dropped in the news?!", time: "11:41 PM" },
+      { id: "m2", sender: "contact" as const, text: "AI MODEL BEATS HUMAN SCIENTISTS IN LAB EXPERIMENTS", time: "11:42 PM" },
+      { id: "m3", sender: "user" as const, text: "Wait, is this officially confirmed?!", time: "11:42 PM", hasReadReceipt: true },
+      { id: "m4", sender: "contact" as const, text: "A new autonomous AI system formulated and verified a novel physics hypothesis in under 48 hours without human intervention.", time: "11:43 PM" },
+      { id: "m5", sender: "contact" as const, text: "⚡ NO HUMAN INPUT REQUIRED FOR 48 HOURS", time: "11:43 PM", highlight: true },
+      { id: "m6", sender: "user" as const, text: "This changes literally everything.", time: "11:44 PM" }
+    ]
   },
   {
     category: "SPACE",
@@ -72,6 +125,8 @@ const STORIES = [
     cardText: "Indian space scientists have revealed the final integration timeline for the high-altitude coronagraph satellite.",
     highlightLine: "DIRECT REAL-TIME SOLAR FLARE ALERTS",
     reactionPill: "🚀 SPACE RACE",
+    contactName: "SPACE DESK",
+    contactStatus: "• online",
     voiceScript: "बड़ी खबर! इसरो ने अपने नए सोलर मिशन की तारीख तय कर दी है, जो सूरज के तूफानों की लाइव चेतावनी सीधे धरती पर भेजेगा!",
     question: "Kaun Sa Desh Pehle Deep-Space Base Banayega?",
     options: ["1. BHARAT 🇮🇳", "2. USA 🇺🇸", "3. CHINA 🇨🇳"],
@@ -88,6 +143,8 @@ const STORIES = [
     cardText: "Solid-state graphene cell shows zero degradation after 2,000 rapid charging cycles at extreme temperatures.",
     highlightLine: "0 TO 100% IN UNDER 180 SECONDS",
     reactionPill: "🔋 BATTERY TECH",
+    contactName: "TECH DISPATCH",
+    contactStatus: "• online",
     voiceScript: "इलेक्ट्रिक गाड़ियों की सबसे बड़ी समस्या खत्म! टोक्यो में नई ग्रैफीन बैटरी बनी है जो सिर्फ तीन मिनट में फुल चार्ज हो जाती है!",
     question: "Kya Aap Graphene EV Kharidne Ke Liye Ready Hain?",
     options: ["1. BILKUL ⚡", "2. ABHI NAHI 🛑", "3. PRICE PAR DEPEND 🤔"],
@@ -104,6 +161,8 @@ const STORIES = [
     cardText: "Deep-sea submersible cameras captured an undiscovered organism with bioluminescent crystalline skin surviving 900 atm pressure.",
     highlightLine: "SURVIVES 900 TIMES SURFACE PRESSURE",
     reactionPill: "🌊 DEEP OCEAN",
+    contactName: "OCEAN WIRE",
+    contactStatus: "• online",
     voiceScript: "समंदर के नौ हज़ार मीटर गहरे अंधेरे में एक नया जीव मिला है, जो नौ सौ गुना दबाव में भी नीली रोशनी छोड़ता है!",
     question: "Samandar Mein Zyada Secrets Hain Ya Space Mein?",
     options: ["1. OCEAN 🌊", "2. SPACE 🌌", "3. DONO EQUAL ⚖️"],
@@ -120,6 +179,8 @@ const STORIES = [
     cardText: "Players can now experience realistic rain drops, sub-zero wind chills, and projectile impacts with 1ms micro-actuators.",
     highlightLine: "REAL TEMPERATURE AND RAIN SENSATION",
     reactionPill: "🎮 VR REVOLUTION",
+    contactName: "GAMING WIRE",
+    contactStatus: "• online",
     voiceScript: "गेमिंग का भविष्य आ चुका है! इस नए हैप्टिक सूट को पहनकर आप गेम की ठंडी हवा, बारिश और गोलियों का झटका असल में महसूस कर सकते हैं!",
     question: "Kya Aap Aisa Full-Body VR Suit Pehankar Kheloge?",
     options: ["1. ZAROOR 🥽", "2. DAR LAGTA HAI 😅", "3. BOHOT MEHNGA HAI 💸"],
@@ -136,6 +197,8 @@ const STORIES = [
     cardText: "Underground basalt reactors capture 4,000 tons of atmospheric CO2 each year, turning carbon into solid stone minerals.",
     highlightLine: "TURNS CO2 GAS DIRECTLY INTO SOLID ROCK",
     reactionPill: "🌱 CLEAN TECH",
+    contactName: "EARTH WIRE",
+    contactStatus: "• online",
     voiceScript: "आइसलैंड के वैज्ञानिकों ने कमाल कर दिया! हवा से प्रदूषण खींचकर उसे ज़मीन के नीचे पत्थर में बदलने का प्लांट शुरू हो गया है!",
     question: "Kya Aise Plants Puri Duniya Mein Lagne Chahiye?",
     options: ["1. SAHI HAI 🌍", "2. EXPENSIVE HAI 💰", "3. OTHER WAYS CHAHIYE 🌳"],
@@ -152,6 +215,8 @@ const STORIES = [
     cardText: "Photonic quantum key distribution network tested over 400 kilometers with zero unauthorized decryptions achieved.",
     highlightLine: "ZERO PACKETS DECRYPTED IN 6 MONTHS",
     reactionPill: "🔒 CYBER DEFENSE",
+    contactName: "CYBER MATRIX",
+    contactStatus: "• online",
     voiceScript: "हैकिंग का खतरा अब खत्म! क्वांटम नेटवर्क का नया शील्ड तैयार हुआ है, जिसे दुनिया का सबसे बड़ा सुपरकंप्यूटर भी नहीं तोड़ पाया!",
     question: "Aapke Phone Mein Quantum Security Honi Chahiye?",
     options: ["1. YES PRIVACY FIRST 🔐", "2. REGULAR PASSWORD THEEK HAI 👍", "3. NAHI PATA 🤷"],
@@ -195,7 +260,11 @@ export function breakingDeskForDay(day: number): BreakingDesk {
     highlightLine: s.highlightLine,
     reactionPill: s.reactionPill,
     voiceScript: s.voiceScript,
-    ticker: s.ticker
+    ticker: s.ticker,
+    contactName: (s as any).contactName,
+    contactAvatar: (s as any).contactAvatar,
+    contactStatus: (s as any).contactStatus,
+    dialogue: (s as any).dialogue
   };
 
   const hour = 18 + ((d * 3) % 4);
@@ -204,7 +273,7 @@ export function breakingDeskForDay(day: number): BreakingDesk {
   return {
     voice: [],
     sound: true,
-    brand: "BREAKING DESK",
+    brand: (s as any).contactName || "BREAKING DESK",
     handle: "@BreakingDeskNews",
     postNo: d,
     story: uniqueStory,
@@ -234,22 +303,13 @@ export function breakingDeskVoiceLines(p: BreakingDesk): VoiceLine[] {
   lines.push({ file: `hook_${p.postNo}.wav`, text: p.story.voiceScript, at: +t.toFixed(2) });
   t += 7.5;
 
-  // Key takeaway line
-  lines.push({
-    file: `highlight_${p.postNo}.wav`,
-    text: `खास बात: ${p.story.highlightLine.toLowerCase()}`,
-    at: +t.toFixed(2)
-  });
-  t += 6.5;
-
-  // Ask outro lines
-  const outroLines = askOutroVoice(p.askOutro, p.introSeconds + p.playSeconds);
-  lines.push(...outroLines);
+  // AskOutro
+  lines.push(...askOutroVoice(p.askOutro, +t.toFixed(2)));
 
   return lines;
 }
 
 export function breakingDeskAnswerComment(p: BreakingDesk): string {
   const s = STORIES[(p.postNo - 1) % STORIES.length]!;
-  return `📌 REPORT UPDATE #${p.postNo}: ${s.answer} Roz aisi breaking news ke liye subscribe karein @BreakingDeskNews!`;
+  return `📌 REPORT #${p.postNo} INSIGHT: ${s.answer}`;
 }
