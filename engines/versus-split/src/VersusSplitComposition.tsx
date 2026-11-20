@@ -7,17 +7,19 @@ import { SoundBed, duckFromCues, type Sfx } from "../../../packages/visuals/src/
 import { VoiceCues } from "../../../packages/visuals/src/VoiceCues";
 import { askOutroSfx, followTapAt } from "../../ask-outro";
 import type { VersusSplit } from "./model";
+import { FighterEmblem, LightningSeam, MangaSpeedlines, MetallicCrown } from "./graphics";
 
 /**
- * VersusSplitComposition — GravityClaw "Versus Split" Ground Truth
+ * VersusSplitComposition — Hyper-Cinematic Motion Studio Edition
  *
- * Style Specs:
- * - Two halves split by diagonal/seam with slam-in animation
- * - Black VS badge with yellow (#ffd23f) ring on the collision seam
- * - Translucent stats panel with racing bars growing outward from the centre
- * - Live animated round scores and winner indicators
- * - Dramatic climax: Golden Crown (👑) dropping and bouncing on the winner
- * - Verdict slam with reason and community AskOutro
+ * Engineered with Motion Studio choreography:
+ * - GSAP-grade spring dynamics, anticipation, and staggered timeline
+ * - Real diagonal split (polygon angled slash) with active lightning seam
+ * - Stylized vector character crests & dynamic fighter auras
+ * - Anime radiating action speedlines & camera micro-shake
+ * - Racing neon stat gauge bars with live counter progression
+ * - 3D Metallic Golden Crown (👑) with ruby gems, specular glints & gravity bounce
+ * - High-impact verdict slam & AskOutro community debate
  */
 export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
   useBundledFonts();
@@ -42,14 +44,19 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
     { src: "sfx/bell.mp3", at: p.introSeconds + 4.5, volume: 0.35 },
     { src: "sfx/ding.mp3", at: p.introSeconds + 8.5, volume: 0.35 },
     { src: "sfx/bell.mp3", at: p.introSeconds + 12.0, volume: 0.4 },
-    { src: "sfx/pop.mp3", at: p.introSeconds + p.playSeconds - p.climaxSeconds, volume: 0.5 },
+    { src: "sfx/pop.mp3", at: p.introSeconds + p.playSeconds - p.climaxSeconds, volume: 0.55 },
     ...askOutroSfx(p.askOutro, p.introSeconds + p.playSeconds)
   ];
 
-  // Slam-in springs for the two halves
+  // GSAP-Grade Spring Choreography
   const slamA = spring({ frame: f, fps, config: { damping: 11, stiffness: 140 } });
   const slamB = spring({ frame: Math.max(0, f - 4), fps, config: { damping: 11, stiffness: 140 } });
-  const vsSlam = spring({ frame: Math.max(0, f - 8), fps, config: { damping: 9, stiffness: 180 } });
+  const vsSlam = spring({ frame: Math.max(0, f - 8), fps, config: { damping: 9, stiffness: 190 } });
+
+  // Camera Shake on Initial Slam (f: 0-16) and Climax Slam (f: climaxFrame - climaxFrame + 18)
+  const initialShake = f < 18 ? Math.sin(f * 2.2) * (1 - f / 18) * 14 : 0;
+  const climaxShake = isClimax && f - climaxFrame < 20 ? Math.sin((f - climaxFrame) * 2.5) * (1 - (f - climaxFrame) / 20) * 18 : 0;
+  const cameraShakeY = initialShake + climaxShake;
 
   // Rounds timing
   const r1Start = 20;
@@ -60,12 +67,12 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
   const r2Show = f >= r2Start;
   const r3Show = f >= r3Start;
 
-  // Bar progress animations (0 -> 1)
+  // Racing stat progress (0 -> 1)
   const barProgress1 = interpolate(f, [r1Start, r1Start + 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const barProgress2 = interpolate(f, [r2Start, r2Start + 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const barProgress3 = interpolate(f, [r3Start, r3Start + 22], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  // Running Score calculation
+  // Real-time Score calculation
   let scoreA = 0;
   let scoreB = 0;
   if (f >= r1Start + 18) {
@@ -81,51 +88,74 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
     else if (p.rounds[2]?.win === "b") scoreB++;
   }
 
-  // Crown physics drop & bounce
-  const crownSpring = spring({ frame: Math.max(0, f - climaxFrame), fps, config: { damping: 8, stiffness: 160 } });
-  const crownY = interpolate(crownSpring, [0, 1], [-320, 0]);
+  // 3D Crown Physics: Heavy drop with bouncy settling
+  const crownSpring = spring({ frame: Math.max(0, f - climaxFrame), fps, config: { damping: 7, stiffness: 150 } });
+  const crownY = interpolate(crownSpring, [0, 1], [-380, 0]);
 
-  // Center pulse & energy
-  const clashPulse = 1 + Math.sin(frame * 0.35) * 0.06;
+  // Center pulse
+  const clashPulse = 1 + Math.sin(frame * 0.35) * 0.07;
 
   const winA = p.winner === "a";
   const coralA = p.fighterA.color || "#ff6b4a";
   const blueB = p.fighterB.color || "#2b6cff";
 
   return (
-    <AbsoluteFill style={{ backgroundColor: "#060810", color: "#FFFFFF", overflow: "hidden" }}>
-      {/* 1. TOP / LEFT HALF: FIGHTER A */}
+    <AbsoluteFill
+      style={{
+        backgroundColor: "#05070E",
+        color: "#FFFFFF",
+        overflow: "hidden",
+        transform: `translateY(${cameraShakeY}px)`
+      }}
+    >
+      {/* 1. ANIME RADIATING SPEEDLINES */}
+      <MangaSpeedlines frame={frame} opacity={f < 45 || isClimax ? 0.35 : 0.15} />
+
+      {/* 2. TOP / LEFT HALF: FIGHTER A (Diagonal Angle Split) */}
       <div
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           right: 0,
-          height: 960,
-          background: `radial-gradient(circle at 50% 25%, ${coralA}3a 0%, #080D1A 85%)`,
+          height: 1040,
+          clipPath: "polygon(0 0, 100% 0, 100% 880px, 0 1020px)",
+          background: `radial-gradient(circle at 40% 30%, ${coralA}44 0%, #070B16 80%)`,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "70px 50px 40px",
-          transform: `translateY(${(1 - slamA) * -180}px)`,
-          opacity: isClimax && !winA ? 0.3 : slamA,
-          transition: "opacity 0.4s ease"
+          padding: "70px 50px 70px",
+          transform: `translateY(${(1 - slamA) * -220}px)`,
+          opacity: isClimax && !winA ? 0.25 : slamA,
+          transition: "opacity 0.4s ease",
+          zIndex: 10
         }}
       >
+        {/* Halftone Dot Overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px)",
+            backgroundSize: "20px 20px",
+            pointerEvents: "none"
+          }}
+        />
+
         {/* Header Fighter A */}
-        <div>
+        <div style={{ position: "relative", zIndex: 2 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div
               style={{
                 backgroundColor: coralA,
                 color: "#FFFFFF",
-                padding: "6px 18px",
+                padding: "6px 20px",
                 borderRadius: 99,
                 fontSize: 22,
                 fontFamily: FONT.punch,
                 fontWeight: 900,
                 letterSpacing: 2,
-                boxShadow: `0 0 20px ${coralA}66`
+                boxShadow: `0 0 25px ${coralA}77`
               }}
             >
               {p.fighterA.franchise}
@@ -135,34 +165,46 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
             </span>
           </div>
 
-          <div
-            style={{
-              fontFamily: FONT.display,
-              fontSize: 78,
-              lineHeight: 1.02,
-              color: "#FFFFFF",
-              textShadow: `0 0 35px ${coralA}99`
-            }}
-          >
-            {p.fighterA.name}
-          </div>
-          <div style={{ fontFamily: FONT.ui, fontSize: 30, fontWeight: 700, color: "#BFDBFE", marginTop: 4 }}>
-            {p.fighterA.title}
+          {/* Name & Fighter Crest Row */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+            <div>
+              <div
+                style={{
+                  fontFamily: FONT.display,
+                  fontSize: 82,
+                  lineHeight: 0.98,
+                  color: "#FFFFFF",
+                  textShadow: `0 0 40px ${coralA}cc, 0 4px 10px rgba(0,0,0,0.8)`
+                }}
+              >
+                {p.fighterA.name}
+              </div>
+              <div style={{ fontFamily: FONT.ui, fontSize: 30, fontWeight: 800, color: "#BFDBFE", marginTop: 4 }}>
+                {p.fighterA.title}
+              </div>
+            </div>
+
+            {/* Illustrated Crest Emblem */}
+            <div style={{ transform: "scale(1.1)", filter: `drop-shadow(0 0 20px ${coralA}88)` }}>
+              <FighterEmblem name={p.fighterA.name} franchise={p.fighterA.franchise} color={coralA} size={135} />
+            </div>
           </div>
         </div>
 
         {/* Signature Move Box */}
         <div
           style={{
-            backgroundColor: "rgba(255, 255, 255, 0.07)",
-            backdropFilter: "blur(12px)",
+            position: "relative",
+            zIndex: 2,
+            backgroundColor: "rgba(255, 255, 255, 0.08)",
+            backdropFilter: "blur(14px)",
             border: `2px solid ${coralA}aa`,
             borderRadius: 22,
-            padding: "20px 26px",
+            padding: "18px 26px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            boxShadow: `0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px ${coralA}22`
+            boxShadow: `0 12px 35px rgba(0,0,0,0.6), inset 0 0 25px ${coralA}25`
           }}
         >
           <div>
@@ -173,7 +215,7 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
               {p.fighterA.signatureMove}
             </div>
           </div>
-          <div style={{ fontSize: 40 }}>💥</div>
+          <div style={{ fontSize: 42, filter: "drop-shadow(0 0 10px #FFD23F)" }}>💥</div>
         </div>
 
         {/* Winner Crown on Fighter A */}
@@ -181,26 +223,25 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
           <div
             style={{
               position: "absolute",
-              top: 130,
+              top: 100,
               right: 60,
-              transform: `translateY(${crownY}px) rotate(6deg)`,
+              transform: `translateY(${crownY}px) rotate(5deg)`,
               textAlign: "center",
-              zIndex: 40
+              zIndex: 50
             }}
           >
-            <div style={{ fontSize: 110, filter: "drop-shadow(0 15px 35px rgba(253, 224, 71, 0.9))" }}>
-              👑
-            </div>
+            <MetallicCrown size={190} frame={frame} glowColor="#FFD23F" />
             <div
               style={{
+                marginTop: -10,
                 backgroundColor: "#ffd23f",
                 color: "#000000",
                 fontFamily: FONT.punch,
                 fontWeight: 900,
-                fontSize: 24,
-                padding: "8px 20px",
+                fontSize: 26,
+                padding: "8px 24px",
                 borderRadius: 14,
-                boxShadow: "0 6px 20px rgba(0,0,0,0.6)",
+                boxShadow: "0 8px 25px rgba(0,0,0,0.7)",
                 letterSpacing: 2
               }}
             >
@@ -210,85 +251,51 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
         )}
       </div>
 
-      {/* 2. CENTER COLLISION SEAM & VS BADGE */}
+      {/* 3. BOTTOM / RIGHT HALF: FIGHTER B (Diagonal Angle Split) */}
       <div
         style={{
           position: "absolute",
-          top: 935,
+          top: 880,
           left: 0,
           right: 0,
-          height: 50,
-          zIndex: 30,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center"
-        }}
-      >
-        {/* Glowing seam line */}
-        <div
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: 6,
-            background: `linear-gradient(90deg, ${coralA}, #ffd23f, ${blueB})`,
-            boxShadow: "0 0 25px #ffd23f"
-          }}
-        />
-
-        {/* GravityClaw Black VS Badge with Yellow Ring */}
-        <div
-          style={{
-            position: "relative",
-            width: 88,
-            height: 88,
-            borderRadius: "50%",
-            backgroundColor: "#000000",
-            border: "4px solid #ffd23f",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            fontFamily: FONT.display,
-            fontSize: 38,
-            fontWeight: 900,
-            color: "#FFFFFF",
-            boxShadow: "0 0 35px rgba(255, 210, 63, 0.8)",
-            transform: `scale(${vsSlam * clashPulse})`
-          }}
-        >
-          VS
-        </div>
-      </div>
-
-      {/* 3. BOTTOM / RIGHT HALF: FIGHTER B */}
-      <div
-        style={{
-          position: "absolute",
-          top: 960,
-          left: 0,
-          right: 0,
-          height: 960,
-          background: `radial-gradient(circle at 50% 75%, ${blueB}3a 0%, #120914 85%)`,
+          height: 1040,
+          clipPath: "polygon(0 140px, 100% 0, 100% 1040px, 0 1040px)",
+          background: `radial-gradient(circle at 60% 70%, ${blueB}44 0%, #0F0814 80%)`,
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "50px 50px 80px",
-          transform: `translateY(${(1 - slamB) * 180}px)`,
-          opacity: isClimax && winA ? 0.3 : slamB,
-          transition: "opacity 0.4s ease"
+          padding: "100px 50px 70px",
+          transform: `translateY(${(1 - slamB) * 220}px)`,
+          opacity: isClimax && winA ? 0.25 : slamB,
+          transition: "opacity 0.4s ease",
+          zIndex: 10
         }}
       >
+        {/* Halftone Dot Overlay */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px)",
+            backgroundSize: "20px 20px",
+            pointerEvents: "none"
+          }}
+        />
+
         {/* Signature Move Box */}
         <div
           style={{
-            backgroundColor: "rgba(255, 255, 255, 0.07)",
-            backdropFilter: "blur(12px)",
+            position: "relative",
+            zIndex: 2,
+            backgroundColor: "rgba(255, 255, 255, 0.08)",
+            backdropFilter: "blur(14px)",
             border: `2px solid ${blueB}aa`,
             borderRadius: 22,
-            padding: "20px 26px",
+            padding: "18px 26px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            boxShadow: `0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px ${blueB}22`
+            boxShadow: `0 12px 35px rgba(0,0,0,0.6), inset 0 0 25px ${blueB}25`
           }}
         >
           <div>
@@ -299,24 +306,34 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
               {p.fighterB.signatureMove}
             </div>
           </div>
-          <div style={{ fontSize: 40 }}>⚡</div>
+          <div style={{ fontSize: 42, filter: "drop-shadow(0 0 10px #60A5FA)" }}>⚡</div>
         </div>
 
         {/* Footer Fighter B Details */}
-        <div>
-          <div style={{ fontFamily: FONT.ui, fontSize: 30, fontWeight: 700, color: "#FECACA", marginBottom: 4 }}>
-            {p.fighterB.title}
-          </div>
-          <div
-            style={{
-              fontFamily: FONT.display,
-              fontSize: 78,
-              lineHeight: 1.02,
-              color: "#FFFFFF",
-              textShadow: `0 0 35px ${blueB}99`
-            }}
-          >
-            {p.fighterB.name}
+        <div style={{ position: "relative", zIndex: 2 }}>
+          {/* Name & Fighter Crest Row */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontFamily: FONT.ui, fontSize: 30, fontWeight: 800, color: "#FECACA", marginBottom: 4 }}>
+                {p.fighterB.title}
+              </div>
+              <div
+                style={{
+                  fontFamily: FONT.display,
+                  fontSize: 82,
+                  lineHeight: 0.98,
+                  color: "#FFFFFF",
+                  textShadow: `0 0 40px ${blueB}cc, 0 4px 10px rgba(0,0,0,0.8)`
+                }}
+              >
+                {p.fighterB.name}
+              </div>
+            </div>
+
+            {/* Illustrated Crest Emblem */}
+            <div style={{ transform: "scale(1.1)", filter: `drop-shadow(0 0 20px ${blueB}88)` }}>
+              <FighterEmblem name={p.fighterB.name} franchise={p.fighterB.franchise} color={blueB} size={135} />
+            </div>
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12 }}>
@@ -324,13 +341,13 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
               style={{
                 backgroundColor: blueB,
                 color: "#FFFFFF",
-                padding: "6px 18px",
+                padding: "6px 20px",
                 borderRadius: 99,
                 fontSize: 22,
                 fontFamily: FONT.punch,
                 fontWeight: 900,
                 letterSpacing: 2,
-                boxShadow: `0 0 20px ${blueB}66`
+                boxShadow: `0 0 25px ${blueB}77`
               }}
             >
               {p.fighterB.franchise}
@@ -346,26 +363,25 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
           <div
             style={{
               position: "absolute",
-              bottom: 130,
+              bottom: 110,
               right: 60,
-              transform: `translateY(${crownY}px) rotate(-6deg)`,
+              transform: `translateY(${crownY}px) rotate(-5deg)`,
               textAlign: "center",
-              zIndex: 40
+              zIndex: 50
             }}
           >
-            <div style={{ fontSize: 110, filter: "drop-shadow(0 15px 35px rgba(253, 224, 71, 0.9))" }}>
-              👑
-            </div>
+            <MetallicCrown size={190} frame={frame} glowColor="#FFD23F" />
             <div
               style={{
+                marginTop: -10,
                 backgroundColor: "#ffd23f",
                 color: "#000000",
                 fontFamily: FONT.punch,
                 fontWeight: 900,
-                fontSize: 24,
-                padding: "8px 20px",
+                fontSize: 26,
+                padding: "8px 24px",
                 borderRadius: 14,
-                boxShadow: "0 6px 20px rgba(0,0,0,0.6)",
+                boxShadow: "0 8px 25px rgba(0,0,0,0.7)",
                 letterSpacing: 2
               }}
             >
@@ -375,44 +391,102 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
         )}
       </div>
 
-      {/* 4. LIVE RUNNING SCOREBOARD PILL (Top Header) */}
+      {/* 4. ACTIVE LIGHTNING ARCS ALONG DIAGONAL SEAM */}
+      <LightningSeam frame={frame} color="#FFD23F" />
+
+      {/* 5. 3D HIGH-GLOSS VS BADGE (Center Collision) */}
       <div
         style={{
           position: "absolute",
-          top: 30,
-          left: "50%",
-          transform: "translateX(-50%)",
+          top: 960,
+          left: 540,
+          transform: `translate(-50%, -50%) scale(${vsSlam * clashPulse})`,
           zIndex: 35,
-          backgroundColor: "rgba(0, 0, 0, 0.75)",
-          backdropFilter: "blur(10px)",
-          border: "2px solid #ffd23f",
-          borderRadius: 99,
-          padding: "6px 24px",
           display: "flex",
-          alignItems: "center",
-          gap: 16,
-          boxShadow: "0 8px 24px rgba(0,0,0,0.6)"
+          justifyContent: "center",
+          alignItems: "center"
         }}
       >
-        <span style={{ fontFamily: FONT.punch, fontSize: 24, color: coralA, fontWeight: 900 }}>
+        {/* Glow halo */}
+        <div
+          style={{
+            position: "absolute",
+            width: 140,
+            height: 140,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(255, 210, 63, 0.6) 0%, transparent 70%)",
+            filter: "blur(12px)"
+          }}
+        />
+
+        {/* Jet Black Sphere with 3D Gold Ring */}
+        <div
+          style={{
+            position: "relative",
+            width: 96,
+            height: 96,
+            borderRadius: "50%",
+            background: "radial-gradient(circle at 35% 35%, #262626 0%, #000000 100%)",
+            border: "5px solid #FFD23F",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            boxShadow: "0 0 35px rgba(255, 210, 63, 0.9), inset 0 0 15px rgba(255, 210, 63, 0.5)"
+          }}
+        >
+          <span
+            style={{
+              fontFamily: FONT.display,
+              fontSize: 42,
+              fontWeight: 900,
+              color: "#FFFFFF",
+              letterSpacing: 1,
+              textShadow: "0 2px 8px rgba(0,0,0,0.9)"
+            }}
+          >
+            VS
+          </span>
+        </div>
+      </div>
+
+      {/* 6. REAL-TIME SCOREBOARD PILL (Top Center) */}
+      <div
+        style={{
+          position: "absolute",
+          top: 32,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 40,
+          backgroundColor: "rgba(5, 7, 14, 0.88)",
+          backdropFilter: "blur(14px)",
+          border: "2px solid #FFD23F",
+          borderRadius: 99,
+          padding: "6px 26px",
+          display: "flex",
+          alignItems: "center",
+          gap: 18,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.8)"
+        }}
+      >
+        <span style={{ fontFamily: FONT.punch, fontSize: 26, color: coralA, fontWeight: 900 }}>
           {scoreA}
         </span>
-        <span style={{ fontFamily: FONT.mono, fontSize: 16, color: "#ffd23f", letterSpacing: 2, fontWeight: 800 }}>
+        <span style={{ fontFamily: FONT.mono, fontSize: 16, color: "#FFD23F", letterSpacing: 2, fontWeight: 800 }}>
           SCORE
         </span>
-        <span style={{ fontFamily: FONT.punch, fontSize: 24, color: blueB, fontWeight: 900 }}>
+        <span style={{ fontFamily: FONT.punch, fontSize: 26, color: blueB, fontWeight: 900 }}>
           {scoreB}
         </span>
       </div>
 
-      {/* 5. GRAVITYCLAW RACING STAT BARS (Center Overlay) */}
+      {/* 7. RACING NEON STAT GAUGE BARS (Center Overlay) */}
       <div
         style={{
           position: "absolute",
           top: 670,
           left: 45,
           right: 45,
-          zIndex: 35,
+          zIndex: 40,
           display: "flex",
           flexDirection: "column",
           gap: 14
@@ -427,63 +501,63 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
             <div
               key={r.roundNo}
               style={{
-                backgroundColor: "rgba(8, 12, 22, 0.94)",
-                backdropFilter: "blur(16px)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                borderRadius: 18,
-                padding: "12px 20px",
+                backgroundColor: "rgba(6, 9, 18, 0.94)",
+                backdropFilter: "blur(18px)",
+                border: "1px solid rgba(255, 255, 255, 0.16)",
+                borderRadius: 20,
+                padding: "14px 22px",
                 display: "flex",
                 flexDirection: "column",
-                gap: 6,
-                boxShadow: "0 12px 30px rgba(0,0,0,0.7)"
+                gap: 8,
+                boxShadow: "0 14px 35px rgba(0,0,0,0.75)"
               }}
             >
               {/* Category Header with Round No */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: FONT.ui, fontSize: 18, fontWeight: 900, color: "#F3F4F6", letterSpacing: 1 }}>
+                <span style={{ fontFamily: FONT.ui, fontSize: 19, fontWeight: 900, color: "#F3F4F6", letterSpacing: 1 }}>
                   R{r.roundNo}: {r.name.toUpperCase()}
                 </span>
                 {prog >= 0.9 && (
-                  <span style={{ fontSize: 18, color: "#ffd23f", fontWeight: 900 }}>
+                  <span style={{ fontSize: 18, color: "#FFD23F", fontWeight: 900 }}>
                     {r.win === "a" ? `👑 ${p.fighterA.name}` : r.win === "b" ? `👑 ${p.fighterB.name}` : "🤝 TIE"}
                   </span>
                 )}
               </div>
 
-              {/* Racing Bars Growing Outward from Center */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, height: 16 }}>
+              {/* Racing Energy Gauge Bars Growing Outward from Center */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10, height: 18 }}>
                 {/* Left Bar (Fighter A) */}
-                <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 8, height: "100%", overflow: "hidden" }}>
+                <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 9, height: "100%", overflow: "hidden" }}>
                   <div
                     style={{
                       height: "100%",
                       width: `${(r.win === "a" ? 100 : 70) * prog}%`,
-                      backgroundColor: coralA,
-                      borderRadius: 8,
-                      boxShadow: `0 0 10px ${coralA}`
+                      background: `linear-gradient(90deg, ${coralA}99, ${coralA})`,
+                      borderRadius: 9,
+                      boxShadow: `0 0 12px ${coralA}`
                     }}
                   />
                 </div>
 
-                {/* Center Divider Dot */}
-                <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#ffd23f" }} />
+                {/* Center Pulse Dot */}
+                <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: "#FFD23F", boxShadow: "0 0 10px #FFD23F" }} />
 
                 {/* Right Bar (Fighter B) */}
-                <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 8, height: "100%", overflow: "hidden" }}>
+                <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", backgroundColor: "rgba(255,255,255,0.08)", borderRadius: 9, height: "100%", overflow: "hidden" }}>
                   <div
                     style={{
                       height: "100%",
                       width: `${(r.win === "b" ? 100 : 70) * prog}%`,
-                      backgroundColor: blueB,
-                      borderRadius: 8,
-                      boxShadow: `0 0 10px ${blueB}`
+                      background: `linear-gradient(90deg, ${blueB}, ${blueB}99)`,
+                      borderRadius: 9,
+                      boxShadow: `0 0 12px ${blueB}`
                     }}
                   />
                 </div>
               </div>
 
               {/* Stat Values at ends */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 16, fontFamily: FONT.mono, fontWeight: 700 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 17, fontFamily: FONT.mono, fontWeight: 800 }}>
                 <span style={{ color: r.win === "a" ? "#60A5FA" : "#9CA3AF" }}>
                   {r.statA}
                 </span>
@@ -496,26 +570,26 @@ export const VersusSplitComposition: React.FC<VersusSplit> = (p) => {
         })}
       </div>
 
-      {/* 6. Previous Winner Answer Card (on post 2+) */}
+      {/* 8. PREVIOUS WINNER ANSWER CARD (on post 2+) */}
       {p.introSeconds > 0 && p.prevAnswer ? (
         <PrevAnswerCard
           seconds={p.introSeconds}
           heading={`PICHHLA WINNER #${String(p.postNo - 1).padStart(3, "0")}`}
           answer={p.prevAnswer}
-          accent="#ffd23f"
+          accent="#FFD23F"
           bg="linear-gradient(180deg, #180905, #2B110B)"
         />
       ) : null}
 
-      {/* 7. AskOutro Interaction Banner & Follow Button (during outro) */}
+      {/* 9. ASK OUTRO INTERACTION BANNER & FOLLOW BUTTON */}
       <AskOutro
         from={outroStart}
         a={p.askOutro}
-        accent="#ffd23f"
+        accent="#FFD23F"
         tapAt={followTapAt(p.askOutro)}
       />
 
-      {/* 8. Voice Cues & Sound Bed */}
+      {/* 10. VOICE CUES & SOUND BED */}
       <VoiceCues cues={p.voice} />
       {p.sound && <SoundBed sfx={sfx} duck={duckFromCues(p.voice, 3.4)} music="sfx/music_puzzle.mp3" musicVolume={0.12} />}
     </AbsoluteFill>
