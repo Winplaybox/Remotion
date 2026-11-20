@@ -1,25 +1,25 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT, useBundledFonts } from "../../../packages/visuals/src/fonts";
-import { SoundBed, duckFromCues, type Sfx } from "../../../packages/visuals/src/Sound";
+import { duckFromCues, SoundBed, type Sfx } from "../../../packages/visuals/src/Sound";
 import { VoiceCues } from "../../../packages/visuals/src/VoiceCues";
 import { askOutroSfx } from "../../ask-outro";
 import type { BreakingDesk } from "./model";
 
 /**
- * Chat Story Breaking News Composition
+ * Chat Box / Story Breaking News Composition
  *
- * Exact Visual Match to GravityClaw #41 Chat Story:
- * - Floating clean white container on subtle dark canvas
- * - Header: Teal back arrow (<), Coral/Pink circle avatar (initial), Contact Name, and green • online dot
- * - Subheader: Date (Today 11:42 PM) and category capsule pill (BREAKING NEWS / FICTIONAL STORY)
- * - Message Stream:
- *   - Right: Teal bubbles (#14B8A6) with white text & Read receipt
- *   - Left: White bubbles (#FFFFFF) with dark charcoal text, subtle border & floating emoji reaction
- *   - Typing Indicator: 3 bouncing animated dots in white pill (...) before incoming replies
- *   - NO premature scrolling: All messages stay visible vertically with plenty of headroom!
- * - Footer Input Bar: Light grey rounded capsule ("Message") + Circular teal send button (↑)
- * - End Card: Native in-chat dialog modal popping in the middle of the chat during outro
+ * All Use Cases Covered (Remotion Ready):
+ * - User Typing → Submit: Progressive character-by-character typing in input bar with cursor (|),
+ *   then send button pulses and input clears on submit!
+ * - Message Becomes Bubble: Pops/slides in with spring physics, and animated checkmark status
+ *   (✓ Sent → ✓✓ Delivered → ✓✓ Read).
+ * - Receiver Typing: Three animated bouncing dots (...) appear inside a pill before reply.
+ * - Receiver Responds: Message bubble springs in after typing.
+ * - Message Reactions: ❤️ 😂 👍 😮 😢 🙏 appear as reaction pills with counts and pop scale animation!
+ * - Bullets & Multi-line: Clean checklist support (✅ Available worldwide, etc.)
+ * - In-Chat Poll / Vote Modal: Native centered card with radio options and 'Vote Now' button!
+ * - Header Actions: Back chevron, Avatar, Online status, plus Phone 📞, Camera 📹, More ⋮ icons.
  */
 export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
   useBundledFonts();
@@ -49,58 +49,140 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
     {
       id: "m1",
       sender: "user" as const,
-      text: "did you see what Google News just reported?!",
-      time: "11:41 PM"
+      text: "did you see what news just reported?!",
+      time: "11:42 PM",
+      hasReadReceipt: true
     },
     {
       id: "m2",
       sender: "contact" as const,
-      text: p.story.headline,
-      time: "11:42 PM"
+      text: "A new AI assistant just launched worldwide. 🤖",
+      time: "11:43 PM"
     },
     {
       id: "m3",
       sender: "user" as const,
       text: "wait is this officially confirmed??",
-      time: "11:42 PM",
+      time: "11:43 PM",
       hasReadReceipt: true
     },
     {
       id: "m4",
       sender: "contact" as const,
-      text: p.story.cardText,
-      time: "11:43 PM"
+      text: "Yes! It's officially confirmed. ✅\nThey've started rolling it out today. 🚀",
+      time: "11:44 PM",
+      reactions: [{ emoji: "❤️", count: 3 }]
     },
     {
       id: "m5",
-      sender: "contact" as const,
-      text: `⚡ ${p.story.highlightLine}`,
-      time: "11:43 PM",
-      highlight: true
+      sender: "user" as const,
+      text: "That's huge! 🔥",
+      time: "11:44 PM",
+      hasReadReceipt: true
     },
     {
       id: "m6",
-      sender: "user" as const,
-      text: "this changes literally everything",
-      time: "11:44 PM"
+      sender: "contact" as const,
+      text: "Here's the key highlights:",
+      bullets: [
+        "Available worldwide",
+        "Faster & more accurate",
+        "Works across all devices"
+      ],
+      time: "11:45 PM",
+      reactions: [{ emoji: "👍", count: 8 }, { emoji: "🎉", count: 2 }]
     }
   ];
 
-  // Stagger schedule: messages enter progressively across playSeconds
-  const stepDur = Math.floor((p.playSeconds * fps - 45) / dialogueLines.length);
+  // Active trailing typing from story (e.g. "That's amazing!")
+  const activeTyping = p.story.activeTypingInput;
+  const totalSlots = dialogueLines.length + (activeTyping ? 0.8 : 0);
+  const slotDur = Math.floor((p.playSeconds * fps - 45) / totalSlots);
+
+  // Stagger schedule: calculates typing start, submit frame, bubble start, and reaction frame
   const messagesWithTiming = dialogueLines.map((line, idx) => {
-    const startFrame = 12 + idx * stepDur;
-    const typingFrom = line.sender === "contact" ? Math.max(0, startFrame - 22) : undefined;
+    const slotStart = 10 + idx * slotDur;
+    const isUser = line.sender === "user";
+
+    // User: types inside input bar, then submits
+    const typeDuration = isUser
+      ? Math.min(32, Math.max(16, Math.floor(line.text.length * 0.85)))
+      : 0;
+    const submitFrame = isUser ? slotStart + typeDuration : slotStart + 22;
+
+    // Contact typing indicator: 3 dots bouncing
+    const typingFrom = !isUser ? slotStart : undefined;
+
+    // The bubble appears at submitFrame
+    const bubbleStart = submitFrame;
+
+    // Reaction pops in after bubble settles
+    const reactionFrame = bubbleStart + 20;
+
     return {
       ...line,
-      startFrame,
-      typingFrom
+      slotStart,
+      typeStart: isUser ? slotStart : undefined,
+      submitFrame,
+      bubbleStart,
+      typingFrom,
+      reactionFrame
     };
   });
 
+  // Calculate live input bar text & cursor
+  const activeUserTypingMsg = messagesWithTiming.find(
+    (m) => m.sender === "user" && m.typeStart !== undefined && f >= m.typeStart && f < m.submitFrame
+  );
+
+  const lastMsg = messagesWithTiming[messagesWithTiming.length - 1];
+  const trailingStart = lastMsg ? lastMsg.bubbleStart + 35 : 0;
+  const isTrailingTyping = !!activeTyping && f >= trailingStart;
+
+  let displayedInputText = "Message";
+  let isInputPlaceholder = true;
+
+  if (activeUserTypingMsg && activeUserTypingMsg.typeStart !== undefined) {
+    const chars = Math.min(
+      activeUserTypingMsg.text.length,
+      Math.floor(
+        interpolate(
+          f,
+          [activeUserTypingMsg.typeStart, activeUserTypingMsg.submitFrame],
+          [0, activeUserTypingMsg.text.length],
+          { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+        )
+      )
+    );
+    const cursor = f % 14 < 7 ? "|" : "";
+    displayedInputText = activeUserTypingMsg.text.slice(0, chars) + cursor;
+    isInputPlaceholder = false;
+  } else if (isTrailingTyping && activeTyping) {
+    const trailingDuration = 38;
+    const chars = Math.min(
+      activeTyping.length,
+      Math.floor(
+        interpolate(f, [trailingStart, trailingStart + trailingDuration], [0, activeTyping.length], {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp"
+        })
+      )
+    );
+    const cursor = f % 14 < 7 ? "|" : "";
+    displayedInputText = activeTyping.slice(0, chars) + cursor;
+    isInputPlaceholder = false;
+  }
+
+  // Send button bounce at submit moments
+  const justSubmittedMsg = messagesWithTiming.find(
+    (m) => m.sender === "user" && f >= m.submitFrame && f < m.submitFrame + 14
+  );
+  const sendScale = justSubmittedMsg
+    ? 1 + Math.sin((f - justSubmittedMsg.submitFrame) * 0.45) * 0.22
+    : 1;
+
   // NO PREMATURE SCROLLING:
-  // All messages (up to 9) easily fit in the ~1300px vertical chat space!
-  // Only scroll if there are 10+ messages that actually overflow.
+  // All messages (up to 9) easily fit in the ~1400px vertical chat space!
   const maxNaturalCount = 9;
   const isOverflowing = dialogueLines.length > maxNaturalCount;
   const scrollY = isOverflowing
@@ -135,9 +217,6 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
   const dot2 = Math.sin(frame * 0.45 + 1.2) * 4;
   const dot3 = Math.sin(frame * 0.45 + 2.4) * 4;
 
-  // Find last user message with read receipt
-  const lastUserMsgId = [...dialogueLines].reverse().find((m) => m.sender === "user" && m.hasReadReceipt)?.id;
-
   return (
     <AbsoluteFill
       style={{
@@ -168,7 +247,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
         }}
       >
         {/* -------------------------------------------------------------------------
-            1. EXACT GRAVITYCLAW HEADER (< Marcus • online)
+            1. EXACT HEADER (< Marcus • online + Phone 📞, Camera 📹, More ⋮)
            ------------------------------------------------------------------------- */}
         <div
           style={{
@@ -253,6 +332,51 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
               {contactStatus}
             </div>
           </div>
+
+          {/* Action Icons on Right: Phone, Video, More (From Infographic) */}
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "center",
+              gap: 24,
+              color: "#14B8A6"
+            }}
+          >
+            {/* Phone Call Icon */}
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+            </svg>
+            {/* Video Camera Icon */}
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="23 7 16 12 23 17 23 7" fill="currentColor" />
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+            </svg>
+            {/* 3-dots Menu Icon */}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="5" r="2.2" />
+              <circle cx="12" cy="12" r="2.2" />
+              <circle cx="12" cy="19" r="2.2" />
+            </svg>
+          </div>
         </div>
 
         {/* -------------------------------------------------------------------------
@@ -268,14 +392,14 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
             flexDirection: "column"
           }}
         >
-          {/* Top Date & Category Pill (Exact GravityClaw match) */}
+          {/* Top Date & Category Pill */}
           <div
             style={{
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               gap: 6,
-              marginBottom: 20
+              marginBottom: 16
             }}
           >
             <div
@@ -298,10 +422,14 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                 letterSpacing: 1.5,
                 padding: "5px 18px",
                 borderRadius: 99,
-                textTransform: "uppercase"
+                textTransform: "uppercase",
+                display: "flex",
+                alignItems: "center",
+                gap: 6
               }}
             >
-              {p.story.category || "BREAKING NEWS"}
+              <span>📊</span>
+              <span>{p.story.category || "BREAKING NEWS"}</span>
             </div>
           </div>
 
@@ -317,16 +445,29 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
           >
             {messagesWithTiming.map((m) => {
               const isUser = m.sender === "user";
-              const showMsg = f >= m.startFrame;
+              const showMsg = f >= m.bubbleStart;
 
               // Typing indicator before incoming message
               const isTyping =
-                m.typingFrom !== undefined && f >= m.typingFrom && f < m.startFrame;
+                m.typingFrom !== undefined && f >= m.typingFrom && f < m.bubbleStart;
 
               const msgSpring = spring({
-                frame: Math.max(0, f - m.startFrame),
+                frame: Math.max(0, f - m.bubbleStart),
                 fps,
-                config: { damping: 13, stiffness: 160 }
+                config: { damping: 13, stiffness: 170 }
+              });
+
+              // Checkmarks progression for user: ✓ (Sent) → ✓✓ (Delivered) → ✓✓ (Read)
+              const framesSinceBubble = f - m.bubbleStart;
+              const isDelivered = framesSinceBubble >= 10;
+              const isRead = framesSinceBubble >= 22;
+
+              // Reaction spring
+              const showReaction = f >= m.reactionFrame;
+              const reactionSpring = spring({
+                frame: Math.max(0, f - m.reactionFrame),
+                fps,
+                config: { damping: 11, stiffness: 200 }
               });
 
               return (
@@ -381,7 +522,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                     <div
                       style={{
                         alignSelf: isUser ? "flex-end" : "flex-start",
-                        maxWidth: "80%",
+                        maxWidth: "82%",
                         display: "flex",
                         flexDirection: "column",
                         alignItems: isUser ? "flex-end" : "flex-start",
@@ -395,24 +536,125 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                         style={{
                           backgroundColor: isUser ? "#14B8A6" : "#FFFFFF",
                           color: isUser ? "#FFFFFF" : "#1E293B",
-                          padding: "16px 26px",
+                          padding: "16px 24px",
                           borderRadius: isUser ? "22px 22px 4px 22px" : "22px 22px 22px 4px",
                           border: isUser ? "none" : "1.5px solid #F1F5F9",
                           boxShadow: isUser
                             ? "0 4px 14px rgba(20, 184, 166, 0.3)"
                             : "0 3px 12px rgba(0, 0, 0, 0.04)",
                           fontFamily: FONT.ui,
-                          fontSize: 28,
+                          fontSize: 27,
                           fontWeight: 700,
                           lineHeight: 1.35,
                           letterSpacing: 0.2,
-                          position: "relative"
+                          position: "relative",
+                          whiteSpace: "pre-line"
                         }}
                       >
                         {m.text}
 
-                        {/* Floating Reaction Emoji Badge (e.g. 😂 or ⚡) */}
-                        {m.reactionEmoji && (
+                        {/* Checklist Bullets */}
+                        {m.bullets && m.bullets.length > 0 && (
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 6,
+                              marginTop: 10
+                            }}
+                          >
+                            {m.bullets.map((b, bi) => (
+                              <div
+                                key={bi}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  fontSize: 24,
+                                  fontWeight: 700,
+                                  color: "#1E293B"
+                                }}
+                              >
+                                <span style={{ fontSize: 20 }}>✅</span>
+                                <span>{b}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Timestamp & Checkmarks on User Bubble */}
+                        <div
+                          style={{
+                            marginTop: 6,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "flex-end",
+                            gap: 6,
+                            fontSize: 16,
+                            fontWeight: 600,
+                            color: isUser ? "rgba(255, 255, 255, 0.85)" : "#94A3B8"
+                          }}
+                        >
+                          <span>{m.time || "11:42 PM"}</span>
+                          {isUser && (
+                            <span
+                              style={{
+                                color: isRead ? "#5EEAD4" : "rgba(255, 255, 255, 0.85)",
+                                fontWeight: 900,
+                                fontSize: 16,
+                                letterSpacing: -2
+                              }}
+                            >
+                              {isDelivered ? "✓✓" : "✓"}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Multi-Reaction Pills (From Infographic: ❤️ 3, 👍 8, 🎉 2) */}
+                        {showReaction && m.reactions && m.reactions.length > 0 && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: -18,
+                              left: isUser ? "auto" : 12,
+                              right: isUser ? 12 : "auto",
+                              display: "flex",
+                              gap: 6,
+                              zIndex: 25,
+                              transform: `scale(${reactionSpring})`,
+                              transformOrigin: isUser ? "bottom right" : "bottom left"
+                            }}
+                          >
+                            {m.reactions.map((r, ri) => (
+                              <div
+                                key={ri}
+                                style={{
+                                  backgroundColor: "#FFFFFF",
+                                  border: "1.5px solid #E2E8F0",
+                                  borderRadius: 99,
+                                  padding: "3px 10px",
+                                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  fontSize: 19,
+                                  fontWeight: 800,
+                                  color: "#1E293B"
+                                }}
+                              >
+                                <span>{r.emoji}</span>
+                                {r.count !== undefined && (
+                                  <span style={{ fontSize: 16, fontWeight: 800, color: "#64748B" }}>
+                                    {r.count}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Backward Compatible Single Reaction Badge */}
+                        {showReaction && !m.reactions && m.reactionEmoji && (
                           <div
                             style={{
                               position: "absolute",
@@ -427,29 +669,14 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                               justifyContent: "center",
                               boxShadow: "0 3px 10px rgba(0, 0, 0, 0.15)",
                               fontSize: 24,
-                              border: "1.5px solid #F1F5F9"
+                              border: "1.5px solid #F1F5F9",
+                              transform: `scale(${reactionSpring})`
                             }}
                           >
                             {m.reactionEmoji}
                           </div>
                         )}
                       </div>
-
-                      {/* GravityClaw Read Receipt */}
-                      {isUser && m.id === lastUserMsgId && f >= m.startFrame + 14 && (
-                        <div
-                          style={{
-                            marginTop: 5,
-                            marginRight: 6,
-                            fontFamily: FONT.ui,
-                            fontSize: 18,
-                            fontWeight: 600,
-                            color: "#94A3B8"
-                          }}
-                        >
-                          Read
-                        </div>
-                      )}
                     </div>
                   )}
                 </React.Fragment>
@@ -459,17 +686,17 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
         </div>
 
         {/* -------------------------------------------------------------------------
-            3. EXACT GRAVITYCLAW FOOTER (Capsule Input + Teal Up-Arrow Button)
+            3. EXACT FOOTER (Live Typing + Smile + Pulsing Send Button)
            ------------------------------------------------------------------------- */}
         <div
           style={{
             height: 120,
             backgroundColor: "#FFFFFF",
             borderTop: "1.5px solid #F1F5F9",
-            padding: "0 32px",
+            padding: "0 28px",
             display: "flex",
             alignItems: "center",
-            gap: 18,
+            gap: 16,
             zIndex: 40
           }}
         >
@@ -480,19 +707,28 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
               height: 72,
               backgroundColor: "#F1F5F9",
               borderRadius: 99,
-              padding: "0 28px",
+              padding: "0 24px",
               display: "flex",
               alignItems: "center",
+              justifyContent: "space-between",
               fontFamily: FONT.ui,
               fontSize: 26,
-              fontWeight: 600,
-              color: "#94A3B8"
+              fontWeight: isInputPlaceholder ? 600 : 700,
+              color: isInputPlaceholder ? "#94A3B8" : "#111827",
+              boxShadow: "inset 0 1px 3px rgba(0, 0, 0, 0.04)"
             }}
           >
-            Message
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {displayedInputText}
+            </span>
+
+            {/* Smiley Emoji Icon */}
+            <span style={{ fontSize: 26, cursor: "pointer", opacity: 0.85, marginLeft: 8 }}>
+              😊
+            </span>
           </div>
 
-          {/* Teal Circular Send Button (↑) */}
+          {/* Teal Circular Send Button (Pulses on Submit) */}
           <div
             style={{
               width: 72,
@@ -503,17 +739,29 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
               alignItems: "center",
               justifyContent: "center",
               color: "#FFFFFF",
-              fontSize: 34,
-              fontWeight: 900,
-              boxShadow: "0 6px 16px rgba(20, 184, 166, 0.35)"
+              transform: `scale(${sendScale})`,
+              transition: "transform 0.15s ease-out",
+              boxShadow: "0 6px 18px rgba(20, 184, 166, 0.4)"
             }}
           >
-            ↑
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="22" y1="2" x2="11" y2="13" />
+              <polygon points="22 2 15 22 11 13 2 9 22 2" fill="#FFFFFF" />
+            </svg>
           </div>
         </div>
 
         {/* -------------------------------------------------------------------------
-            4. IN-CHAT CENTERED DIALOG MODAL (End Card)
+            4. IN-CHAT POLL / VOTE MODAL (From Infographic)
            ------------------------------------------------------------------------- */}
         {isOutro && (
           <div
@@ -531,7 +779,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
               opacity: dialogOverlayOpacity
             }}
           >
-            {/* The Native Dialog Card */}
+            {/* The Native Poll Card */}
             <div
               style={{
                 width: "100%",
@@ -547,7 +795,7 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                 border: "2px solid rgba(255, 255, 255, 0.8)"
               }}
             >
-              {/* Top Badge */}
+              {/* Top Badge: 📊 POLL */}
               <div
                 style={{
                   backgroundColor: "#CCFBF1",
@@ -559,69 +807,85 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                   fontWeight: 900,
                   letterSpacing: 2,
                   textTransform: "uppercase",
-                  marginBottom: 18
+                  marginBottom: 18,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8
                 }}
               >
-                📊 BREAKING POLL
+                <span>📊</span>
+                <span>POLL</span>
               </div>
 
               {/* The Question */}
               <div
                 style={{
                   fontFamily: FONT.ui,
-                  fontSize: 36,
+                  fontSize: 34,
                   fontWeight: 900,
                   lineHeight: 1.25,
                   color: "#111827",
                   textAlign: "center",
-                  marginBottom: 28
+                  marginBottom: 26
                 }}
               >
                 {p.askOutro.question}
               </div>
 
-              {/* Interactive Poll Options */}
+              {/* Interactive Radio Options */}
               <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 14 }}>
-                {p.askOutro.options.map((opt, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "#F8FAFC",
-                      border: "2px solid #E2E8F0",
-                      borderRadius: 20,
-                      padding: "16px 24px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      fontFamily: FONT.ui,
-                      fontSize: 28,
-                      fontWeight: 800,
-                      color: "#1E293B"
-                    }}
-                  >
-                    <span>{opt}</span>
-                    <span
+                {p.askOutro.options.map((opt, i) => {
+                  const isFirstSelected = i === 0;
+                  return (
+                    <div
+                      key={i}
                       style={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: "50%",
-                        border: "2px solid #14B8A6",
+                        width: "100%",
+                        backgroundColor: isFirstSelected ? "#F0FDFA" : "#F8FAFC",
+                        border: isFirstSelected ? "2px solid #14B8A6" : "2px solid #E2E8F0",
+                        borderRadius: 20,
+                        padding: "16px 24px",
                         display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center"
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        fontFamily: FONT.ui,
+                        fontSize: 26,
+                        fontWeight: 800,
+                        color: isFirstSelected ? "#0F766E" : "#1E293B"
                       }}
                     >
-                      ○
-                    </span>
-                  </div>
-                ))}
+                      <span>{opt}</span>
+                      <span
+                        style={{
+                          width: 26,
+                          height: 26,
+                          borderRadius: "50%",
+                          border: isFirstSelected ? "2px solid #14B8A6" : "2px solid #CBD5E1",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center"
+                        }}
+                      >
+                        {isFirstSelected && (
+                          <span
+                            style={{
+                              width: 14,
+                              height: 14,
+                              borderRadius: "50%",
+                              backgroundColor: "#14B8A6"
+                            }}
+                          />
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* CTA Action Button */}
+              {/* Action Button: Vote Now */}
               <div
                 style={{
-                  marginTop: 26,
+                  marginTop: 24,
                   width: "100%",
                   backgroundColor: "#14B8A6",
                   color: "#FFFFFF",
@@ -632,10 +896,11 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
                   fontSize: 26,
                   fontWeight: 900,
                   letterSpacing: 1,
-                  boxShadow: "0 8px 24px rgba(20, 184, 166, 0.35)"
+                  boxShadow: "0 8px 24px rgba(20, 184, 166, 0.35)",
+                  cursor: "pointer"
                 }}
               >
-                Drop Your Answer in Comments Below 💬
+                Vote Now
               </div>
 
               {/* Channel Handle */}
@@ -658,15 +923,8 @@ export const BreakingDeskComposition: React.FC<BreakingDesk> = (p) => {
       {/* 5. VOICE AUDIO SYNC */}
       <VoiceCues cues={p.voice} />
 
-      {/* 6. SOUND BED & SFX */}
-      {p.sound ? (
-        <SoundBed
-          music="sfx/music_story.mp3"
-          musicVolume={0.16}
-          duck={duckFromCues(p.voice)}
-          sfx={sfx}
-        />
-      ) : null}
+      {/* 6. SFX BED */}
+      {p.sound && <SoundBed sfx={sfx} duck={duckFromCues(p.voice)} />}
     </AbsoluteFill>
   );
 };

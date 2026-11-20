@@ -9,14 +9,21 @@ import type { VoiceLine } from "../../../channels/channels";
 
 export const FPS = 30;
 
+export const ChatReactionSchema = z.object({
+  emoji: z.string(),
+  count: z.number().int().min(1).optional()
+});
+
 export const ChatLineSchema = z.object({
   id: z.string(),
   sender: z.enum(["user", "contact"]),
   text: z.string(),
+  bullets: z.array(z.string()).optional(),
   time: z.string().optional(),
   highlight: z.boolean().optional(),
   hasReadReceipt: z.boolean().optional(),
-  reactionEmoji: z.string().optional()
+  reactionEmoji: z.string().optional(),
+  reactions: z.array(ChatReactionSchema).optional()
 });
 
 export const NewsStorySchema = z.object({
@@ -34,6 +41,7 @@ export const NewsStorySchema = z.object({
   contactName: z.string().optional(),
   contactAvatar: z.string().optional(),
   contactStatus: z.string().optional(),
+  activeTypingInput: z.string().optional(),
   dialogue: z.array(ChatLineSchema).optional()
 });
 
@@ -62,33 +70,73 @@ export type BreakingDesk = z.infer<typeof BreakingDeskSchema>;
 
 const STORIES = [
   // ==========================================
-  // 1. GOOGLE NEWS BREAKING DISPATCH
+  // 1. BREAKING NEWS CHAT DISPATCH (AI Launch)
   // ==========================================
   {
     category: "BREAKING NEWS",
-    location: "Mountain View, CA",
-    headline: "GOOGLE UNVEILS AUTONOMOUS CODING AGENTS WORLDWIDE",
+    location: "Global Tech Wire",
+    headline: "A NEW AI ASSISTANT JUST LAUNCHED WORLDWIDE",
     subhead: "AI REVOLUTION · REPORT #1",
-    source: "GOOGLE NEWS WIRE",
-    cardText: "Google has deployed new autonomous software engineering agents that can write, debug, and ship production-ready applications from simple natural language briefs.",
-    highlightLine: "BEATS HUMAN ENGINEERS ACROSS 10,000 REAL BENCHMARKS",
+    source: "BREAKING NEWS WIRE",
+    cardText: "A breakthrough autonomous AI assistant has just launched worldwide, delivering faster and more accurate capabilities across all devices.",
+    highlightLine: "AVAILABLE WORLDWIDE · WORKS ACROSS ALL DEVICES",
     reactionPill: "⚡ BREAKING",
     contactName: "Marcus",
     contactStatus: "• online",
-    voiceScript: "गूगल न्यूज़ से बड़ी खबर! गूगल ने अपने नए ऑटोनॉमस कोडिंग एजेंट्स पूरी दुनिया के डेवलपर्स के लिए लाइव कर दिए हैं!",
-    question: "Kya AI Agle 2 Saal Mein Junior Coders Ko Replace Karega?",
-    options: ["1. HAAN 100% 🚀", "2. NAHI AS ASSISTANT 👨‍💻", "3. TOO EARLY TO TELL 🤔"],
+    voiceScript: "न्यूज़ से बड़ी खबर! एक नया एआई असिस्टेंट पूरी दुनिया में लॉन्च हो चुका है, जो सारे डिवाइसेज पर पहले से कहीं ज़्यादा तेज़ और सटीक काम करता है!",
+    question: "Should AI replace junior coders in next 2 years?",
+    options: ["1. Yes, 100% 🚀", "2. Not as assistant 🤖", "3. Too early to tell 🤔"],
     voiceQuestion: "क्या एआई अगले दो साल में जूनियर कोडर्स को पूरी तरह रिप्लेस कर देगा?",
-    answer: "Industry leaders kehte hain AI developers ki speed 10x karega par system architects ki demand badhegi.",
-    ticker: ["GOOGLE AGENT API LIVE WORLDWIDE", "10,000 PRODUCTION BENCHMARKS PASSED", "OPEN SOURCE ADOPTION ACCELERATES"],
+    answer: "Industry leaders confirm AI will 10x developer productivity while demand for system design surges.",
+    ticker: ["AI ASSISTANT ROLLING OUT TO ALL USERS", "FASTER & MORE ACCURATE BENCHMARKS", "FULL CROSS-DEVICE ECOSYSTEM LIVE"],
+    activeTypingInput: "That's amazing!",
     dialogue: [
-      { id: "m1", sender: "user" as const, text: "did you see what Google News just reported?!", time: "11:41 PM" },
-      { id: "m2", sender: "contact" as const, text: "Google just unveiled autonomous coding agents worldwide.", time: "11:42 PM" },
-      { id: "m3", sender: "user" as const, text: "wait is this officially confirmed??", time: "11:42 PM", hasReadReceipt: true },
-      { id: "m4", sender: "contact" as const, text: "yes, beats human engineers across 10,000 real benchmarks", time: "11:43 PM" },
-      { id: "m5", sender: "contact" as const, text: "free access rolling out to all users right now", time: "11:43 PM" },
-      { id: "m6", sender: "user" as const, text: "this changes literally everything", time: "11:44 PM" },
-      { id: "m7", sender: "contact" as const, text: "server demand already broke records in under an hour", time: "11:44 PM", reactionEmoji: "⚡" }
+      {
+        id: "m1",
+        sender: "user" as const,
+        text: "did you see what news just reported?!",
+        time: "11:42 PM",
+        hasReadReceipt: true
+      },
+      {
+        id: "m2",
+        sender: "contact" as const,
+        text: "A new AI assistant just launched worldwide. 🤖",
+        time: "11:43 PM"
+      },
+      {
+        id: "m3",
+        sender: "user" as const,
+        text: "wait is this officially confirmed??",
+        time: "11:43 PM",
+        hasReadReceipt: true
+      },
+      {
+        id: "m4",
+        sender: "contact" as const,
+        text: "Yes! It's officially confirmed. ✅\nThey've started rolling it out today. 🚀",
+        time: "11:44 PM",
+        reactions: [{ emoji: "❤️", count: 3 }]
+      },
+      {
+        id: "m5",
+        sender: "user" as const,
+        text: "That's huge! 🔥",
+        time: "11:44 PM",
+        hasReadReceipt: true
+      },
+      {
+        id: "m6",
+        sender: "contact" as const,
+        text: "Here's the key highlights:",
+        bullets: [
+          "Available worldwide",
+          "Faster & more accurate",
+          "Works across all devices"
+        ],
+        time: "11:45 PM",
+        reactions: [{ emoji: "👍", count: 8 }, { emoji: "🎉", count: 2 }]
+      }
     ]
   },
 
@@ -329,6 +377,7 @@ export function breakingDeskForDay(day: number): BreakingDesk {
     contactName: (s as any).contactName,
     contactAvatar: (s as any).contactAvatar,
     contactStatus: (s as any).contactStatus,
+    activeTypingInput: (s as any).activeTypingInput,
     dialogue: (s as any).dialogue
   };
 

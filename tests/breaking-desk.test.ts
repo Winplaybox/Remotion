@@ -20,6 +20,31 @@ describe("Breaking Desk News Engine", () => {
     expect(comment).toContain("REPORT #1 INSIGHT");
   });
 
+  it("never says 'Google News' in dialogue or headlines, uses clean 'news'", () => {
+    for (let day = 1; day <= 10; day++) {
+      const ep = breakingDeskForDay(day);
+      expect(ep.story.headline.toLowerCase()).not.toContain("google news");
+      ep.story.dialogue?.forEach((d) => {
+        expect(d.text.toLowerCase()).not.toContain("google news");
+      });
+    }
+  });
+
+  it("configures animated typing, checklist bullets, and multi-reactions for Story 1", () => {
+    const ep1 = breakingDeskForDay(1);
+    expect(ep1.story.dialogue?.[0]?.text).toBe("did you see what news just reported?!");
+    expect(ep1.story.activeTypingInput).toBe("That's amazing!");
+    
+    // Message 4 has heart reaction
+    expect(ep1.story.dialogue?.[3]?.reactions?.[0]?.emoji).toBe("❤️");
+    expect(ep1.story.dialogue?.[3]?.reactions?.[0]?.count).toBe(3);
+
+    // Message 6 has checklist bullets
+    expect(ep1.story.dialogue?.[5]?.bullets).toBeDefined();
+    expect(ep1.story.dialogue?.[5]?.bullets?.length).toBe(3);
+    expect(ep1.story.dialogue?.[5]?.reactions?.length).toBe(2);
+  });
+
   it("configures Marcus Pizza story matching GravityClaw #41 benchmark for Day 2", () => {
     const ep2 = breakingDeskForDay(2);
     expect(ep2.story.category).toBe("FICTIONAL STORY");
