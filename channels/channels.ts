@@ -510,6 +510,7 @@ export const CHANNELS = {
     autoPublish: false,
     youtubeTokenSecret: "YT_TOKEN_UNPAPER_SHORT",
     metaSecretPrefix: "META_UNPAPER_SHORT",
+    // YouTube channel: https://youtube.com/@Unpaper (token: npm run auth:youtube -> secret YT_TOKEN_UNPAPER_SHORT)
     youtubeHandle: "@Unpaper",
     pinterestSecretPrefix: "PINTEREST_UNPAPER_SHORT",
     resolve: (n) => unpaperShortForDay(n),
