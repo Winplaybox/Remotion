@@ -510,8 +510,8 @@ export const CHANNELS = {
     autoPublish: false,
     youtubeTokenSecret: "YT_TOKEN_UNPAPER_SHORT",
     metaSecretPrefix: "META_UNPAPER_SHORT",
-    // YouTube channel: https://youtube.com/@dailysnapdoseofficial (token: npm run auth:youtube -> secret YT_TOKEN_UNPAPER_SHORT)
-    youtubeHandle: "@dailysnapdoseofficial",
+    // YouTube channel: https://youtube.com/@Unpaper (token: npm run auth:youtube -> secret YT_TOKEN_UNPAPER_SHORT)
+    youtubeHandle: "@Unpaper",
     pinterestSecretPrefix: "PINTEREST_UNPAPER_SHORT",
     resolve: (n) => unpaperShortForDay(n),
     meta: (n) => {
@@ -522,7 +522,7 @@ export const CHANNELS = {
 Source: ${ep.source.url ?? ep.source.title ?? ""}
 Har claim paper ke page se verified.
 
-Unpaper — Decode What Matters. Subscribe @dailysnapdoseofficial
+Unpaper — Decode What Matters. Subscribe @Unpaper
 #AI #research #hinglish #shorts`,
         tags: ["AI", "research paper", "explained", "hinglish", "unpaper", "shorts"],
         caption: `${ep.title}
