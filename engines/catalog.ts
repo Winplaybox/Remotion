@@ -77,7 +77,7 @@ export const ENGINE_CATALOG: EngineEntry[] = [
   },
   {
     slug: "unpaper-short", compositionId: "UnpaperShort", schema: UnpaperShortSchema, forDay: unpaperShortForDay,
-    durationFrames: unpaperShortDuration as (p: never) => number, seconds: [150, 180], days: unpaperEpisodes
+    durationFrames: unpaperShortDuration as (p: never) => number, seconds: [30, 180], days: unpaperEpisodes
   },
   {
     slug: "breaking-desk", compositionId: "BreakingDesk", schema: BreakingDeskSchema, forDay: breakingDeskForDay,

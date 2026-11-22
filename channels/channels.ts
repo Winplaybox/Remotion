@@ -18,6 +18,7 @@ import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang 
 import { stickRiddleAnswer, stickRiddleForDay, stickRiddleMeta } from "../content/stickman/riddles";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
 import { unpaperShortForDay } from "../engines/unpaper-short/src/model";
+import { UNPAPER_HANDLES, unpaperCaption, unpaperDescription } from "../engines/unpaper-short/src/brand";
 import { breakingDeskForDay, breakingDeskVoiceLines, breakingDeskAnswerComment } from "../engines/breaking-desk/src/model";
 import { versusSplitForDay, versusSplitVoiceLines, versusSplitAnswerComment } from "../engines/versus-split/src/model";
 // @engine-builder:imports
@@ -511,23 +512,17 @@ export const CHANNELS = {
     youtubeTokenSecret: "YT_TOKEN_UNPAPER_SHORT",
     metaSecretPrefix: "META_UNPAPER_SHORT",
     // YouTube channel: https://youtube.com/@Unpaper (token: npm run auth:youtube -> secret YT_TOKEN_UNPAPER_SHORT)
-    youtubeHandle: "@Unpaper",
+    youtubeHandle: UNPAPER_HANDLES.youtube.handle,
     pinterestSecretPrefix: "PINTEREST_UNPAPER_SHORT",
     resolve: (n) => unpaperShortForDay(n),
     meta: (n) => {
       const ep = unpaperShortForDay(n).episode;
       return {
         title: `${ep.title} | Unpaper #shorts`.slice(0, 100),
-        description: `${ep.title}
-Source: ${ep.source.url ?? ep.source.title ?? ""}
-Har claim paper ke page se verified.
-
-Unpaper — Decode What Matters. Subscribe @Unpaper
-#AI #research #hinglish #shorts`,
+        // Handles/links come from the shared Unpaper brand config (engines/unpaper-short/src/brand.ts).
+        description: unpaperDescription(ep),
         tags: ["AI", "research paper", "explained", "hinglish", "unpaper", "shorts"],
-        caption: `${ep.title}
-Unpaper — Decode What Matters.
-#AI #research #hinglish #reels`,
+        caption: unpaperCaption(ep),
         language: "hi",
         categoryId: "27"
       };

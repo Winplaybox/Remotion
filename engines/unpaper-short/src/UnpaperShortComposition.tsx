@@ -1,9 +1,16 @@
-// Unpaper "Studio" style for 180s vertical Shorts (1080x1920).
-// Look: soft grey studio vignette, 3D props with contact shadows, kinetic word-by-word type,
-// real PDF pages that go grey -> colour, counters, coin-flip transitions. One file = whole style kit.
+// Unpaper vertical Shorts (1080x1920), variable length (sum of the episode's scenes; new format 30-60 s).
+// World: "Paper Lab" — grey studio, floating 3D paper sheets, soft shadows, orange key light (paperlab.tsx).
+// Script episodes: DocHook -> ShowDoc -> 3x Decode (camera dives into the real page, highlighter, line lifts as 3D text)
+// -> Aap par asar -> FoldOutro (scenes-doc.tsx). Every claim carries a ProofChip (source · page · date).
+// Legacy scene-list episodes (ep001) keep their scene kit below, with the DocHook overlay and the FoldOutro as end card.
 import React from 'react';
 import {AbsoluteFill, Audio, Img, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig, Easing} from 'remotion';
 import {FONT, useBundledFonts} from '@visuals/fonts';
+import {unpaperCta, type Proof} from './model';
+import {PaperWipe} from './unpaper3d';
+import {CommentPill, HookOverlay, Title3D} from './engagement';
+import {PaperLab, ProofChip} from './paperlab';
+import {AsarScene, DecodeScene, DocHook, FoldOutro, ShowDocScene} from './scenes-doc';
 
 const P = FONT.ui;
 const M = FONT.mono;
@@ -14,12 +21,6 @@ const asset = (p: string) => staticFile(`unpaper/${p}`);
 const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
 
 // ---------- building blocks ----------
-const Studio: React.FC = () => (
-  <AbsoluteFill style={{background: `radial-gradient(ellipse 75% 55% at 50% 45%, ${S.bg1} 0%, #DCDCE0 55%, ${S.bg2} 100%)`}}>
-    <AbsoluteFill style={{background: 'radial-gradient(ellipse 60% 6% at 50% 74%, rgba(0,0,0,0.10), transparent 70%)'}} />
-  </AbsoluteFill>
-);
-
 const Kinetic: React.FC<{lines: string[]; delay?: number; size?: number; top: number; accentLast?: boolean}> = ({lines, delay = 4, size = 104, top, accentLast = true}) => {
   const f = useCurrentFrame();
   let k = 0;
@@ -88,21 +89,6 @@ const Captions: React.FC<{text: string; dur: number}> = ({text, dur}) => {
       <div style={{transform: `scale(${sc})`, maxWidth: 900, textAlign: 'center', padding: '16px 30px', borderRadius: 24,
         background: 'rgba(255,255,255,0.86)', boxShadow: '0 10px 30px rgba(0,0,0,0.12)', fontFamily: P, fontWeight: 700, fontSize: 50, lineHeight: 1.2}}>
         {(chunks[idx] ?? []).map((w, i) => <span key={i} style={{color: i === spoken ? S.saffron : i < spoken ? S.ink : 'rgba(46,47,53,0.4)'}}>{w} </span>)}
-      </div>
-    </div>
-  );
-};
-
-const Source: React.FC<{cite: string; src: string}> = ({cite, src}) => {
-  const f = useCurrentFrame();
-  const o = interpolate(f, [12, 24], [0, 1], clamp);
-  const short = cite.split(' — ')[0];
-  return (
-    <div style={{position: 'absolute', top: 250, width: '100%', display: 'flex', justifyContent: 'center', opacity: o}}>
-      <div style={{display: 'flex', gap: 12, alignItems: 'center', fontFamily: M, fontSize: 30, color: S.ink,
-        background: 'rgba(255,255,255,0.92)', padding: '10px 24px', boxShadow: '0 6px 18px rgba(0,0,0,0.10)', borderRadius: 99}}>
-        <span style={{width: 12, height: 12, borderRadius: 9, background: S.cyan}} />
-        <span style={{color: S.cyan, fontWeight: 500}}>SOURCE</span><span>{src} · {short}</span>
       </div>
     </div>
   );
@@ -284,20 +270,42 @@ const CtaScene: React.FC<any> = ({kicker, lines}) => {
   </>);
 };
 
-const REG: Record<string, React.FC<any>> = {title: TitleScene, prop: TitleScene, pdfpage: PdfScene, train: TrainScene, flip: FlipScene,
-  attention: AttentionScene, qkv: QkvScene, counter: CounterScene, stats: StatsScene, cta: CtaScene};
+/** "title" scenes use the 3D unpaper motif: the sheet unfolds, the prop rises, decoded tokens assemble the key idea. */
+const Title3DScene: React.FC<any> = ({kicker, lines, prop, dur, seed}) => <Title3D kicker={kicker} lines={lines} prop={prop} dur={dur} seed={seed ?? 'title'} />;
 
-const Shell: React.FC<{sc: any; dur: number; srcLabel: string}> = ({sc, dur, srcLabel}) => {
+const DocHookScene: React.FC<any> = ({number, line, image, seed}) => <DocHook number={number} line={line} image={image} seed={seed} />;
+const ShowDoc: React.FC<any> = (p) => <ShowDocScene {...p} />;
+const Decode: React.FC<any> = (p) => <DecodeScene {...p} />;
+const Asar: React.FC<any> = (p) => <AsarScene {...p} />;
+/** Script outro: the CTA copy is episode-level, so the Short passes it in via the `outro` prop. */
+const Outro: React.FC<any> = ({outro}) => <FoldOutro {...outro} />;
+
+const REG: Record<string, React.FC<any>> = {title: Title3DScene, prop: TitleScene, pdfpage: PdfScene, train: TrainScene, flip: FlipScene,
+  attention: AttentionScene, qkv: QkvScene, counter: CounterScene, stats: StatsScene, cta: CtaScene,
+  dochook: DocHookScene, showdoc: ShowDoc, decode: Decode, asar: Asar, outro: Outro};
+
+/** Legacy `cite` ("p.4 — 'quote'") -> a ProofChip. */
+const citeProof = (cite: string, source: string, date: string): Proof => ({source, page: cite.split(' — ')[0]!.trim(), date});
+
+const Shell: React.FC<{sc: any; dur: number; srcLabel: string; srcDate: string; seed: string; startAt?: number; extra?: Record<string, unknown> | undefined}> = ({
+  sc, dur, srcLabel, srcDate, seed, startAt = 0, extra
+}) => {
   const f = useCurrentFrame();
-  const o = interpolate(f, [0, 8, dur - 6, dur], [0, 1, 1, 0], clamp);
-  const push = interpolate(f, [0, dur], [1, 1.035]);
+  const o = interpolate(f, [0, 6, dur - 5, dur], [0, 1, 1, 0], clamp);
+  // camera feel: dolly in on entry (behind the paper wipe), slow push, slight tilt-away on exit
+  const push = interpolate(f, [0, 14], [1.08, 1], {...clamp, easing: Easing.out(Easing.cubic)}) * interpolate(f, [0, dur], [1, 1.035]);
+  const exitTilt = interpolate(f, [dur - 8, dur], [0, 10], clamp);
   const Comp = REG[sc.type] ?? TitleScene;
+  const body = <Comp {...sc.props} {...extra} dur={dur - startAt} seed={seed} />;
+  const proof: Proof | null = sc.proof ?? (sc.cite ? citeProof(sc.cite, srcLabel, srcDate) : null);
   return (
-    <AbsoluteFill style={{opacity: o}}>
-      <AbsoluteFill style={{transform: `scale(${push})`}}><Comp {...sc.props} dur={dur} /></AbsoluteFill>
-      {sc.cite ? <Source cite={sc.cite} src={srcLabel} /> : null}
-      <Captions text={sc.caption} dur={dur} />
-      <Audio src={asset(sc.audio)} />
+    <AbsoluteFill style={{opacity: o, perspective: 1600}}>
+      <AbsoluteFill style={{transform: `scale(${push}) rotateX(${exitTilt}deg)`, transformOrigin: '50% 100%'}}>
+        {startAt > 0 ? <Sequence from={startAt} layout="none">{body}</Sequence> : body}
+      </AbsoluteFill>
+      {proof ? <ProofChip proof={proof} /> : null}
+      {sc.type === 'outro' ? null : <Captions text={sc.caption} dur={dur} />}
+      {sc.audio ? <Audio src={asset(sc.audio)} /> : null}
     </AbsoluteFill>
   );
 };
@@ -316,22 +324,43 @@ const Bug: React.FC = () => (
 
 export const shortFrames = (ep: any) => Math.round(ep.scenes.reduce((a: number, s: any) => a + s.seconds, 0) * FPS);
 
+const WIPE = 16;
+
 export const Short: React.FC<{episode: any}> = ({episode}) => {
   useBundledFonts();
   let from = 0;
   const total = shortFrames(episode);
+  const cta = unpaperCta(episode);
+  const cuts: number[] = [];
+  {let acc = 0; episode.scenes.forEach((sc: any, i: number) => { acc += Math.round(sc.seconds * FPS); if (i < episode.scenes.length - 1) cuts.push(acc); });}
   const m = String(episode.source?.url || '').match(/arxiv\.org\/abs\/([\d.]+)/);
   const srcLabel = m ? `arXiv ${m[1]}` : (episode.source?.title || 'Source');
+  const srcDate = String(episode.source?.date ?? episode.source?.year ?? '');
+  const outro = {question: cta.question, shoutout: cta.shoutout, nextTeaser: cta.nextTeaser, crossPost: cta.crossPost, hook: cta.hook};
+  const legacyHookImage = episode.scenes.find((s: any) => s.type === 'pdfpage')?.props?.page as string | undefined;
   return (
     <AbsoluteFill>
-      <Studio />
+      <PaperLab />
       <Audio src={asset('ambient.mp3')} volume={0.12} loop />
       {episode.scenes.map((sc: any, i: number) => {
         const dur = Math.round(sc.seconds * FPS);
-        const el = <Sequence key={i} from={from} durationInFrames={dur}><Shell sc={sc} dur={dur} srcLabel={srcLabel} /></Sequence>;
+        // legacy: the first scene starts its own animation as the hook overlay leaves
+        const startAt = i === 0 && !cta.scriptHook ? Math.max(0, cta.hookFrames - 10) : 0;
+        const el = <Sequence key={i} from={from} durationInFrames={dur}>
+          <Shell sc={sc} dur={dur} srcLabel={srcLabel} srcDate={srcDate} seed={`${episode.id}-${i}`} startAt={startAt}
+            extra={sc.type === 'outro' ? {outro} : undefined} /></Sequence>;
         from += dur; return el;
       })}
+      {cuts.map((c, i) => <Sequence key={`w${i}`} from={c - WIPE / 2} durationInFrames={WIPE}>
+        <PaperWipe len={WIPE} seed={`${episode.id}-w${i}`} /><Audio src={staticFile('sfx/whoosh.mp3')} volume={0.18} /></Sequence>)}
       <Bug />
+      <Sequence from={cta.commentFrom} durationInFrames={cta.commentFrames}>
+        <CommentPill text={cta.comment} dur={cta.commentFrames} /><Audio src={staticFile('sfx/pop.mp3')} volume={0.35} /></Sequence>
+      <Sequence from={total - cta.endFrames} durationInFrames={cta.endFrames}>
+        {cta.scriptHook ? null : <FoldOutro {...outro} backdrop />}
+        <Audio src={staticFile('sfx/swoosh.mp3')} volume={0.3} /></Sequence>
+      {cta.scriptHook ? null : <Sequence from={0} durationInFrames={cta.hookFrames}>
+        <HookOverlay number={cta.hookNumber} line={cta.hook} image={legacyHookImage} dur={cta.hookFrames} /></Sequence>}
       <Progress total={total} />
     </AbsoluteFill>
   );
