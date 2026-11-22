@@ -1,0 +1,43 @@
+name: Unpaper Engage
+
+# Auto-reply to viewer comments on Unpaper (YouTube @Unpaper, Instagram @unpaper.ai, Facebook Page "Unpaper").
+# Off until the repo variable UNPAPER_ENGAGE_ENABLED is 'true'. Script: scripts/publish/unpaper-engage.ts
+# Secrets: YT_TOKEN_UNPAPER_SHORT (needs the youtube.force-ssl scope), META_UNPAPER_SHORT_PAGE_ID / _IG_USER_ID / _PAGE_TOKEN
+# (pages_manage_engagement, pages_read_engagement, pages_read_user_content, instagram_manage_comments).
+# A platform whose secret is missing is skipped with a notice; the run does not fail.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: "Dry run (list + draft replies, post nothing)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  models: read # GitHub Models (openai/gpt-4o-mini) for the reply text, via GITHUB_TOKEN
+
+concurrency:
+  group: unpaper-engage
+  cancel-in-progress: false
+
+jobs:
+  engage:
+    if: vars.UNPAPER_ENGAGE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      YT_TOKEN_UNPAPER_SHORT: ${{ secrets.YT_TOKEN_UNPAPER_SHORT }}
+      YT_CLIENT_SECRET_JSON: ${{ secrets.YT_CLIENT_SECRET_JSON }}
+      META_UNPAPER_SHORT_PAGE_ID: ${{ secrets.META_UNPAPER_SHORT_PAGE_ID }}
+      META_UNPAPER_SHORT_IG_USER_ID: ${{ secrets.META_UNPAPER_SHORT_IG_USER_ID }}
+      META_UNPAPER_SHORT_PAGE_TOKEN: ${{ secrets.META_UNPAPER_SHORT_PAGE_TOKEN }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20", cache: "npm" }
+      - run: npm ci
+      - run: npx ts-node scripts/publish/unpaper-engage.ts --days 7 ${{ inputs.dry && '--dry' || '' }}

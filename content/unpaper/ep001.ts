@@ -9,6 +9,11 @@ export const UNPAPER_EP001 = {
     "url": "https://arxiv.org/abs/1706.03762",
     "license_note": "Google grants permission to reproduce tables and figures for journalistic or scholarly works with attribution (p.1)."
   },
+  "cta": {
+    "hook": "ChatGPT ka 'T' kis cheez ka hai?",
+    "hookNumber": "15 pages",
+    "comment": "GPT ka 'T' = ___?"
+  },
   "scenes": [
     {
       "type": "title",

@@ -247,6 +247,12 @@ async function run(id: ChannelId, opts: { dry: boolean; days: number }, budget: 
   console.log(`[${cfg.name}] replies: ${JSON.stringify(sent)}`);
 }
 
+/** True when repo variable UNPAPER_ENGAGE_ENABLED is 'true' (REPO_VARS = toJSON(vars) in publish-channels.yml). */
+export function unpaperOwnLoop(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (env.UNPAPER_ENGAGE_ENABLED === "true") return true;
+  try { return (JSON.parse(env.REPO_VARS || "{}") as Record<string, string>).UNPAPER_ENGAGE_ENABLED === "true"; } catch { return false; }
+}
+
 if (require.main === module) {
   const args = process.argv.slice(2);
   const opt = (k: string) => (args.includes(k) ? args[args.indexOf(k) + 1] : undefined);
@@ -258,6 +264,8 @@ if (require.main === module) {
     const budget = { youtube: Math.max(0, CAP.youtubePerDay - used) };
     for (const id of Object.keys(CHANNELS) as ChannelId[]) {
       if (only && id !== only) continue;
+      // Unpaper has its own loop (scripts/publish/unpaper-engage.ts); skip it here once that one is on, so no comment gets two replies.
+      if (id === "unpaper-short" && unpaperOwnLoop()) { console.log("[engage] unpaper-short: handled by unpaper-engage.yml — skipped"); continue; }
       try { await run(id, { dry, days }, budget); } catch (e) { console.warn(`[engage] ${id}: ${(e as Error).message}`); }
     }
   })();
