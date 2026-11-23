@@ -48,6 +48,7 @@ const CodeLockRemotionSchema = CodeLockSchema._def.schema;
 import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
 import { UnpaperShortSchema, unpaperShortDuration, unpaperShortForDay, type UnpaperShort } from "../../../../engines/unpaper-short/src/model";
 import { UnpaperShortComposition } from "../../../../engines/unpaper-short/src/UnpaperShortComposition";
+import { dailyPreviews } from "../../../../engines/unpaper-short/src/daily";
 import { BreakingDeskSchema, breakingDeskDuration, breakingDeskForDay, type BreakingDesk } from "../../../../engines/breaking-desk/src/model";
 import { BreakingDeskComposition } from "../../../../engines/breaking-desk/src/BreakingDeskComposition";
 import { VersusSplitSchema, versusSplitDuration, versusSplitForDay, type VersusSplit } from "../../../../engines/versus-split/src/model";
@@ -95,6 +96,12 @@ export const Root: React.FC = () => (
     <Folder name="UnpaperShort">
       <Composition id="UnpaperShort" component={UnpaperShortComposition} schema={UnpaperShortSchema} {...video} durationInFrames={unpaperShortDuration(unpaperShortForDay(1))} defaultProps={unpaperShortForDay(1)}
         calculateMetadata={({ props }: { props: UnpaperShort }) => ({ durationInFrames: unpaperShortDuration(props) })} />
+      {/* Daily autopilot episodes (content/unpaper/daily), previews only — publishing passes its own props. */}
+      {dailyPreviews().map(({ key, props }) => (
+        <Composition key={key} id={`UnpaperDaily-${key}`} component={UnpaperShortComposition} schema={UnpaperShortSchema} {...video}
+          durationInFrames={unpaperShortDuration(props)} defaultProps={props}
+          calculateMetadata={({ props: p }: { props: UnpaperShort }) => ({ durationInFrames: unpaperShortDuration(p) })} />
+      ))}
     </Folder>
     <Folder name="BreakingDesk">
       <Composition id="BreakingDesk" component={BreakingDeskComposition} schema={BreakingDeskSchema} {...video} durationInFrames={breakingDeskDuration(breakingDeskForDay(1))} defaultProps={breakingDeskForDay(1)}

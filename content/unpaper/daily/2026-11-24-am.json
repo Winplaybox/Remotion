@@ -1,0 +1,167 @@
+{
+  "date": "2026-11-24",
+  "slot": "am",
+  "id": "ep004-sc-homebuyer-emi",
+  "series": "Fine Print",
+  "title": "Home loan EMI, flat nahi mila? Supreme Court ka naya order homebuyers ke liye",
+  "sourceUrl": "https://www.livelaw.in/pdf_upload/2026/11/22/65912202611175788order19-nov-2026-713574.pdf",
+  "source": {
+    "title": "Supreme Court of India — Record of Proceedings, W.P.(C) No. 1415/2026, Ravi Kumar Jangra & Anr. v. Union of India & Ors. (CJI Surya Kant, J. Joymalya Bagchi, J. V. Mohana)",
+    "date": "19 Nov 2026",
+    "report": "https://www.livelaw.in/top-stories/supreme-court-builder-banks-nexus-loan-disbursement-homebuyer-fault-to-be-assessed-before-interim-direction-of-installment-payment-559494"
+  },
+  "script": {
+    "hook": {
+      "number": "EMI ≠ Default",
+      "line": "Home loan EMI Supreme Court",
+      "caption": "Home loan EMI chal rahi, flat bana hi nahi? Supreme Court ka 19 Nov ka order aapko pata hona chahiye.",
+      "tts": "Home loan की EMI चल रही है, पर flat बना ही नहीं? Supreme Court का उन्नीस November का यह order आपको पता होना चाहिए.",
+      "seconds": 4,
+      "proof": {
+        "source": "Supreme Court · WP(C) 1415/2026",
+        "page": "p.1 · date",
+        "date": "19 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "SC Order · WP(C) 1415/2026",
+      "issuer": "Supreme Court of India · CJI Surya Kant bench",
+      "date": "19 Nov 2026",
+      "image": "daily/2026-11-24-am/scp-1.jpg",
+      "caption": "Document: Supreme Court ka 3 page ka order. Case: Gurugram ke Sohna mein Raheja Developers ka 'Krishna Housing Scheme' — buyers, SBI aur builder ka tripartite agreement.",
+      "tts": "Document है Supreme Court का तीन page का order. Gurugram के Sohna में Raheja Developers का Krishna Housing Scheme. Buyers, SBI और builder के बीच tripartite agreement.",
+      "seconds": 7,
+      "proof": {
+        "source": "Supreme Court · WP(C) 1415/2026",
+        "page": "p.1 · para 1-2",
+        "date": "19 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Paisa construction se linked tha",
+        "page": "daily/2026-11-24-am/scp-1.jpg",
+        "box": [
+          0.1073,
+          0.8454,
+          0.8164,
+          0.0484
+        ],
+        "quote": "Although, the disbursement of the loan was linked to construction progress, the Bank appears to have made payment to the builder without any corresponding progress in the construction.",
+        "decoded": "Loan = construction ke hisaab se. Aarop: bank ne bina progress paisa diya",
+        "proof": {
+          "source": "Supreme Court · WP(C) 1415/2026",
+          "page": "p.1 · para 2",
+          "date": "19 Nov 2026"
+        },
+        "prop": "house",
+        "caption": "Point 1: Loan construction ke progress ke hisaab se jaana tha. Order kehta hai — bank ne bina construction progress builder ko payment kar diya, aisa lagta hai.",
+        "tts": "पहला point. Loan construction के progress के हिसाब से जाना था. Order कहता है, bank ने बिना construction progress के builder को payment कर दिया, ऐसा लगता है.",
+        "seconds": 9
+      },
+      {
+        "title": "Pehle bank-builder nexus check",
+        "page": "daily/2026-11-24-am/scp-2.jpg",
+        "box": [
+          0.1073,
+          0.513,
+          0.8159,
+          0.0807
+        ],
+        "quote": "Unless a categorical finding is returned that the home buyers are in default, no interim direction regarding payment of installments can be issued against them.",
+        "decoded": "Buyer default saabit nahi? Toh EMI ka interim order nahi",
+        "proof": {
+          "source": "Supreme Court · WP(C) 1415/2026",
+          "page": "p.2 · para 4",
+          "date": "19 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 2: Court ko pehle dekhna hoga ki bank ne tripartite agreement ke hisaab se paisa diya ya nahi. Jab tak buyer clearly default mein na ho, installment ka interim order nahi.",
+        "tts": "दूसरा point. Court को पहले देखना होगा कि bank ने tripartite agreement के हिसाब से पैसा दिया या नहीं. जब तक buyer साफ़ default में न हो, installment का interim order नहीं.",
+        "seconds": 10
+      },
+      {
+        "title": "No coercive action",
+        "page": "daily/2026-11-24-am/scp-2.jpg",
+        "box": [
+          0.1073,
+          0.61,
+          0.8159,
+          0.0484
+        ],
+        "quote": "We, therefore, direct the Civil Court to not take any coercive action against the petitioners or similarly placed home buyers without first deciding the above-mentioned issue.",
+        "decoded": "Petitioners + similarly placed buyers: abhi koi zabardasti nahi",
+        "proof": {
+          "source": "Supreme Court · WP(C) 1415/2026",
+          "page": "p.2 · para 4-5",
+          "date": "19 Nov 2026"
+        },
+        "caption": "Point 3: Petitioners aur 'similarly placed' buyers par koi coercive action nahi, jab tak ye sawaal decide na ho. Par yeh ad-interim protection hai — merits par koi opinion nahi.",
+        "tts": "तीसरा point. Petitioners और similarly placed buyers पर कोई coercive action नहीं, जब तक यह सवाल decide न हो. पर यह ad-interim protection है, merits पर कोई opinion नहीं.",
+        "seconds": 11
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Tripartite / subvention loan? Agreement padho",
+        "Bank se disbursement record maango",
+        "Final faisla nahi — lawyer se baat karo"
+      ],
+      "proof": {
+        "source": "Supreme Court · WP(C) 1415/2026",
+        "page": "p.2 · para 4-5",
+        "date": "19 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Noida, Gurugram ya Bengaluru mein flat atka hai aur bank EMI maang raha? Apna tripartite agreement nikalo, aur bank se poocho — paisa construction ke hisaab se gaya tha?",
+      "tts": "आप पर असर. Noida, Gurugram या Bengaluru में flat अटका है और bank EMI माँग रहा है? अपना tripartite agreement निकालो, और bank से पूछो, पैसा construction के हिसाब से गया था?",
+      "seconds": 10
+    },
+    "outro": {
+      "caption": "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par. Next: builder-bank nexus par CBI ke cases.",
+      "tts": "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर. अगले part में, builder bank nexus पर CBI के cases.",
+      "seconds": 7
+    }
+  },
+  "cta": {
+    "comment": "Aapka flat bhi atka hai? City likho",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: builder-bank nexus — CBI ke cases",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Home loan EMI Supreme Court order: flat nahi, EMI kyun? #shorts",
+    "description": "Home loan EMI Supreme Court — 19 Nov 2026 ka order (W.P.(C) 1415/2026, CJI Surya Kant bench) padh ke:\n• Tripartite agreement mein loan construction progress se linked tha\n• Court ko pehle builder-bank nexus aur disbursement check karna hoga\n• Buyer clearly default mein na ho toh installment ka interim order nahi\n• Petitioners + similarly placed homebuyers par no coercive action (ad-interim; merits par opinion nahi)\nYeh legal advice nahi hai.\n\nSource (order PDF): https://www.livelaw.in/pdf_upload/2026/11/22/65912202611175788order19-nov-2026-713574.pdf\n\nSlides: Instagram https://www.instagram.com/unpaper.ai\nFacebook: https://www.facebook.com/profile.php?id=61596651637282\n\nKaunsa document decode karein? Comment karo.\n#HomeLoan #SupremeCourt #Homebuyers #Unpaper #shorts",
+    "tags": [
+      "home loan EMI Supreme Court",
+      "Supreme Court homebuyers order",
+      "tripartite agreement home loan",
+      "subvention scheme EMI",
+      "builder bank nexus",
+      "stalled project EMI",
+      "Raheja Krishna Housing Sohna",
+      "homebuyer rights India",
+      "Supreme Court latest order",
+      "होम लोन ईएमआई सुप्रीम कोर्ट",
+      "घर खरीदार अधिकार",
+      "बिल्डर बैंक सांठगांठ",
+      "Unpaper",
+      "Fine Print"
+    ],
+    "caption": "Flat bana nahi, phir bhi bank EMI maang raha? 🏠⚖️ Supreme Court ka 19 Nov ka order padho.\n\n1️⃣ Pehle check hoga: bank ne paisa construction ke hisaab se diya ya nahi.\n2️⃣ Buyer clearly default mein nahi → installment ka interim order nahi.\n⚠️ Ad-interim protection hai, final faisla nahi.\n\nFull breakdown YouTube pe: @Unpaper\n💾 Save karo, aur har us dost ko bhejo jiska flat atka hai.\n\n#HomeLoan #SupremeCourt #Homebuyers #RealEstateIndia #PersonalFinance #FinanceIndia #LegalAwareness #ConsumerRights #EMI #Gurugram #NoidaHomebuyers #StalledProjects #RERA #KnowYourRights #Hinglish #Unpaper #FinePrint",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Source (SC order PDF): https://www.livelaw.in/pdf_upload/2026/11/22/65912202611175788order19-nov-2026-713574.pdf\nSlides: https://www.instagram.com/unpaper.ai\nAgla kaunsa document decode karein? Comment karo 👇",
+  "notes": {
+    "status": "Ad-interim protection only; SC expressly expressed no opinion on merits (para 5). Applies to petitioners and similarly placed buyers in this matter. Not legal advice.",
+    "verified": {
+      "19 Nov 2026": "p.1 date",
+      "WP(C) 1415/2026": "p.1",
+      "NCLT CIRP admission 21.08.2025": "p.2 para 2",
+      "refund in six monthly installments (builder's proposal)": "p.2 para 2",
+      "3 pages": "pdfinfo"
+    },
+    "teaser": "'28 CBI cases' comes from LiveLaw's report, not this order — outro tts keeps it generic; verify against SC order before making the next part."
+  }
+}

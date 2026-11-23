@@ -12,6 +12,9 @@
  *  2. `scenes` (legacy, ep001): a free list of typed scenes.
  * Narration is pre-rendered per scene into public/unpaper/<episode>/*.mp3 (`audio`); a scene without audio is silent
  * (drafts / previews before the voice pass). Deterministic: a post number maps to one authored episode, nothing random.
+ *
+ * PUBLISHING uses daily date-slot episodes instead (./daily.ts, content/unpaper/daily/*.json). The authored episodes
+ * below (ep001, ep002 draft) are engine QA / Studio fixtures only and are never published by the channel.
  */
 import { z } from "zod";
 import { UNPAPER_EP001 } from "../../../content/unpaper/ep001";
@@ -50,7 +53,7 @@ const BoxSchema = z.tuple([z.number().min(0).max(1), z.number().min(0).max(1), z
 
 export const ScriptSchema = z.object({
   /** 1. Hook (0-2 s): the document spins in, its orange corner peels and this number pops out. */
-  hook: z.object({ ...Beat, number: z.string(), line: z.string() }),
+  hook: z.object({ ...Beat, number: z.string(), line: z.string(), proof: ProofSchema.optional() }),
   /** 2. Show the document: what it is (real cover/first page). */
   doc: z.object({ ...Beat, name: z.string(), issuer: z.string(), date: z.string(), image: z.string(), proof: ProofSchema }),
   /** 3. Exactly three decoded points: camera dives into the page, the line is highlighted and lifts up as 3D text. */
@@ -123,7 +126,7 @@ export function unpaperScenes(s: UnpaperScript): UnpaperScene[] {
   const b = (x: { caption: string; tts: string; seconds: number; audio?: string | undefined }) =>
     ({ caption: x.caption, tts: x.tts, seconds: x.seconds, ...(x.audio ? { audio: x.audio } : {}) });
   return [
-    { type: "dochook", ...b(s.hook), props: { number: s.hook.number, line: s.hook.line, image: s.doc.image } },
+    { type: "dochook", ...b(s.hook), ...(s.hook.proof ? { proof: s.hook.proof } : {}), props: { number: s.hook.number, line: s.hook.line, image: s.doc.image } },
     { type: "showdoc", ...b(s.doc), proof: s.doc.proof, props: { name: s.doc.name, issuer: s.doc.issuer, date: s.doc.date, image: s.doc.image } },
     ...s.points.map((p, i) => ({
       type: "decode", ...b(p), proof: p.proof,

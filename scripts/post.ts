@@ -14,7 +14,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelId, type VoiceLine } from "../channels/channels";
+import { CHANNELS, postNumber, slotTimeISO, todayIST, type ChannelConfig, type ChannelId, type NarrationScene, type VoiceLine } from "../channels/channels";
 import { uploadYouTube } from "./publish/youtube";
 import { fanout } from "./publish/social";
 import { narrateArgs } from "../channels/voices";
@@ -35,13 +35,20 @@ async function main() {
   const n = arg("n") ? Number(arg("n")) : postNumber(channel, date, slot);
   const publishAt = arg("publish-at") ?? slotTimeISO(date, cfg.slots[slot] ?? cfg.slots[0]!);
   const tag = `post-${String(n).padStart(3, "0")}`;
+  const ccfg = cfg as ChannelConfig;
+  // Date-slot channels (Unpaper): no content / invalid / unsourced for this slot = skip it. Never a fallback post.
+  const skipWhy = ccfg.skip?.(n);
+  if (skipWhy) {
+    console.log(`::warning::[${cfg.name}] ${date} slot ${slot} (post #${n}) skipped, nothing published: ${skipWhy}`);
+    return;
+  }
   const outDir = path.resolve("output", channel);
   fs.mkdirSync(outDir, { recursive: true });
 
   // Videos rendered by Claude wait on the render-queue branch; use them instead of rendering here.
   const video = path.join(outDir, `${tag}.mp4`);
   let prerendered = false;
-  if (!flag("dry") && !flag("no-queue") && !flag("refresh-narration")) {
+  if (!flag("dry") && !flag("no-queue") && !flag("refresh-narration") && ccfg.renderQueue !== false) {
     try {
       execFileSync("git", ["fetch", "--quiet", "--depth", "1", "origin", "render-queue"], { stdio: "ignore" });
       const buf = execFileSync("git", ["show", `FETCH_HEAD:video/${channel}/${tag}.mp4`], { maxBuffer: 512 * 1024 * 1024 });
@@ -56,9 +63,9 @@ async function main() {
 
   const props = cfg.resolve(n) as Record<string, unknown>;
   if (cfg.narrated && !prerendered) {
-    const story = props as { scenes: { audio?: string; narration: string }[] };
+    const story = { scenes: ccfg.narrationScenes ? ccfg.narrationScenes(props) : (props as { scenes: NarrationScene[] }).scenes };
     const audioDir = path.join("public", "audio", channel, tag);
-    fs.writeFileSync(path.join(outDir, `${tag}.narration.json`), JSON.stringify(story.scenes.map((s, i) => ({ file: `scene-${i + 1}.wav`, text: s.narration })), null, 2));
+    fs.writeFileSync(path.join(outDir, `${tag}.narration.json`), JSON.stringify(story.scenes.map((s, i) => ({ file: `scene-${i + 1}.wav`, text: s.narration ?? s.tts ?? "" })), null, 2));
     const missing = () => story.scenes.filter((_, i) => !fs.existsSync(path.join(audioDir, `scene-${i + 1}.wav`))).length;
     // --auto-narrate: generate missing scene WAVs with Edge TTS (same approach as daily-devotional-shorts).
     // WAVs committed to public/audio (e.g. IndicF5 in your own voice) always win; only gaps are filled.
@@ -84,6 +91,12 @@ async function main() {
     const have = story.scenes.filter((s) => s.audio).length;
     console.log(`[narration] ${have}/${story.scenes.length} WAVs in ${audioDir}`);
     if (flag("require-narration") && have < story.scenes.length) throw new Error(`Narration missing for ${tag}; run scripts/narration/narrate.py first`);
+    // Never publish silent: the slot is not published, and the run fails so it shows up (catch-up retries next hour).
+    if (ccfg.requireNarration && have < story.scenes.length && !flag("dry")) {
+      console.log(`::error::[${cfg.name}] ${date} slot ${slot}: narration failed (${have}/${story.scenes.length} scenes) — not publishing a silent video`);
+      process.exitCode = 1;
+      return;
+    }
   }
   let voiced = cfg.narrated;
   const voiceOf = (cfg as { voice?: (n: number) => VoiceLine[] }).voice;
