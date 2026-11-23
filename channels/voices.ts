@@ -61,6 +61,11 @@ const BATTLE_HYPE: VoiceProfile = {
   engines: CHAIN, kokoro: "hm_omega", kokoroSpeed: 1.05, gemini: "Zephyr",
   geminiStyle: "Say this in Hindi like an energetic anime battle tournament announcer — hype, fierce, building up to the winner", edge: "hi-IN-MadhurNeural", edgeRate: "+6%"
 };
+/** Unpaper: one fixed Edge voice (the scripts are written for it), no engine chain — fast and predictable in the hourly job. */
+const UNPAPER_EXPLAINER: VoiceProfile = {
+  engines: ["edge"], kokoro: "hm_psi", kokoroSpeed: 1.0, gemini: "Fenrir",
+  geminiStyle: "Say this in Hindi like a clear, confident explainer", edge: "hi-IN-MadhurNeural", edgeRate: "+6%"
+};
 const bedtime = (language: string, kokoro: string, gemini: string, edge: string, engines: TtsEngine[] = CHAIN): VoiceProfile => ({
   engines, kokoro, kokoroSpeed: 0.92, gemini,
   geminiStyle: `Say this in ${language} like a warm, gentle bedtime storyteller for small children — clear, smiling, unhurried`, edge, edgeRate: "-6%"
@@ -86,6 +91,7 @@ export const VOICES: Partial<Record<ChannelId, VoiceProfile>> = {
   "indian-horror-tapes": HORROR_NARRATOR,
   "breaking-desk": NEWS_ANCHOR,
   "versus-split": BATTLE_HYPE,
+  "unpaper-short": UNPAPER_EXPLAINER,
   "mindnest-hi": bedtime("Hindi", "hf_alpha", "Leda", "hi-IN-SwaraNeural"),
   "mindnest-es": bedtime("Spanish", "ef_dora", "Leda", "es-MX-DaliaNeural"),
   "mindnest-ar": bedtime("Arabic", "af_heart", "Leda", "ar-SA-ZariyahNeural", NO_KOKORO),

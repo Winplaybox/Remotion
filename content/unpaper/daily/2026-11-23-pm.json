@@ -1,0 +1,168 @@
+{
+  "date": "2026-11-23",
+  "slot": "pm",
+  "id": "ep003-epf-withdrawal",
+  "series": "Rule Badla",
+  "title": "EPF withdrawal new rule: 25% lock ab sirf 10%, aur PF se monthly pension jaisa SWP",
+  "sourceUrl": "https://www.pib.gov.in/PressReleasePage.aspx?PRID=2338667",
+  "source": {
+    "title": "Dr. Mansukh Mandaviya chairs 240th meeting of Central Board of Trustees (CBT), EPF — PIB Release ID 2338667",
+    "date": "19 Nov 2026",
+    "issuer": "Ministry of Labour & Employment (PIB Delhi)"
+  },
+  "script": {
+    "hook": {
+      "number": "25% → 10%",
+      "line": "EPF withdrawal new rule",
+      "caption": "EPF withdrawal new rule: PF ka 25% lock tha. Board ne approve kiya — ab sirf 10%.",
+      "tts": "EPF withdrawal का new rule. PF का पच्चीस percent lock रहता था. Board ने approve किया, अब सिर्फ़ दस percent.",
+      "seconds": 4,
+      "proof": {
+        "source": "PIB · EPFO CBT 240th meeting",
+        "page": "headline + para 'Review of minimum balance'",
+        "date": "19 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "EPFO CBT 240th Meeting",
+      "issuer": "Ministry of Labour & Employment · PIB",
+      "date": "19 Nov 2026",
+      "image": "daily/2026-11-23-pm/p1.jpg",
+      "caption": "Document: EPFO Central Board of Trustees ki 240th meeting ki official release. Sab share kar rahe hain, hum padh ke batate hain.",
+      "tts": "Document है EPFO के Central Board of Trustees की दो सौ चालीसवीं meeting की official release. सब share कर रहे हैं, हम पढ़ के बताते हैं.",
+      "seconds": 6,
+      "proof": {
+        "source": "PIB · EPFO CBT 240th meeting",
+        "page": "title · Release ID 2338667",
+        "date": "19 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Minimum balance 25% → 10%",
+        "page": "daily/2026-11-23-pm/p3.jpg",
+        "box": [
+          0.1361,
+          0.1778,
+          0.7778,
+          0.0583
+        ],
+        "quote": "Now, the minimum balance requirement for EPF has been reduced from existing 25% to 10% and waiting period has been reduced from 12 months to 2 months.",
+        "decoded": "Lock: 25% → 10% · Wait: 12 → 2 months",
+        "proof": {
+          "source": "PIB · EPFO CBT 240th meeting",
+          "page": "para 'Review of minimum balance and waiting period'",
+          "date": "19 Nov 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 1: PF contributions ka 25% hamesha account mein rakhna padta tha. Ab sirf 10%. Aur final withdrawal ka wait 12 mahine se 2 mahine.",
+        "tts": "पहला point. PF contributions का पच्चीस percent हमेशा account में रखना पड़ता था. अब सिर्फ़ दस percent. और final withdrawal का wait, बारह महीने से घटकर दो महीने.",
+        "seconds": 11
+      },
+      {
+        "title": "SWP: PF se regular payout",
+        "page": "daily/2026-11-23-pm/p1.jpg",
+        "box": [
+          0.1361,
+          0.8779,
+          0.7778,
+          0.0583
+        ],
+        "quote": "...enable retiring EPF members to receive their accumulated provident fund savings in periodic instalments instead of withdrawing the entire amount in one go.",
+        "decoded": "Retire? Monthly / quarterly / half-yearly payout",
+        "proof": {
+          "source": "PIB · EPFO CBT 240th meeting",
+          "page": "para 'Introduction of Systematic Withdrawal Plan (SWP)'",
+          "date": "19 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 2: Retirement par poora PF ek saath nikalna zaroori nahi. SWP se monthly, quarterly ya half-yearly payout — baaki paisa returns kamata rahega. Voluntary hai.",
+        "tts": "दूसरा point. Retirement पर पूरा PF एक साथ निकालना ज़रूरी नहीं. SWP से monthly, quarterly या half-yearly payout, और बाकी पैसा returns कमाता रहेगा. यह voluntary है.",
+        "seconds": 11
+      },
+      {
+        "title": "6.32 lakh pehle beneficiaries",
+        "page": "daily/2026-11-23-pm/p2.jpg",
+        "box": [
+          0.0857,
+          0.3488,
+          0.8282,
+          0.0583
+        ],
+        "quote": "Approximately 6.32 lakh EPF members aged above 55 years possess provident fund accumulations exceeding ₹5 lakh are expected to be the primary beneficiaries...",
+        "decoded": "55+ age · ₹5 lakh+ PF · ~6.32 lakh members",
+        "proof": {
+          "source": "PIB · EPFO CBT 240th meeting",
+          "page": "para SWP, 3rd paragraph",
+          "date": "19 Nov 2026"
+        },
+        "caption": "Point 3: Pehle phase mein fayda — 55 saal se upar, ₹5 lakh se zyada PF wale lagbhag 6.32 lakh members. Member ki death par nominee baaki paisa nikal sakta hai.",
+        "tts": "तीसरा point. पहले phase में फ़ायदा, पचपन साल से ऊपर, पाँच लाख से ज़्यादा PF वाले, लगभग छह दशमलव तीन दो लाख members. Member की death पर nominee बाकी पैसा निकाल सकता है.",
+        "seconds": 11
+      }
+    ],
+    "asar": {
+      "lines": [
+        "₹5 lakh contributions: lock ₹1.25 lakh → ₹50,000",
+        "Job gayi? Final withdrawal 2 mahine mein",
+        "Notify hona baaki — abhi rule live nahi"
+      ],
+      "proof": {
+        "source": "PIB · EPFO CBT 240th meeting",
+        "page": "para 'Review of minimum balance'; para SWP ('will be notified ... after approval from the Ministry')",
+        "date": "19 Nov 2026"
+      },
+      "prop": "house",
+      "caption": "Aap par asar: maan lo PF contributions ₹5 lakh. Pehle ₹1.25 lakh lock, ab sirf ₹50,000. Par dhyaan do — Ministry approval aur notification abhi baaki hai.",
+      "tts": "आप पर असर. मान लो PF contributions पाँच लाख हैं. पहले सवा लाख lock रहते, अब सिर्फ़ पचास हज़ार. पर ध्यान दो, Ministry approval और notification अभी बाकी है.",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par. Next: EPFO ki claim settlement 11 din se 2.57 din kaise?",
+      "tts": "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर. अगले part में, EPFO का claim settlement ग्यारह दिन से दो दशमलव पाँच सात दिन कैसे हुआ.",
+      "seconds": 7
+    }
+  },
+  "cta": {
+    "comment": "Aap SWP loge ya poora PF ek saath?",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: EPF claim settlement 11.15 → 2.57 din",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "EPF withdrawal new rule: 25% lock ab 10%, PF se SWP #shorts",
+    "description": "EPF withdrawal new rule — EPFO ke Central Board of Trustees (240th meeting, 19 Nov 2026) ne kya approve kiya, official PIB release padh ke:\n• PF minimum balance 25% → 10%\n• Final PF withdrawal waiting period 12 mahine → 2 mahine\n• Systematic Withdrawal Plan (SWP): retirement par PF monthly / quarterly / half-yearly payout mein\n• Pehle phase: 55+ age, ₹5 lakh+ PF wale ~6.32 lakh members\nNote: EPF scheme amendments Ministry approval ke baad notify honge — abhi notify hona baaki.\n\nSource (official): https://www.pib.gov.in/PressReleasePage.aspx?PRID=2338667\n\nSlides: Instagram https://www.instagram.com/unpaper.ai\nFacebook: https://www.facebook.com/profile.php?id=61596651637282\n\nKaunsa document decode karein? Comment karo.\n#EPF #EPFO #PFWithdrawal #Unpaper #shorts",
+    "tags": [
+      "EPF withdrawal new rule",
+      "EPFO new rules 2026",
+      "PF withdrawal rules",
+      "EPF SWP",
+      "systematic withdrawal plan EPF",
+      "EPF minimum balance 10%",
+      "PF final withdrawal 2 months",
+      "EPFO CBT meeting",
+      "PF news today",
+      "पीएफ निकासी नया नियम",
+      "ईपीएफओ नया नियम",
+      "पीएफ पैसा कैसे निकालें",
+      "Unpaper",
+      "Rule Badla"
+    ],
+    "caption": "PF ka 25% lock ab sirf 10%? 👀 EPFO Board ne 19 Nov ko approve kiya.\n\n1️⃣ Final PF withdrawal ka wait 12 mahine se 2 mahine.\n2️⃣ Retirement par SWP — PF se monthly/quarterly payout, baaki paisa kamata rahega.\n⚠️ Ministry approval + notification abhi baaki.\n\nFull breakdown YouTube pe: @Unpaper\n💾 Save karo, aur us dost ko bhejo jo PF nikalne wala hai.\nSource: PIB Release ID 2338667\n\n#EPF #EPFO #PF #PFWithdrawal #PersonalFinance #MoneyTips #FinanceIndia #Retirement #SalariedIndia #EPFONews #PFRules #SWP #RetirementPlanning #Hinglish #FinanceInHindi #NewRules #Unpaper #RuleBadla",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Source (official PIB release): https://www.pib.gov.in/PressReleasePage.aspx?PRID=2338667\nSlides: https://www.instagram.com/unpaper.ai\nAgla kaunsa document decode karein? Comment karo 👇",
+  "notes": {
+    "status": "Board-approved decisions. PIB: 'necessary amendments to the EPF scheme will be notified ... after approval from the Ministry'. Script says 'notify hona baaki' — do not present as already in force.",
+    "verified": {
+      "25% → 10% minimum balance": "PIB para 'Review of minimum balance'",
+      "12 → 2 months waiting": "same para",
+      "6.32 lakh members, 55+, >₹5 lakh": "SWP para",
+      "monthly/quarterly/half-yearly": "SWP para",
+      "11.15 → 2.57 days settlement": "CITES 2.0 para",
+      "₹1.25 lakh / ₹50,000": "arithmetic: 25% and 10% of ₹5 lakh (illustrative)"
+    },
+    "pages": "Page images: the PIB release text (verbatim) re-typeset to A4 with Chrome print-to-pdf, then pdftoppm; boxes from pdftotext -bbox-layout."
+  }
+}

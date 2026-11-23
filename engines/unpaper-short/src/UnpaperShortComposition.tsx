@@ -18,6 +18,8 @@ export const S = {ink: '#171717', soft: '#55565C', saffron: '#F07828', cyan: '#1
 const FPS = 30;
 /** Every Unpaper asset lives under public/unpaper/ so it never collides with other engines. */
 const asset = (p: string) => staticFile(`unpaper/${p}`);
+/** Narration: authored episodes keep mp3s under public/unpaper/; the publish job writes daily WAVs to public/audio/<channel>/. */
+const voiceSrc = (p: string) => (p.startsWith('audio/') ? staticFile(p) : asset(p));
 const clamp = {extrapolateLeft: 'clamp' as const, extrapolateRight: 'clamp' as const};
 
 // ---------- building blocks ----------
@@ -305,7 +307,7 @@ const Shell: React.FC<{sc: any; dur: number; srcLabel: string; srcDate: string; 
       </AbsoluteFill>
       {proof ? <ProofChip proof={proof} /> : null}
       {sc.type === 'outro' ? null : <Captions text={sc.caption} dur={dur} />}
-      {sc.audio ? <Audio src={asset(sc.audio)} /> : null}
+      {sc.audio ? <Audio src={voiceSrc(sc.audio)} /> : null}
     </AbsoluteFill>
   );
 };

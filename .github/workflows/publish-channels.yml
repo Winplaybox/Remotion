@@ -55,6 +55,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20", cache: "npm" }
       - run: npm ci
+      # Unpaper daily episodes: a plain content/unpaper/daily/YYYY-MM-DD-(am|pm).json commit is enough.
+      - run: npm run unpaper:index
       - id: due
         shell: bash
         env:
@@ -190,6 +192,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20", cache: "npm" }
       - run: npm ci
+      - run: npm run unpaper:index
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - name: Narration tools (Edge TTS + ffmpeg; Gemini via API)

@@ -26,7 +26,8 @@
     "engine:qa": "ts-node scripts/engine-qa.ts",
     "engine:lock": "ts-node scripts/lock-published.ts",
     "test:bot": "node --test apps/telegram-bot/commands.test.mjs apps/telegram-bot/admin.test.mjs apps/telegram-bot/social.test.mjs",
-    "bot:video": "ts-node scripts/telegram/make-video.ts"
+    "bot:video": "ts-node scripts/telegram/make-video.ts",
+    "unpaper:index": "node scripts/unpaper/index-daily.mjs"
   },
   "dependencies": {
     "@react-three/drei": "9.120.3",

@@ -37,6 +37,8 @@ function plan(): Planned[] {
     for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
       if (only && only !== channel) continue;
       if ((!isLive(channel) && !includePaused) || date < startDateOf(channel) || !isPostDay(channel, date)) continue;
+      // Channels that render fresh in the publish job (Unpaper: content can change until slot time) skip the queue.
+      if ((CHANNELS[channel] as ChannelConfig).renderQueue === false) continue;
       CHANNELS[channel].slots.forEach((_, slot) => {
         const n = postNumber(channel, date, slot);
         out.push({ channel, n, date, slot, tag: tagOf(n) });

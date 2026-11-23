@@ -17,8 +17,8 @@ import { horrorTapeForDay, horrorTapeMeta } from "../content/indian-horror-tapes
 import { LANGS, MINDNEST_LANGS, mindNestForDay, mindNestMeta, type MindNestLang } from "../content/mindnest/fables";
 import { stickRiddleAnswer, stickRiddleForDay, stickRiddleMeta } from "../content/stickman/riddles";
 import { CHANNEL_LOOKS, lookFor } from "./looks";
-import { unpaperShortForDay } from "../engines/unpaper-short/src/model";
-import { UNPAPER_HANDLES, unpaperCaption, unpaperDescription } from "../engines/unpaper-short/src/brand";
+import { UNPAPER_HANDLES } from "../engines/unpaper-short/src/brand";
+import { unpaperDailyForPost, unpaperMetaForPost, unpaperSkipReason } from "./unpaper-daily";
 import { breakingDeskForDay, breakingDeskVoiceLines, breakingDeskAnswerComment } from "../engines/breaking-desk/src/model";
 import { versusSplitForDay, versusSplitVoiceLines, versusSplitAnswerComment } from "../engines/versus-split/src/model";
 // @engine-builder:imports
@@ -71,6 +71,17 @@ export interface ChannelConfig {
    * engines) is never cut off by the next scene. Off by default: EpicBharatSaga's pipeline stays exactly as it is.
    */
   fitScenesToVoice?: boolean;
+  /**
+   * Why post n must not publish (no content for that slot, invalid, unsourced). undefined = publish. The planner
+   * (scripts/due.ts) leaves such slots out and post.ts exits without publishing; there is never a fallback post.
+   */
+  skip?: (n: number) => string | undefined;
+  /** Narrated channels whose props are not `{ scenes }`: the scene objects narration reads (`tts` or `narration`) and fills. */
+  narrationScenes?: (props: unknown) => NarrationScene[];
+  /** Never publish silent: if any scene has no narration after TTS, the slot is not published. */
+  requireNarration?: boolean;
+  /** false = never use the render-queue branch (no pre-voiced / pre-rendered files); the publish job renders fresh. */
+  renderQueue?: boolean;
   /** Answer comment posted on the video once it is public (pin it in YouTube Studio). */
   answer?: (n: number) => string;
   /** From this post on the answer is revealed in the next video; the comment is posted once post n+1 is public. */
@@ -80,6 +91,8 @@ export interface ChannelConfig {
 }
 
 export interface VoiceLine { file: string; text: string; at: number }
+/** A narrated scene: spoken text in `narration` (stories) or `tts` (Unpaper); post.ts fills `audio` and may lengthen `seconds`. */
+export interface NarrationScene { narration?: string; tts?: string; audio?: string; seconds?: number }
 
 const ORDINAL = ["pehla", "doosra", "teesra", "chautha", "paanchva", "chhatha", "saatva", "aathva", "nauva", "dasva"];
 const PUZZLE_TAGS = ["puzzle", "brain teaser", "brain test", "odd one out", "iq test", "focus test", "shorts"];
@@ -504,29 +517,27 @@ export const CHANNELS = {
   "unpaper-short": {
     name: "Unpaper",
     composition: "UnpaperShort",
-    // Disabled until approved: set repo variables START_UNPAPER_SHORT=<date> and LIVE_UNPAPER_SHORT=true.
+    // Autopilot (no per-video approval): every slot publishes the episode written for that exact date + slot,
+    // content/unpaper/daily/YYYY-MM-DD-am.json (09:00) / -pm.json (19:00). Missing / invalid / unsourced = slot skipped.
+    // Switched on by repo variables only: START_UNPAPER_SHORT=<first date> (+ LIVE_UNPAPER_SHORT=true);
+    // LIVE_UNPAPER_SHORT=false or PAUSE_UNPAPER_SHORT_UNTIL stop it. Until START is set the 2099 start keeps it off.
     startDate: "2099-01-01",
     slots: ["09:00", "19:00"],
-    narrated: false,
-    autoPublish: false,
+    narrated: true,
+    fitScenesToVoice: true,
+    requireNarration: true,
+    renderQueue: false,
+    autoPublish: true,
     youtubeTokenSecret: "YT_TOKEN_UNPAPER_SHORT",
     metaSecretPrefix: "META_UNPAPER_SHORT",
     // YouTube channel: https://youtube.com/@Unpaper (token: npm run auth:youtube -> secret YT_TOKEN_UNPAPER_SHORT)
     youtubeHandle: UNPAPER_HANDLES.youtube.handle,
     pinterestSecretPrefix: "PINTEREST_UNPAPER_SHORT",
-    resolve: (n) => unpaperShortForDay(n),
-    meta: (n) => {
-      const ep = unpaperShortForDay(n).episode;
-      return {
-        title: `${ep.title} | Unpaper #shorts`.slice(0, 100),
-        // Handles/links come from the shared Unpaper brand config (engines/unpaper-short/src/brand.ts).
-        description: unpaperDescription(ep),
-        tags: ["AI", "research paper", "explained", "hinglish", "unpaper", "shorts"],
-        caption: unpaperCaption(ep),
-        language: "hi",
-        categoryId: "27"
-      };
-    }
+    resolve: (n) => unpaperDailyForPost(n),
+    skip: (n) => unpaperSkipReason(n),
+    narrationScenes: (props) => (props as { episode: { scenes: NarrationScene[] } }).episode.scenes,
+    // Title / description / tags / caption come from the episode JSON (seo block).
+    meta: (n) => unpaperMetaForPost(n)
   },
   "breaking-desk": {
     name: "Breaking Desk",

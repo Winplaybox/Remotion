@@ -40,16 +40,15 @@ describe("Unpaper Short engagement + cross-platform links", () => {
     expect(d.crossPost).toBe("Poora breakdown YouTube par / slides Instagram par");
   });
 
-  it("YouTube description links Instagram + the Facebook Page; IG caption points to YouTube; all from one config", () => {
-    const meta = CHANNELS["unpaper-short"].meta(1);
+  it("brand templates: YouTube description links Instagram + the Facebook Page; IG caption points to YouTube", () => {
     const ep = unpaperShortForDay(1).episode;
-    expect(meta.description).toBe(unpaperDescription(ep));
-    expect(meta.caption).toBe(unpaperCaption(ep));
-    expect(meta.description).toContain(UNPAPER_HANDLES.instagram.handle);
-    expect(meta.description).toContain("https://www.facebook.com/profile.php?id=61596651637282");
-    expect(meta.caption).toContain(`Full video YouTube pe: ${UNPAPER_HANDLES.youtube.handle}`);
+    const description = unpaperDescription(ep);
+    const caption = unpaperCaption(ep);
+    expect(description).toContain(UNPAPER_HANDLES.instagram.handle);
+    expect(description).toContain("https://www.facebook.com/profile.php?id=61596651637282");
+    expect(caption).toContain(`Full video YouTube pe: ${UNPAPER_HANDLES.youtube.handle}`);
     expect(CHANNELS["unpaper-short"].youtubeHandle).toBe(UNPAPER_HANDLES.youtube.handle);
-    expect(meta.description.length).toBeLessThanOrEqual(5000);
-    expect(meta.caption.length).toBeLessThanOrEqual(2200);
+    expect(description.length).toBeLessThanOrEqual(5000);
+    expect(caption.length).toBeLessThanOrEqual(2200);
   });
 });

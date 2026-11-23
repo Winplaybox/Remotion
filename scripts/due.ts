@@ -6,7 +6,7 @@
  *   (ledger start) are never caught up, so nothing published before the ledger existed is posted again.
  *   npx ts-node scripts/due.ts [--from ISO] [--hours 1] [--channel id] [--no-ledger]
  */
-import { CHANNELS, isLive, isPostDay, startDateOf, todayIST, slotTimeISO, type ChannelId } from "../channels/channels";
+import { CHANNELS, isLive, isPostDay, postNumber, startDateOf, todayIST, slotTimeISO, type ChannelConfig, type ChannelId } from "../channels/channels";
 import { ledgerEnabled, ledgerStatus, type SlotKey } from "./ledger";
 
 export const LOOKBACK_HOURS = 12;
@@ -24,7 +24,11 @@ export function candidates(from: number, hours: number, only: string | undefined
         const t = Date.parse(slotTimeISO(date, hhmm));
         const normal = t >= from + 30 * 60_000 && t < from + (30 + hours * 60) * 60_000;
         const late = catchUp && t < from + 30 * 60_000 && t >= from - LOOKBACK_HOURS * 3_600_000 && t >= CATCHUP_SINCE;
-        if (normal || late) out.push({ channel, date, slot, late: !normal });
+        if (!normal && !late) return;
+        // Date-slot channels (Unpaper): a slot with no valid, sourced episode is not planned at all.
+        const why = (CHANNELS[channel] as ChannelConfig).skip?.(postNumber(channel, date, slot));
+        if (why) { console.error(`[due] skip ${channel} ${date} slot ${slot}: ${why}`); return; }
+        out.push({ channel, date, slot, late: !normal });
       });
     }
   }
