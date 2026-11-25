@@ -1,7 +1,10 @@
 import { LANGS, mindNestForDay, type MindNestLang } from "../../../content/mindnest/fables";
 import type { StoryText } from "./types";
 
-const SCRIPT: Record<MindNestLang, StoryText["script"]> = { hi: "deva", es: "latin", de: "latin", fil: "latin", ar: "arabic", ja: "cjk", ko: "cjk" };
+export const SCRIPT: Record<MindNestLang, StoryText["script"]> = {
+  hi: "deva", es: "latin", de: "latin", fil: "latin", ar: "arabic", ja: "cjk", ko: "cjk",
+  en: "latin", pt: "latin", fr: "latin", vi: "latin"
+};
 const nb = (s: string) => s.replace(/\u00a0/g, " ").trim();
 
 /**

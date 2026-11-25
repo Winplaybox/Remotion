@@ -46,6 +46,7 @@ import { CodeLockSchema, codeLockDuration, codeLockForDay, type CodeLock } from 
 // Keep the refined schema for generation/QA and expose its underlying object here.
 const CodeLockRemotionSchema = CodeLockSchema._def.schema;
 import { CodeLockComposition } from "../../../../engines/code-lock/src/CodeLockComposition";
+import { MindNestEpisodeV2, mindNestEpisode, mindNestEpisodeMetadata, episodeDuration, type MindNestEpisodeProps } from "../../../../engines/story-visual-v2/src";
 import { UnpaperShortSchema, unpaperShortDuration, unpaperShortForDay, type UnpaperShort } from "../../../../engines/unpaper-short/src/model";
 import { UnpaperShortComposition } from "../../../../engines/unpaper-short/src/UnpaperShortComposition";
 import { dailyPreviews } from "../../../../engines/unpaper-short/src/daily";
@@ -64,6 +65,7 @@ const STORY_DEMO = epicBharatSagaForDay(1);
 const video = { fps: MASTER_VIDEO.fps, width: MASTER_VIDEO.width, height: MASTER_VIDEO.height };
 
 const TEMPLATE_DEMO = templateForDay(1);
+const MINDNEST_V2_DEMO = mindNestEpisode("hi", 1, "storybook-classic");
 const CODE_LOCK_DEMO = codeLockForDay(1);
 
 export const Root: React.FC = () => (
@@ -162,6 +164,12 @@ export const Root: React.FC = () => (
         const props = { ...TRACK_VEHICLE_DEMO, ...patch };
         return <Composition key={name} id={`KaaliPeeliChase-${name}`} component={TrackVehicleComposition} schema={TrackVehicleSchema} {...video} durationInFrames={trackVehicleDuration(props)} defaultProps={props} />;
       })}
+    </Folder>
+    <Folder name="MindNest">
+      {/* MindNest Tales on StoryVisualEngine V2: full episode (hook -> 4 pages -> moral -> goodbye), pages fit to the voice. */}
+      <Composition id="MindNestEpisodeV2" component={MindNestEpisodeV2 as unknown as React.FC<Record<string, unknown>>} {...video}
+        durationInFrames={episodeDuration(MINDNEST_V2_DEMO)} defaultProps={MINDNEST_V2_DEMO as unknown as Record<string, unknown>}
+        calculateMetadata={async ({ props }) => mindNestEpisodeMetadata({ props: props as unknown as MindNestEpisodeProps }) as unknown as Promise<{ durationInFrames: number; props: Record<string, unknown> }>} />
     </Folder>
     <Folder name="EpicBharatSaga">
       <Composition id="EpicBharatSaga" component={StoryDioramaComposition} schema={StoryDioramaSchema} {...video} durationInFrames={storyDioramaDuration(STORY_DEMO)} defaultProps={STORY_DEMO}
