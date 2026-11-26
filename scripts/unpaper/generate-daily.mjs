@@ -22,7 +22,7 @@ const days = Math.max(1, Number(opt("--days", "2")) || 2);
 const maxCreate = Math.max(1, Number(opt("--max", "2")) || 2);
 
 const ghToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
-const ghModel = process.env.GH_MODELS_MODEL || "openai/gpt-4o-mini";
+const ghModel = process.env.GH_MODELS_MODEL || "gpt-4o-mini";
 const geminiKey = process.env.GEMINI_API_KEY;
 const geminiModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
@@ -130,50 +130,63 @@ async function fetchPageSnippet(url) {
   }
 }
 
-async function callLLM(prompt) {
+async function callLLM(prompt, fallbackEp) {
   if (ghToken) {
-    const res = await fetch("https://models.github.ai/inference/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${ghToken}`
-      },
-      body: JSON.stringify({
-        model: ghModel,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.4,
-        max_tokens: 3500
-      })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const text = data.choices?.[0]?.message?.content || "";
-      const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
-      if (match) return JSON.parse(match[1]);
-    } else {
-      console.warn(`[unpaper:generate] GitHub Models ${res.status}: ${await res.text()}`);
+    try {
+      const res = await fetch("https://models.inference.ai.azure.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${ghToken}`
+        },
+        body: JSON.stringify({
+          model: ghModel,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.4,
+          max_tokens: 3500
+        })
+      });
+      const raw = await res.text();
+      if (res.ok) {
+        const data = JSON.parse(raw);
+        const text = data.choices?.[0]?.message?.content || "";
+        const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+        if (match) return JSON.parse(match[1]);
+      } else {
+        console.warn(`[unpaper:generate] GitHub Models ${res.status}: ${raw.slice(0, 300)}`);
+      }
+    } catch (e) {
+      console.warn(`[unpaper:generate] GitHub Models error: ${e.message}`);
     }
   }
 
   if (geminiKey) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }
-      })
-    });
-    if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
-    const data = await res.json();
-    const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || "").join("\n").trim();
-    const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
-    if (!match) throw new Error(`No JSON found in Gemini response:\n${text.slice(0, 500)}`);
-    return JSON.parse(match[1]);
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }
+        })
+      });
+      const raw = await res.text();
+      if (res.ok) {
+        const data = JSON.parse(raw);
+        const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || "").join("\n").trim();
+        const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+        if (match) return JSON.parse(match[1]);
+      } else {
+        console.warn(`[unpaper:generate] Gemini API ${res.status}: ${raw.slice(0, 300)}`);
+      }
+    } catch (e) {
+      console.warn(`[unpaper:generate] Gemini API error: ${e.message}`);
+    }
   }
 
-  throw new Error("All LLM providers failed");
+  console.warn("[unpaper:generate] Using deterministic official-source fallback.");
+  return fallbackEp;
 }
 
 const candidates = await fetchFeedItems();
@@ -314,7 +327,114 @@ Rules:
 - "seo.title" must be <= 100 chars.
 - "id" must match /^[a-z0-9][a-z0-9-]*$/.`;
 
-  const ep = await callLLM(prompt);
+  const sents = (pageText || pick.desc || pick.title)
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 35 && s.length < 240);
+  const q1 = sents[0] || pick.title;
+  const q2 = sents[1] || pick.desc.slice(0, 180) || pick.title;
+  const q3 = sents[2] || sents[0] || pick.title;
+  const fallbackEp = {
+    date,
+    slot,
+    id: `ep-${key}`,
+    series: pick.series,
+    title: pick.title.slice(0, 90),
+    sourceUrl: pick.link,
+    source: { title: pick.title, date, issuer: pick.issuer },
+    script: {
+      hook: {
+        number: "Official Update",
+        line: pick.issuer,
+        caption: `${pick.issuer} ka naya official update: ${pick.title.slice(0, 75)}.`,
+        tts: `${pick.issuer} का नया official update आया है. ${pick.title.slice(0, 75)}.`,
+        seconds: 5,
+        proof: { source: pick.issuer, page: "Doc · Summary", date }
+      },
+      doc: {
+        name: pick.title.slice(0, 50),
+        issuer: pick.issuer,
+        date,
+        image: `daily/${key}/doc-1.jpg`,
+        caption: `Official document: ${pick.title.slice(0, 90)}.`,
+        tts: `यह official document ${pick.issuer} की तरफ से जारी किया गया है.`,
+        seconds: 7,
+        proof: { source: pick.issuer, page: "Doc · Header", date }
+      },
+      points: [
+        {
+          title: "Key Point 1",
+          page: `daily/${key}/doc-1.jpg`,
+          box: [0.0623, 0.32, 0.83, 0.08],
+          quote: q1,
+          decoded: q1.slice(0, 85),
+          proof: { source: pick.issuer, page: "Point 1", date },
+          prop: "rupee",
+          caption: `Point 1: ${q1.slice(0, 110)}`,
+          tts: `पहला ज़रूरी point. ${q1.slice(0, 110)}`,
+          seconds: 9
+        },
+        {
+          title: "Key Point 2",
+          page: `daily/${key}/doc-2.jpg`,
+          box: [0.0623, 0.14, 0.83, 0.08],
+          quote: q2,
+          decoded: q2.slice(0, 85),
+          proof: { source: pick.issuer, page: "Point 2", date },
+          prop: "chart",
+          caption: `Point 2: ${q2.slice(0, 110)}`,
+          tts: `दूसरा ज़रूरी point. ${q2.slice(0, 110)}`,
+          seconds: 10
+        },
+        {
+          title: "Key Point 3",
+          page: `daily/${key}/doc-2.jpg`,
+          box: [0.0623, 0.42, 0.83, 0.08],
+          quote: q3,
+          decoded: q3.slice(0, 85),
+          proof: { source: pick.issuer, page: "Point 3", date },
+          prop: "gavel",
+          caption: `Point 3: ${q3.slice(0, 110)}`,
+          tts: `तीसरा ज़रूरी point. ${q3.slice(0, 110)}`,
+          seconds: 9
+        }
+      ],
+      asar: {
+        lines: [
+          `Official source: ${pick.issuer}`,
+          "Full verified link description mein hai",
+          "Agla document kaunsa decode karein? Comment karo"
+        ],
+        proof: { source: pick.issuer, page: "Impact", date },
+        prop: "rupee",
+        caption: `Aap par asar: ${pick.issuer} ke is update ka poora source link description mein diya gaya hai.`,
+        tts: `आप पर असर. ${pick.issuer} के इस update का पूरा source link description में दिया गया है.`,
+        seconds: 10
+      },
+      outro: {
+        caption: "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
+        tts: "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर.",
+        seconds: 7
+      }
+    },
+    cta: {
+      comment: "Kaunsa document decode karein? Comment karo.",
+      question: "Kaunsa document decode karein? Comment karo.",
+      nextTeaser: "Next: naya official document breakdown",
+      crossPost: "Poora breakdown YouTube par / slides Instagram par"
+    },
+    seo: {
+      title: `${pick.title.slice(0, 82)} | Unpaper #shorts`.slice(0, 100),
+      description: `${pick.title}\n\nOfficial Source: ${pick.link}\n\nUnpaper — Decode What Matters.\n#Unpaper #shorts`,
+      tags: ["Unpaper", pick.issuer, "India news", "official update", "shorts"],
+      caption: `${pick.title}\n\nOfficial Source: ${pick.link}\n#Unpaper #reels`,
+      categoryId: "27",
+      language: "hi"
+    },
+    pinnedComment: `Official Source: ${pick.link}\nAgla kaunsa document decode karein? Comment karo 👇`
+  };
+
+  const ep = await callLLM(prompt, fallbackEp);
   ep.date = date;
   ep.slot = slot;
   ep.sourceUrl = pick.link;
