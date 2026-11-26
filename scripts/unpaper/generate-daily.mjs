@@ -213,9 +213,21 @@ URL: ${pick.link}
 Summary: ${pick.desc}
 Extracted text: ${pageText || pick.desc}`;
 
-  const prompt = `You are the lead researcher and scriptwriter for "Unpaper" ("Jo document sab share karte hain, par koi padhta nahi, hum 60 sec mein padh ke batate hain").
-Create ONE 60-second vertical Short episode strictly grounded in this real official document below. Do NOT invent numbers, dates, or quotes that are not in the source text.
+  const prompt = `Act as a top 0.1% YouTube Strategist, Viral Scriptwriter, and Packaging Director (combining MrBeast for retention, Fireship for pacing, and vidIQ for data-backed packaging) for "Unpaper" ("Jo document sab share karte hain, par koi padhta nahi, hum 60 sec mein padh ke batate hain").
+Target audience: Indian Gen-Z & working professionals (Hinglish).
 
+Execute this 5-PHASE VIRAL BLUEPRINT internally on the official document below, and output ONLY the final improved JSON:
+- PHASE 1 (Outlier Angle): Identify why generic explainers get swiped away, and pick 1 urgent, high-curiosity Outlier Angle ("how this hits your wallet/rights/career").
+- PHASE 2 (High-CTR Packaging): Brainstorm 3 curiosity-gap titles strictly under 55 chars (no fake clickbait) and pick the strongest one for "seo.title" (append " #shorts" only if it stays <= 55 chars, otherwise keep <= 55 chars).
+- PHASE 3 (Retention & Pacing):
+  - 0-3s Hook: Zero intro, zero "Hey guys". Open with a pattern-interrupt stat or urgent claim.
+  - Body: Short, punchy sentences (every beat drives a 3-5s visual cue).
+  - 40-50% Mid-Video Re-Hook (Point 2): Start Point 2 with a twist/re-hook ("Lekin ruko, asli twist toh abhi baaki hai...").
+  - Seamless Loop Ending (outro): Write the last line of outro so it loops smoothly back into the hook's theme + clear reason to subscribe at the 70% mark ("asar"/"outro").
+- PHASE 4 (Engagement & SEO): 1-word or polarizing question in "pinnedComment", 3-line SEO-rich "seo.description", and 5 targeted hashtags (2 broad + 3 niche).
+- PHASE 5 (Viral Stress-Test): Mentally score Clickability, Retention, and Shareability out of 10, fix the single weakest beat, and output the polished JSON.
+
+Strictly ground every quote, number, and date in this official source (never invent facts):
 ${sourceContext}
 
 Target slot: ${date} (${slot === "am" ? "09:00 IST" : "19:00 IST"})
@@ -226,7 +238,7 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
   "slot": "${slot}",
   "id": "ep-${key}-short-slug",
   "series": "${pick.series}",
-  "title": "Catchy Hinglish title (< 90 chars)",
+  "title": "Catchy Hinglish title (< 55 chars)",
   "sourceUrl": "${pick.link}",
   "source": {
     "title": "${pick.title.replace(/"/g, '\\"')}",

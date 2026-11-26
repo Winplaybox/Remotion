@@ -606,18 +606,21 @@ export const CHANNELS = {
  * Made for kids (COPPA): comments are off on those videos, so there is no comment ask and no answer comment.
  */
 function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
+  const DISABLED_MINDNEST_LANGS = new Set<MindNestLang>(["en", "pt", "fr"]);
   const out = {} as Record<`mindnest-${MindNestLang}`, ChannelConfig>;
   MINDNEST_LANGS.forEach((lang, i) => {
     const UP = lang.toUpperCase();
+    const disabled = DISABLED_MINDNEST_LANGS.has(lang);
     out[`mindnest-${lang}`] = {
       name: `MindNest Tales (${LANGS[lang].name})`,
       composition: "EpicBharatSaga",
-      startDate: "2026-11-18",
+      startDate: disabled ? "2099-01-01" : "2026-11-18",
       // Staggered (and near each audience's evening: en 05:30 IST = US evening, pt 03:45 IST = Brazil evening).
       slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15", "05:30", "03:45", "21:45", "17:05"][i]!],
       narrated: true,
       fitScenesToVoice: true,
       autoPublish: false,
+      ...(disabled ? { skip: () => `${lang} disabled by owner` } : {}),
       youtubeTokenSecret: `YT_TOKEN_MINDNEST_${UP}`,
       metaSecretPrefix: `META_MINDNEST_${UP}`,
       youtubeHandle: LANGS[lang].handle,
