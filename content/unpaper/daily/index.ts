@@ -2,10 +2,14 @@
 // Lists every daily Unpaper episode in this folder: YYYY-MM-DD-am.json (09:00 IST) / -pm.json (19:00 IST).
 import e0 from "./2026-11-23-pm.json";
 import e1 from "./2026-11-24-am.json";
-import e2 from "./2026-11-27-am.json";
+import e2 from "./2026-11-26-pm.json";
+import e3 from "./2026-11-27-am.json";
+import e4 from "./2026-11-27-pm.json";
 
 export const UNPAPER_DAILY: Record<string, unknown> = {
   "2026-11-23-pm": e0,
   "2026-11-24-am": e1,
-  "2026-11-27-am": e2,
+  "2026-11-26-pm": e2,
+  "2026-11-27-am": e3,
+  "2026-11-27-pm": e4,
 };
