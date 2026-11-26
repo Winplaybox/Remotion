@@ -1,0 +1,156 @@
+{
+  "date": "2026-11-27",
+  "slot": "am",
+  "id": "ep005-rbi-stop-switch-tpm",
+  "series": "Rule Badla",
+  "title": "Scam call aaya? Bank account pe 'Stop Switch' aur Trusted Person — RBI ka naya draft",
+  "sourceUrl": "https://www.rbi.org.in/scripts/bs_viewcontent.aspx?Id=5221",
+  "source": {
+    "title": "Draft Reserve Bank of India (Commercial Banks - Responsible Business Conduct) Fifth Amendment Directions, 2026",
+    "date": "23 Nov 2026",
+    "issuer": "Reserve Bank of India"
+  },
+  "script": {
+    "hook": {
+      "number": "1 Click = Freeze",
+      "line": "RBI Stop Switch & Trusted Person",
+      "caption": "Scam call ya fraud ka shak? Ab 1 click mein poora bank account debit freeze — RBI ka naya draft rule aapko pata hona chahiye.",
+      "tts": "Scam call या fraud का शक है? अब एक click में पूरा bank account debit freeze हो सकेगा. RBI का यह नया draft rule आपको पता होना चाहिए.",
+      "seconds": 5,
+      "proof": {
+        "source": "RBI Draft Directions · 2026",
+        "page": "Para 4(25B) · 76FF",
+        "date": "23 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "RBI 5th Amendment Directions",
+      "issuer": "Reserve Bank of India",
+      "date": "23 Nov 2026",
+      "image": "daily/2026-11-27-am/rbi-1.jpg",
+      "caption": "Document: RBI ke Draft Fifth Amendment Directions, 2026. Aim: digital fraud hone ke baad nahi, pehle hi customer ko control dena.",
+      "tts": "Document है RBI के Draft Fifth Amendment Directions 2026. इसका मक़सद है digital fraud होने के बाद नहीं, पहले ही customer को पूरा control देना.",
+      "seconds": 7,
+      "proof": {
+        "source": "RBI Draft Directions · 2026",
+        "page": "Para 1 & 3",
+        "date": "23 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Emergency Stop Switch",
+        "page": "daily/2026-11-27-am/rbi-1.jpg",
+        "box": [
+          0.0623,
+          0.4114,
+          0.83,
+          0.0731
+        ],
+        "quote": "A bank shall provide its customers with a Stop Switch facility for immediate disablement of all outward future debits associated with her / his account(s).",
+        "decoded": "Stop Switch ON = saare naye outward debits aur naye UPI app links turant band",
+        "proof": {
+          "source": "RBI Draft Directions · 2026",
+          "page": "Para 76FF–76FG",
+          "date": "23 Nov 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 1: Stop Switch ON karte hi sabhi customer-initiated outward debits aur naye UPI mandates turant band. Purani EMI aur inward credit chalte rahenge.",
+        "tts": "पहला point. Stop Switch ON करते ही सभी customer-initiated outward debits और नए UPI mandates तुरंत बंद हो जाएँगे. पुरानी EMI और incoming पैसा चलता रहेगा.",
+        "seconds": 9
+      },
+      {
+        "title": "Trusted Person Mechanism (TPM)",
+        "page": "daily/2026-11-27-am/rbi-2.jpg",
+        "box": [
+          0.0623,
+          0.1024,
+          0.83,
+          0.0731
+        ],
+        "quote": "The TPM shall apply to electronic fund transfers initiated through the physical and digital channels available under such customer's account beyond the threshold set by the customer",
+        "decoded": "Bade transfer pe aapka Trusted Person (18+) second check karega",
+        "proof": {
+          "source": "RBI Draft Directions · 2026",
+          "page": "Para 76FQ–76FW",
+          "date": "23 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 2: Voluntary Trusted Person Mechanism — aapki set limit se upar transfer hone par aapke Trusted Person se approval maanga jayega. Unhe balance nahi dikhega aur koi liability nahi hogi.",
+        "tts": "दूसरा point. Voluntary Trusted Person Mechanism में आपकी set limit से ऊपर transfer होने पर आपके Trusted Person से approval माँगा जाएगा. उन्हें आपका balance नहीं दिखेगा और उन पर कोई liability नहीं होगी.",
+        "seconds": 10
+      },
+      {
+        "title": "1 ghante ka approval window",
+        "page": "daily/2026-11-27-am/rbi-2.jpg",
+        "box": [
+          0.0623,
+          0.3689,
+          0.83,
+          0.073
+        ],
+        "quote": "A trusted person shall have a one-hour window from being notified, to give consent to the transaction through the trusted mode as prescribed by the bank for TPM.",
+        "decoded": "1 ghante mein haan nahi bola? Transaction automatically reject",
+        "proof": {
+          "source": "RBI Draft Directions · 2026",
+          "page": "Para 76FZ",
+          "date": "23 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 3: Trusted Person ke paas 1 ghante ka window hoga. Agar woh reject karein ya 1 ghante mein jawab na dein, toh transaction automatically cancel ho jayega.",
+        "tts": "तीसरा point. Trusted Person के पास एक घंटे का window होगा. अगर वह reject करें या एक घंटे में जवाब न दें, तो transaction अपने आप cancel हो जाएगा.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "14 Dec 2026 tak RBI ne public comments maange hain",
+        "Banks mein rollout 1 July 2027 tak proposed hai",
+        "UPI aur merchant payments TPM se bahar rahenge"
+      ],
+      "proof": {
+        "source": "RBI Draft Directions · 2026",
+        "page": "Para 3(2) & 76FQ",
+        "date": "23 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Digital arrest ya senior citizens fraud rokne ke liye yeh bada shield hai. Abhi draft stage mein hai — 1 July 2027 se commercial banks ke liye laagu hona proposed hai.",
+      "tts": "आप पर असर. Digital arrest या senior citizens fraud रोकने के लिए यह एक बड़ा shield है. अभी यह draft stage में है, और एक July दो हज़ार सत्ताईस से commercial banks में लागू होना proposed है.",
+      "seconds": 10
+    },
+    "outro": {
+      "caption": "Kya aap Trusted Person feature use karenge? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
+      "tts": "क्या आप Trusted Person feature इस्तेमाल करेंगे? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर.",
+      "seconds": 7
+    }
+  },
+  "cta": {
+    "comment": "Kya aap Stop Switch aur Trusted Person on karenge?",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: RBI draft ke Bank Negligence rules",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "RBI ka naya 'Stop Switch' & Trusted Person rule: fraud se bachav #shorts",
+    "description": "RBI Draft Fifth Amendment Directions 2026 (Preventive Safeguards for Electronic Banking Transactions) padh ke:\n• Stop Switch (Para 76FF): 1 click mein sabhi customer-initiated outward debits aur naye UPI links band\n• Trusted Person Mechanism (Para 76FQ): set limit se upar transfer ke liye Trusted Person (18+) ka approval\n• 1-Hour Window (Para 76FZ): 1 ghante mein approval nahi toh transaction auto-reject\n• UPI, merchant payments aur existing EMIs excluded; commercial banks mein 1 July 2027 se proposed\n\nOfficial RBI Document: https://www.rbi.org.in/scripts/bs_viewcontent.aspx?Id=5221\n\nSlides: Instagram https://www.instagram.com/unpaper.ai\nFacebook: https://www.facebook.com/profile.php?id=61596651637282\n\nKaunsa document decode karein? Comment karo.\n#RBI #DigitalFraud #BankingRules #Unpaper #shorts",
+    "tags": [
+      "RBI Stop Switch",
+      "RBI Trusted Person Mechanism",
+      "RBI new rules 2026",
+      "digital arrest scam protection",
+      "bank account freeze switch",
+      "electronic banking transactions RBI",
+      "UPI fraud protection India",
+      "personal finance India",
+      "RBI draft directions 2026",
+      "आरबीआई नया नियम",
+      "बैंक फ्रॉड से बचाव",
+      "Unpaper",
+      "Rule Badla"
+    ],
+    "caption": "Scam call aaya? Ab 1 click mein poora bank account debit freeze! 🛡️🏦 RBI ka naya 'Stop Switch' + Trusted Person draft rule padho.\n\n1️⃣ Stop Switch: saare outward debits turant band (purani EMI chalti rahegi).\n2️⃣ Trusted Person: badi transfer pe aapka trusted person (18+) 1 ghante mein approve/reject karega.\n3️⃣ Jawab nahi aaya → transaction auto-cancel.\n\nFull breakdown YouTube pe: @Unpaper\n💾 Save karo aur apne parents ko zaroor bhejo!\n\n#RBI #BankingNews #DigitalFraud #StopSwitch #PersonalFinanceIndia #CyberSecurityIndia #ScamAlert #FinancialLiteracy #Hinglish #Unpaper #RuleBadla",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Official RBI Draft Document: https://www.rbi.org.in/scripts/bs_viewcontent.aspx?Id=5221\nSlides: https://www.instagram.com/unpaper.ai\nAgla kaunsa document decode karein? Comment karo 👇"
+}
