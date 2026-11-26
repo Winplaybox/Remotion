@@ -631,20 +631,23 @@ export function mindNestEngine(): "v2" | "legacy" {
  * art so far) instead of rendering a mismatched episode; render such a post with MINDNEST_ENGINE=legacy.
  */
 function mindNestChannels(): Record<`mindnest-${MindNestLang}`, ChannelConfig> {
+  const DISABLED_MINDNEST_LANGS = new Set<MindNestLang>(["en", "pt", "fr"]);
   const out = {} as Record<`mindnest-${MindNestLang}`, ChannelConfig>;
   const v2 = mindNestEngine() === "v2";
   MINDNEST_LANGS.forEach((lang, i) => {
     const UP = lang.toUpperCase();
+    const disabled = DISABLED_MINDNEST_LANGS.has(lang);
     const storyStyle = MINDNEST_STYLE[lang];
     out[`mindnest-${lang}`] = {
       name: `MindNest Tales (${LANGS[lang].name})`,
       composition: v2 ? "MindNestEpisodeV2" : "EpicBharatSaga",
-      startDate: "2026-11-18",
+      startDate: disabled ? "2099-01-01" : "2026-11-18",
       // Staggered (and near each audience's evening: en 05:30 IST = US evening, pt 03:45 IST = Brazil evening).
       slots: [["17:30", "16:30", "21:00", "22:30", "15:30", "15:45", "18:15", "05:30", "03:45", "21:45", "17:05"][i]!],
       narrated: true,
       fitScenesToVoice: true,
       autoPublish: false,
+      ...(disabled ? { skip: () => `${lang} disabled by owner` } : {}),
       youtubeTokenSecret: `YT_TOKEN_MINDNEST_${UP}`,
       metaSecretPrefix: `META_MINDNEST_${UP}`,
       youtubeHandle: LANGS[lang].handle,
