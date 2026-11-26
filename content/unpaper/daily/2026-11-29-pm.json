@@ -1,0 +1,178 @@
+{
+  "date": "2026-11-29",
+  "slot": "pm",
+  "id": "ep008-sc-bank-cheque-delay",
+  "series": "Fine Print",
+  "title": "Bank Ki Galti Se Cheque Expire? SC Ka Order #shorts",
+  "sourceUrl": "https://api.sci.gov.in/supremecourt/2024/50187/50187_2024_7_1501_70151_Judgement_15-Apr-2026.pdf",
+  "source": {
+    "title": "Canara Bank v. Kavita Chowdhary — Supreme Court of India (2026 INSC 363, Civil Appeal No. 2587 of 2025)",
+    "date": "15 Apr 2026",
+    "issuer": "Supreme Court of India"
+  },
+  "script": {
+    "hook": {
+      "number": "6% Penalty",
+      "line": "Bank Delay Se Cheque Expire?",
+      "caption": "Bank ki laparwahi se aapka cheque expire ho gaya? Ab bank ko khud apni jeb se muawza dena padega!",
+      "tts": "Bank की लापरवाही से आपका cheque expire हो गया? अब bank को खुद जेब से पैसा देना पड़ेगा!",
+      "seconds": 4,
+      "proof": {
+        "source": "Supreme Court · 2026 INSC 363",
+        "page": "Page 1 & 56 · Para 72",
+        "date": "15 Apr 2026"
+      }
+    },
+    "doc": {
+      "name": "SC Judgment · 2026 INSC 363",
+      "issuer": "Supreme Court of India",
+      "date": "15 Apr 2026",
+      "image": "daily/2026-11-29-pm/sc-p1.jpg",
+      "caption": "Supreme Court Judgment (15 Apr 2026): Canara Bank vs Kavita Chowdhary — ₹1.06 crore ke do cheques ka case.",
+      "tts": "यह है Supreme Court का judgment, Canara Bank versus Kavita Chowdhary, एक करोड़ छह लाख रुपये के cheques का मामला.",
+      "seconds": 6,
+      "proof": {
+        "source": "Supreme Court · 2026 INSC 363",
+        "page": "Page 1 · Civil Appeal 2587/2025",
+        "date": "15 Apr 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Bank Customer Ka Agent Hai",
+        "page": "daily/2026-11-29-pm/sc-p50.jpg",
+        "box": [
+          0.1501,
+          0.5493,
+          0.7468,
+          0.1402
+        ],
+        "quote": "A bank receiving cheques for collection acts as an agent of the customer and is under an obligation to exercise due diligence in presenting the instruments within the prescribed validity period.",
+        "decoded": "Cheque lene ke baad bank customer ka agent — time pe present karna farz",
+        "proof": {
+          "source": "Supreme Court · 2026 INSC 363",
+          "page": "Page 50 · Para 59",
+          "date": "15 Apr 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 1: Cheque jama lete hi bank customer ka agent ban jaata hai. Validity se pehle present karna uski duty hai — par agar bank chook jaaye toh?",
+        "tts": "पहला point. Cheque जमा लेते ही bank customer का agent बन जाता है और उसकी ज़िम्मेदारी है समय पर cheque present करना. लेकिन अगर वह चूक जाए तो?",
+        "seconds": 9
+      },
+      {
+        "title": "Stale Cheque = Deficiency in Service",
+        "page": "daily/2026-11-29-pm/sc-p50.jpg",
+        "box": [
+          0.1501,
+          0.6665,
+          0.7469,
+          0.1791
+        ],
+        "quote": "Failure to do so resulting in the instrument becoming stale, in the absence of any reasonable explanation, would result in negligence in the discharge of banking duties which would constitute deficiency in rendering service within the meaning of the consumer protection law.",
+        "decoded": "Bina thos wajah cheque stale = Consumer Law mein Deficiency in Service",
+        "proof": {
+          "source": "Supreme Court · 2026 INSC 363",
+          "page": "Page 50 · Para 59",
+          "date": "15 Apr 2026"
+        },
+        "prop": "gavel",
+        "caption": "Yahi sabse bada twist hai: cheque stale hone se customer Section 138 NI Act ka case bhi kho baitha. SC ne ise seedha Deficiency in Service mana!",
+        "tts": "यहीं सबसे बड़ा twist है! Cheque expire होने से customer Section एक सौ अड़तीस का केस भी नहीं कर पाई, जिसे Supreme Court ने साफ़ deficiency in service माना.",
+        "seconds": 10
+      },
+      {
+        "title": "6% Muawza + 6% Interest",
+        "page": "daily/2026-11-29-pm/sc-p56.jpg",
+        "box": [
+          0.1501,
+          0.5884,
+          0.7434,
+          0.2183
+        ],
+        "quote": "In our view, having regard to the totality of the facts and circumstances of the case, compensation assessed at 6 percent of the total amount of Rs, 1,06,10,768.00 to each of the complainants alongwith interest at the rate of 6 percent per annum from the date of filing the complaints would be a reasonable compensation and thereby meet the ends of justice.",
+        "decoded": "SC ne 10% badal ke 6% muawza + 6% yearly interest tay kiya",
+        "proof": {
+          "source": "Supreme Court · 2026 INSC 363",
+          "page": "Page 56 · Para 72",
+          "date": "15 Apr 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 3: NCDRC ne 10% penalty lagayi thi; SC ne loss indeterminate hone par 6% of ₹1,06,10,768 plus 6% yearly interest dene ka aadesh diya.",
+        "tts": "तीसरा point. NCDRC ने दस percent मुआवज़ा दिया था, जिसे Supreme Court ने बदलकर पूरे एक करोड़ छह लाख पर छह percent मुआवज़ा और छह percent सालाना ब्याज तय किया.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Cheque deposit slip & SMS hamesha sambhal ke rakho",
+        "Bank delay par Consumer Forum ja sakte ho (not legal advice)",
+        "6% muawza fair hai ya kam? Comment mein likho!"
+      ],
+      "proof": {
+        "source": "Supreme Court · 2026 INSC 363",
+        "page": "Pages 50 & 56",
+        "date": "15 Apr 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Cheque deposit receipt aur SMS proof sambhal ke rakho (yeh legal advice nahi hai). Comment karo: kya 6% muawza fair hai?",
+      "tts": "आप पर असर. हमेशा cheque deposit slip और bank SMS संभाल कर रखें, यह legal advice नहीं है. Comment में बताओ, क्या छह percent मुआवज़ा काफ़ी है?",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Subscribe karo Unpaper aur yeh reel save karo — taaki agar kabhi...",
+      "tts": "Subscribe करो Unpaper और यह reel ज़रूर save करो, ताकि अगली बार अगर...",
+      "seconds": 6
+    }
+  },
+  "cta": {
+    "comment": "Kya 6% bank penalty fair hai?",
+    "commentAt": 37,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: Stanford AI paper — 3.7x saste LLM agents",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Bank Ki Galti Se Cheque Expire? SC Ka Order #shorts",
+    "description": "Supreme Court (Canara Bank v. Kavita Chowdhary, 2026 INSC 363): Bank ki negligence se cheque expire hona Deficiency in Service hai — 6% compensation + 6% interest!\nOfficial SC Judgment PDF: https://api.sci.gov.in/supremecourt/2024/50187/50187_2024_7_1501_70151_Judgement_15-Apr-2026.pdf\nComment 'FAIR?' if 6% was enough. #SupremeCourt #ConsumerRights #BankingLaw #ChequeBounce #Unpaper",
+    "tags": [
+      "Supreme Court Canara Bank judgment",
+      "2026 INSC 363",
+      "bank negligence stale cheque",
+      "deficiency in service bank",
+      "consumer rights India banking",
+      "Unpaper"
+    ],
+    "caption": "Bank ki laparwahi se cheque expire ho gaya? ⚖️🏦 Supreme Court (Canara Bank v. Kavita Chowdhary, 2026 INSC 363) ka bada faisla:\n1️⃣ Cheque lene par bank customer ka agent hota hai\n2️⃣ Bina wajah cheque stale = Deficiency in Service\n3️⃣ Canara Bank par ₹1.06 Cr cheques ka 6% muawza + 6% interest\n\nSave karo & share karo! #SupremeCourt #ConsumerRights #BankingLaw #ChequeBounce #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "FAIR?",
+  "notes": {
+    "viralBlueprint": {
+      "outlierAngle": "Customers assume bank strikes or connectivity issues excuse delayed cheque clearing; SC held banks strictly liable as agents for stale cheques, even reducing NCDRC's 10% to 6% on ₹1.06 Cr.",
+      "titleCandidates": [
+        "Bank Ki Galti Se Cheque Expire? SC Ka Order #shorts",
+        "Cheque Late Hua Toh Bank Dega 6% Penalty? #shorts",
+        "Canara Bank Case: Cheque Delay Pe SC Ruling #shorts"
+      ],
+      "pickedTitle": "Bank Ki Galti Se Cheque Expire? SC Ka Order #shorts",
+      "retentionBeats": {
+        "hook": "0-4s pocket-impact hook (bank pays from its pocket)",
+        "midRehook": "Point 2 (19-29s, 36-55%): Loss of Sec 138 NI Act remedy + Deficiency in Service ruling",
+        "verbalCta": "Asar (38-47s, 72-89%): 70% verbal CTA debating 6% vs 10% compensation",
+        "loopOutro": "Outro (47-53s) loops back into hook question"
+      },
+      "selfScore": {
+        "clickability": 9,
+        "retention": 9,
+        "shareability": 9,
+        "fixApplied": "Strengthened Hook TTS to emphasize immediate bank liability ('ab bank ko khud jeb se paisa dena padega') and clarified not-legal-advice disclaimer in Asar."
+      }
+    },
+    "verified": {
+      "citation": "2026 INSC 363, Civil Appeal No. 2587 of 2025, decided April 15, 2026",
+      "bench": "Justices B.V. Nagarathna and Ujjal Bhuyan",
+      "amount": "Rs. 1,06,10,768.00 (6% compensation + 6% p.a. interest, Para 72)"
+    }
+  }
+}

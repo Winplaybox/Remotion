@@ -1,0 +1,178 @@
+{
+  "date": "2026-11-29",
+  "slot": "am",
+  "id": "ep007-sebi-ipo-gmp-advisory",
+  "series": "Fine Print",
+  "title": "IPO GMP Dekh Ke Apply Karte Ho? SEBI Alert #shorts",
+  "sourceUrl": "https://www.sebi.gov.in/media-and-notifications/press-releases/nov-2026/advisory-regarding-unregulated-pre-listing-premium-often-called-as-grey-market-premium-gmp-for-upcoming-initial-public-offers-ipos-_105942.html",
+  "source": {
+    "title": "Advisory Regarding Unregulated Pre-listing Premium often called as Grey Market Premium (GMP) for Upcoming Initial Public Offers (IPOs) — PR No. 75/2026",
+    "date": "23 Nov 2026",
+    "issuer": "Securities and Exchange Board of India (SEBI)"
+  },
+  "script": {
+    "hook": {
+      "number": "ZERO Cover",
+      "line": "IPO GMP Pe SEBI Ka Red Alert!",
+      "caption": "IPO apply karne se pehle Grey Market Premium dekhte ho? SEBI ne 23 Nov ko red alert jaari kiya hai!",
+      "tts": "IPO apply करने से पहले Grey Market Premium देखते हो? रुक जाओ! SEBI ने इस पर red alert जारी किया है.",
+      "seconds": 4,
+      "proof": {
+        "source": "SEBI · PR No. 75/2026",
+        "page": "Page 1-2 · Advisory",
+        "date": "23 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "SEBI Advisory · PR No. 75/2026",
+      "issuer": "SEBI · Mumbai",
+      "date": "23 Nov 2026",
+      "image": "daily/2026-11-29-am/sebi-1.jpg",
+      "caption": "Official SEBI Press Release (23 Nov 2026): Upcoming IPOs ke Grey Market Premium (GMP) par seedhi chetavni.",
+      "tts": "यह है तेईस November दो हज़ार छब्बीस की SEBI press release, upcoming IPOs के unregulated Grey Market Premium पर.",
+      "seconds": 6,
+      "proof": {
+        "source": "SEBI · PR No. 75/2026",
+        "page": "Page 1 · Header",
+        "date": "23 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "GMP Unofficial & Unregulated",
+        "page": "daily/2026-11-29-am/sebi-1.jpg",
+        "box": [
+          0.1104,
+          0.5808,
+          0.8022,
+          0.073
+        ],
+        "quote": "Investors are hereby cautioned that such pre-listing premium figures are unofficial, unverified, and unregulated at which shares are supposedly traded before they are formally listed on a recognized stock exchange.",
+        "decoded": "GMP unofficial, unverified & bina price-discovery process",
+        "proof": {
+          "source": "SEBI · PR No. 75/2026",
+          "page": "Page 1 · Para 2",
+          "date": "23 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 1: SEBI kehta hai GMP figures unofficial aur unverified hain — koi settlement guarantee nahi. Par asli jhatka Point 2 mein hai...",
+        "tts": "पहला point. SEBI साफ़ कहता है कि GMP आंकड़े unofficial और unverified हैं, और इनमें कोई settlement guarantee नहीं है. लेकिन असली झटका आगे है.",
+        "seconds": 9
+      },
+      {
+        "title": "Platforms Par GMP Display Mana",
+        "page": "daily/2026-11-29-am/sebi-2.jpg",
+        "box": [
+          0.1104,
+          0.1397,
+          0.8019,
+          0.073
+        ],
+        "quote": "All SEBI-registered intermediaries and market participants are advised to refrain from publishing, displaying, or broadcasting GMP figures for IPOs on their websites, platforms, or any other communication channels-including email, SMS, and social media.",
+        "decoded": "Brokers & intermediaries website, SMS, social pe GMP nahi dikhayenge",
+        "proof": {
+          "source": "SEBI · PR No. 75/2026",
+          "page": "Page 2 · Para 2",
+          "date": "23 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Yahi bada twist hai: sabhi SEBI-registered intermediaries ko website, email, SMS aur social media par GMP dikhane se mana kiya gaya hai!",
+        "tts": "यहीं बड़ा twist है! SEBI ने सभी registered intermediaries को अपनी website, email, SMS और social media पर GMP दिखाने से रुकने को कहा है.",
+        "seconds": 10
+      },
+      {
+        "title": "Koi SEBI / ODR Madad Nahi",
+        "page": "daily/2026-11-29-am/sebi-2.jpg",
+        "box": [
+          0.1104,
+          0.5087,
+          0.8025,
+          0.0469
+        ],
+        "quote": "Investors should note that in the event of any dispute arising from or relating to GMP transactions, none of the following regulatory recourses will be available:",
+        "decoded": "GMP dispute mein SEBI, Exchange ya smartodr.in koi madad nahi",
+        "proof": {
+          "source": "SEBI · PR No. 75/2026",
+          "page": "Page 2 · Redressal",
+          "date": "23 Nov 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 3: GMP transaction mein dispute ya fraud hua toh SEBI, Stock Exchange ya smartodr.in portal se zero protection milegi.",
+        "tts": "तीसरा point. अगर GMP transaction में कोई विवाद या नुकसान हुआ, तो SEBI, Stock Exchange या smartodr portal से कोई मदद नहीं मिलेगी.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "GMP ko listing return ki guarantee mat maano",
+        "Sirf SEBI-registered apps & DRHP check karo",
+        "Kya IPO GMP ban hona chahiye? Comment karo!"
+      ],
+      "proof": {
+        "source": "SEBI · PR No. 75/2026",
+        "page": "Page 2 · Investor Advisory",
+        "date": "23 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: GMP dekh ke hype mein paisa mat lagao — company ka DRHP dekho. Comment mein batao, kya IPO GMP poori tarah ban hona chahiye?",
+      "tts": "आप पर असर. GMP देखकर hype में पैसा मत लगाओ, हमेशा company के fundamentals और DRHP देखो. Comment करके बताओ, क्या IPO GMP पूरी तरह बंद होना चाहिए?",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Subscribe karo Unpaper aur IPO wale dost ko bhejo — warna agli baar bhi...",
+      "tts": "Subscribe करो Unpaper और IPO वाले दोस्त को भेजो, नहीं तो अगली बार भी...",
+      "seconds": 5
+    }
+  },
+  "cta": {
+    "comment": "Kya IPO GMP sites ban honi chahiye?",
+    "commentAt": 36,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: Bank delay pe Supreme Court penalty",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "IPO GMP Dekh Ke Apply Karte Ho? SEBI Alert #shorts",
+    "description": "SEBI Advisory (23 Nov 2026): IPO Grey Market Premium (GMP) figures are unofficial, unverified & carry zero SEBI, Exchange or smartodr.in dispute protection!\nOfficial SEBI Source: https://www.sebi.gov.in/media-and-notifications/press-releases/nov-2026/advisory-regarding-unregulated-pre-listing-premium-often-called-as-grey-market-premium-gmp-for-upcoming-initial-public-offers-ipos-_105942.html\nVote 'BAN?' in comments. #SEBI #IPOGMP #StockMarketIndia #RetailInvestors #Unpaper",
+    "tags": [
+      "SEBI IPO GMP warning",
+      "grey market premium SEBI",
+      "IPO GMP advisory 2026",
+      "SEBI PR 75 2026",
+      "IPO investing India",
+      "Unpaper"
+    ],
+    "caption": "IPO apply karne se pehle GMP dekhte ho? 🚨 SEBI (23 Nov 2026) ne red alert jaari kiya:\n1️⃣ GMP figures unofficial, unverified & unregulated hain\n2️⃣ Registered intermediaries website/SMS/social par GMP nahi dikhayenge\n3️⃣ Dispute par ZERO SEBI, Exchange ya smartodr.in protection!\n\nIPO wale dost ko bhejo! #SEBI #IPOGMP #StockMarketIndia #RetailInvestors #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "BAN?",
+  "notes": {
+    "viralBlueprint": {
+      "outlierAngle": "Retail investors treat IPO GMP like official listing profit forecasts, unaware SEBI just barred registered entities from broadcasting it and excluded GMP disputes from smartodr.in.",
+      "titleCandidates": [
+        "IPO GMP Pe SEBI Ka Bada Red Alert! #shorts",
+        "IPO GMP Dekh Ke Apply Karte Ho? SEBI Alert #shorts",
+        "Grey Market Premium Band? SEBI Ka Naya Order #shorts"
+      ],
+      "pickedTitle": "IPO GMP Dekh Ke Apply Karte Ho? SEBI Alert #shorts",
+      "retentionBeats": {
+        "hook": "0-4s pattern-interrupt calling out retail IPO GMP habit",
+        "midRehook": "Point 2 (19-29s, 37-56%): SEBI tells intermediaries to stop website/SMS/social GMP",
+        "verbalCta": "Asar (38-47s, 73-90%): 70% verbal CTA asking if GMP should be banned",
+        "loopOutro": "Outro (47-52s) loops straight back into hook question"
+      },
+      "selfScore": {
+        "clickability": 9,
+        "retention": 9,
+        "shareability": 9,
+        "fixApplied": "Boosted Shareability in Asar/Outro by adding 'IPO wale dost ko bhejo' and contrasting GMP hype against DRHP fundamentals."
+      }
+    },
+    "verified": {
+      "pressRelease": "SEBI PR No. 75/2026 (PDF) / web page PR No. 76/2026 dated November 23, 2026",
+      "pdfUrl": "https://www.sebi.gov.in/sebi_data/attachdocs/nov-2026/1795441481174.pdf",
+      "odrPortal": "smartodr.in explicitly excluded for GMP disputes (Page 2)"
+    }
+  }
+}

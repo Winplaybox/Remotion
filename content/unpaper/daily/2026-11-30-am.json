@@ -1,0 +1,178 @@
+{
+  "date": "2026-11-30",
+  "slot": "am",
+  "id": "ep009-arxiv-hybrid-reasoning-agents",
+  "series": "Fine Print",
+  "title": "AI Ab Bina Words Ke Sochega? 3.7x Sasta! #shorts",
+  "sourceUrl": "https://arxiv.org/abs/2610.18861",
+  "source": {
+    "title": "Hybrid Reasoning Agents (arXiv:2610.18861)",
+    "date": "13 Oct 2026",
+    "issuer": "Stanford University, Together AI, UIUC, Meta"
+  },
+  "script": {
+    "hook": {
+      "number": "3.7x Cheaper",
+      "line": "AI Thinking Without Words!",
+      "caption": "Kya AI bina English tokens likhe soch sakta hai? Stanford ke paper ne AI cost 3.7x kam kar di!",
+      "tts": "क्या AI बिना एक भी शब्द लिखे सोच सकता है? Stanford के नए paper ने AI का खर्च करीब चार गुना कम कर दिया!",
+      "seconds": 4,
+      "proof": {
+        "source": "arXiv:2610.18861 · Stanford/Together",
+        "page": "Page 1 · Abstract",
+        "date": "13 Oct 2026"
+      }
+    },
+    "doc": {
+      "name": "arXiv:2610.18861 · HybridAgents",
+      "issuer": "Stanford · Together AI · UIUC · Meta",
+      "date": "13 Oct 2026",
+      "image": "daily/2026-11-30-am/arxiv-1.jpg",
+      "caption": "Research Paper: 'Hybrid Reasoning Agents' (13 Oct 2026) — Stanford, Together AI, UIUC aur Meta.",
+      "tts": "यह है arXiv paper Hybrid Reasoning Agents, तेरह October दो हज़ार छब्बीस का, Stanford, Together AI और Meta के researchers द्वारा.",
+      "seconds": 6,
+      "proof": {
+        "source": "arXiv:2610.18861",
+        "page": "Page 1 · Title & Authors",
+        "date": "13 Oct 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Text + Latent Dual Mode",
+        "page": "daily/2026-11-30-am/arxiv-1.jpg",
+        "box": [
+          0.1148,
+          0.2472,
+          0.7704,
+          0.0462
+        ],
+        "quote": "We bridge these two directions with Hybrid Reasoning Agents (HybridAgents), which dynamically navigate between latent reasoning and text-based interaction throughout a unified generation process.",
+        "decoded": "Andar silent vectors mein soch, bahar text mein tool action",
+        "proof": {
+          "source": "arXiv:2610.18861",
+          "page": "Page 1 · Abstract",
+          "date": "13 Oct 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 1: Aaj ke AI agents har step text mein likhte hain. HybridAgent andar silent vectors mein sochta hai — par tools kaise chalata hai?",
+        "tts": "पहला point. आज के AI agents हर सोच शब्द में लिखते हैं. HybridAgent अंदर silent vectors में सोचता है, पर tools कैसे चलाता है?",
+        "seconds": 9
+      },
+      {
+        "title": "HybridLink: Inspectable Switch",
+        "page": "daily/2026-11-30-am/arxiv-1.jpg",
+        "box": [
+          0.1148,
+          0.278,
+          0.7704,
+          0.0462
+        ],
+        "quote": "Architecturally, a lightweight HybridLink enables seamless transitions between text and latent modes, while the agent’s continuous working memory preserves lossless hybrid context across multiple turns.",
+        "decoded": "HybridLink = text ↔ latent switch + inspectable hidden thoughts",
+        "proof": {
+          "source": "arXiv:2610.18861",
+          "page": "Page 1 · Abstract",
+          "date": "13 Oct 2026"
+        },
+        "prop": "gavel",
+        "caption": "Yahi asli secret hai: HybridLink module latent thoughts aur text ke beech turant switch karta hai — aur silent thoughts inspect bhi ho sakte hain!",
+        "tts": "यहीं असली secret है! एक lightweight HybridLink उसे तुरंत text और latent mode में switch करता है, और उसके silent विचार भी inspect किए जा सकते हैं.",
+        "seconds": 10
+      },
+      {
+        "title": "+10.4% Better, 54.7% Kam Tokens",
+        "page": "daily/2026-11-30-am/arxiv-3.jpg",
+        "box": [
+          0.098,
+          0.118,
+          0.8043,
+          0.0809
+        ],
+        "quote": "Compared with frontier LLM agents and agentic frameworks spanning both text-based and latent reasoning, HybridAgent achieves an average performance improvement of 10.4% and exhibits strong test-time scalability. In terms of efficiency, HybridAgent reduces token usage by 35.5%–54.7%, delivers 1.8×–2.6× inference speedup, and lowers computational cost by 2.7×–3.7×.",
+        "decoded": "+10.4% accuracy · 54.7% kam tokens · 2.6x tez · 3.7x sasta",
+        "proof": {
+          "source": "arXiv:2610.18861 · 11 Benchmarks",
+          "page": "Page 3 · Intro",
+          "date": "13 Oct 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 3: 11 benchmarks pe +10.4% better score, 35.5%–54.7% kam tokens, 1.8x–2.6x tez speed aur 2.7x–3.7x kam compute cost!",
+        "tts": "तीसरा point. ग्यारह benchmarks पर average performance दस दशमलव चार percent बढ़ी, tokens पचपन percent तक घटे, और speed ढाई गुना से ज़्यादा तेज़ हुई.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "AI API bills aadhe se zyada gir sakte hain",
+        "Qwen3 (4B/8B/14B) + GitHub code open-source hai",
+        "Bina words ke sochne wala AI SAFE hai? Comment karo!"
+      ],
+      "proof": {
+        "source": "arXiv:2610.18861 · Qwen3 4B-14B",
+        "page": "Pages 1 & 3",
+        "date": "13 Oct 2026"
+      },
+      "prop": "chart",
+      "caption": "Aap par asar: AI tools aur API bills aadhe se zyada saste honge — code GitHub pe hai. Comment karo: bina words sochne wala AI SAFE hai?",
+      "tts": "आप पर असर. आपके AI tools और API bills आधे से ज़्यादा सस्ते हो सकते हैं, और code GitHub पर open है. Comment में बताओ, क्या बिना शब्दों के सोचने वाला AI safe है?",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Subscribe karo Unpaper aur dev dost ko bhejo — kyunki socho...",
+      "tts": "Subscribe करो Unpaper और अपने dev दोस्त को भेजो, क्योंकि सोचो...",
+      "seconds": 5
+    }
+  },
+  "cta": {
+    "comment": "Kya silent-thinking AI safe hai?",
+    "commentAt": 36,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: naya official regulation breakdown",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "AI Ab Bina Words Ke Sochega? 3.7x Sasta! #shorts",
+    "description": "Stanford & Together AI's HybridAgent thinks in continuous latent vectors, cutting tokens 35.5%–54.7% & costs up to 3.7x while boosting accuracy +10.4%!\nOfficial arXiv Paper: https://arxiv.org/abs/2610.18861\nVote 'TRUST?' if you trust silent AI reasoning. #AIResearch #LLM #AIAgents #MachineLearning #Unpaper",
+    "tags": [
+      "Hybrid Reasoning Agents",
+      "arXiv 2610.18861",
+      "latent reasoning LLM",
+      "AI agents faster cheaper",
+      "Stanford Together AI paper",
+      "Unpaper"
+    ],
+    "caption": "AI ab bina English words likhe sochega! 🧠⚡ Stanford, Together AI, UIUC & Meta ke naye paper (arXiv:2610.18861) ke results:\n1️⃣ Latent vectors mein silent thinking + text mein tool calls\n2️⃣ +10.4% average accuracy boost (11 benchmarks)\n3️⃣ 35.5%–54.7% kam tokens & 2.7x–3.7x kam cost\n\nApne dev dost ko bhejo! #AIResearch #LLM #AIAgents #MachineLearning #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "TRUST?",
+  "notes": {
+    "viralBlueprint": {
+      "outlierAngle": "Reasoning models burn huge token bills 'thinking out loud' in English; HybridAgent proves LLMs can think silently in latent space and only emit text to call tools — 3.7x cheaper and +10.4% more accurate.",
+      "titleCandidates": [
+        "AI Ab Bina Words Ke Sochega? 3.7x Sasta! #shorts",
+        "AI Reasoning 2.6x Tez Kaise Hua? New Paper #shorts",
+        "LLM Tokens 54% Kam! Stanford HybridAgent #shorts"
+      ],
+      "pickedTitle": "AI Ab Bina Words Ke Sochega? 3.7x Sasta! #shorts",
+      "retentionBeats": {
+        "hook": "0-4s paradigm-shift hook (AI thinking without words, 3.7x cheaper)",
+        "midRehook": "Point 2 (19-29s, 37-56%): HybridLink reveals how silent latent thoughts remain inspectable",
+        "verbalCta": "Asar (38-47s, 73-90%): 70% verbal CTA asking if silent AI is safe/trustworthy",
+        "loopOutro": "Outro (47-52s) loops seamlessly back into hook question"
+      },
+      "selfScore": {
+        "clickability": 9,
+        "retention": 9,
+        "shareability": 9,
+        "fixApplied": "Sharpened Shareability in Asar/Outro by framing impact around halving API bills for developers and adding 'dev dost ko bhejo'."
+      }
+    },
+    "verified": {
+      "arxivId": "arXiv:2610.18861v1 [cs.CL] 13 Oct 2026",
+      "authors": "Jiaru Zou, Yunzhe Qi, Sirui Chen, Federico Bianchi, Shang Zhu, Pan Lu, Jingrui He, James Zou",
+      "metrics": "+10.4% performance across 11 benchmarks, 35.5%-54.7% token reduction, 1.8x-2.6x speedup, 2.7x-3.7x cost savings (4B/8B/14B Qwen3-Base)"
+    }
+  }
+}

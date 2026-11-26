@@ -1,0 +1,180 @@
+{
+  "date": "2026-11-28",
+  "slot": "pm",
+  "id": "ep006-rbi-pso-12hr-lock",
+  "series": "Rule Badla",
+  "title": "RBI 12-Hour Lock: AnyDesk Scam Khatam? #shorts",
+  "sourceUrl": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=13751&Mode=0",
+  "source": {
+    "title": "Master Directions on Cyber Resilience and Digital Payment Security Controls for non-bank Payment System Operators (RBI/DPSS/2026-27/475)",
+    "date": "05 Nov 2026",
+    "issuer": "Reserve Bank of India"
+  },
+  "script": {
+    "hook": {
+      "number": "12 Hr Lock",
+      "line": "AnyDesk = Payment App Block!",
+      "caption": "Phone mein AnyDesk chalu hai? Payment app khud lock ho jayega — RBI ka naya rule abhi jaan lo!",
+      "tts": "फ़ोन में AnyDesk चालू है? Payment app खुद lock हो जाएगा! RBI का यह नया rule अभी जान लो.",
+      "seconds": 4,
+      "proof": {
+        "source": "RBI/DPSS/2026-27/475",
+        "page": "Sec IV · Para 31(f)-(g)",
+        "date": "05 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "RBI Cyber Security Master Directions",
+      "issuer": "Reserve Bank of India",
+      "date": "05 Nov 2026",
+      "image": "daily/2026-11-28-pm/doc-1.jpg",
+      "caption": "RBI Master Direction 475 (5 Nov 2026): non-bank payment apps, wallets aur card networks ke liye naye security rules.",
+      "tts": "यह है RBI की Master Direction चार सौ पचहत्तर, पाँच November दो हज़ार छब्बीस की, non-bank payment apps और wallets के लिए.",
+      "seconds": 6,
+      "proof": {
+        "source": "RBI/DPSS/2026-27/475",
+        "page": "Sec I · Para 1-4",
+        "date": "05 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Remote Access App = Block",
+        "page": "daily/2026-11-28-pm/doc-1.jpg",
+        "box": [
+          0.0655,
+          0.3403,
+          0.8609,
+          0.0588
+        ],
+        "quote": "The PSO shall put in place a control mechanism, to identify any presence of remote access applications (to the extent possible) and prohibit access to the mobile payment application while the remote access is live.",
+        "decoded": "Screen share live? Payment app access turant band!",
+        "proof": {
+          "source": "RBI/DPSS/2026-27/475",
+          "page": "Sec IV · Para 31(f)",
+          "date": "05 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Rule 1: Agar AnyDesk jaisa remote access app live hai, toh payment app access rokna hoga — par ruko, number change hone par kya hoga?",
+        "tts": "पहला नियम. अगर AnyDesk जैसा remote access app live है, तो payment app खुलना ही बंद होगा. लेकिन रुको, नंबर बदलने पर क्या होगा?",
+        "seconds": 9
+      },
+      {
+        "title": "12-Hour Cooling Period",
+        "page": "daily/2026-11-28-pm/doc-1.jpg",
+        "box": [
+          0.0655,
+          0.4081,
+          0.8415,
+          0.0588
+        ],
+        "quote": "Whenever there is a change in registered mobile number or email ID linked to the payment instrument there shall be a cooling period of minimum 12 hours before allowing any payment transaction through online modes / channels.",
+        "decoded": "Mobile ya email badla? 12 ghante online payment freeze",
+        "proof": {
+          "source": "RBI/DPSS/2026-27/475",
+          "page": "Sec IV · Para 31(g)",
+          "date": "05 Nov 2026"
+        },
+        "prop": "rupee",
+        "caption": "Yahi sabse bada twist hai: mobile number ya email badalte hi kam se kam 12 ghante online payments freeze — SIM swap fraud turant rukega!",
+        "tts": "यहीं सबसे बड़ा twist है! Mobile number या email बदलते ही कम से कम बारह घंटे के लिए online payment freeze हो जाएगा, ताकि SIM swap fraud तुरंत रुक सके.",
+        "seconds": 10
+      },
+      {
+        "title": "In-App Fraud Mark + Asli Naam",
+        "page": "daily/2026-11-28-pm/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.2476,
+          0.868,
+          0.0588
+        ],
+        "quote": "The PSO shall provide a facility on its mobile application / website that would enable customers, with necessary authentication, to identify / mark a fraudulent transaction for seamless and immediate notification to the issuer of payment instrument.",
+        "decoded": "App mein direct Fraud Mark button + asli merchant naam",
+        "proof": {
+          "source": "RBI/DPSS/2026-27/475",
+          "page": "Sec IV · Para 29-30",
+          "date": "05 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Rule 3: App mein hi fraud mark karne ka button milega, aur SMS alerts mein payment gateway nahi asli merchant ka naam aayega.",
+        "tts": "तीसरा नियम. अब app के अंदर ही fraud mark करने का button मिलेगा, और SMS में gateway नहीं बल्कि असली merchant का नाम दिखेगा.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Large/Medium PSOs pe turant laagu",
+        "Small PSOs ki deadline: 1 April 2028",
+        "Comment karo: 12-hour lock SAFE hai ya nahi?"
+      ],
+      "proof": {
+        "source": "RBI/DPSS/2026-27/475",
+        "page": "Sec I · Para 3",
+        "date": "05 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Large aur medium payment apps pe yeh turant laagu hai, small apps ko 1 April 2028 tak time hai. Comment karo: kya yeh rule SAFE hai?",
+      "tts": "आप पर असर. बड़े payment apps पर यह तुरंत लागू है, और छोटे apps के लिए एक April दो हज़ार अट्ठाईस की deadline है. अभी comment में बताओ, क्या यह बारह घंटे का lock काफ़ी है?",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Subscribe karo Unpaper aur parents ko bhejo — kyunki agar aapke...",
+      "tts": "Subscribe करो Unpaper और यह video parents को भेजो, क्योंकि अब अगर आपके...",
+      "seconds": 6
+    }
+  },
+  "cta": {
+    "comment": "Kya 12-hour lock scam rok payega?",
+    "commentAt": 37,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: SEBI ka IPO GMP red alert",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "RBI 12-Hour Lock: AnyDesk Scam Khatam? #shorts",
+    "description": "RBI Master Directions 475 (05 Nov 2026): Remote access live hone par payment app block, mobile/email badalne par 12-hour cooling period, aur in-app fraud flag!\nOfficial RBI Source: https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=13751&Mode=0\nVote 'SAFE?' in comments. #RBI #DigitalPayment #UPIFraud #CyberSecurityIndia #Unpaper",
+    "tags": [
+      "RBI new rule 2026",
+      "12 hour cooling period RBI",
+      "AnyDesk scam RBI block",
+      "RBI DPSS 2026-27 475",
+      "non bank PSO security",
+      "UPI fraud prevention India",
+      "Unpaper"
+    ],
+    "caption": "Phone mein AnyDesk chalu? Payment app khud lock! 🛡️ RBI Master Direction 475 (5 Nov 2026) ke 3 bade rules:\n1️⃣ Remote access app live = mobile payment app block\n2️⃣ Mobile/Email badalne par 12-hour online payment cooling period\n3️⃣ App mein direct fraud mark + SMS mein asli merchant naam\n\nSave karo & parents ko bhejo! #RBI #DigitalPayment #UPIFraud #CyberSecurityIndia #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "SAFE?",
+  "notes": {
+    "viralBlueprint": {
+      "outlierAngle": "Everyone talks about UPI PINs, not OS-level forced blocks on AnyDesk/TeamViewer and a 12-hour payment freeze after mobile/email change.",
+      "titleCandidates": [
+        "RBI 12-Hour Lock: AnyDesk Scam Khatam? #shorts",
+        "Payment Apps Pe RBI Ka Naya 12-Hour Rule #shorts",
+        "PhonePe-Paytm Mein RBI Ka Naya Freeze? #shorts"
+      ],
+      "pickedTitle": "RBI 12-Hour Lock: AnyDesk Scam Khatam? #shorts",
+      "retentionBeats": {
+        "hook": "0-4s pattern-interrupt (AnyDesk = Payment App Block)",
+        "midRehook": "Point 2 (19-29s, 36-55%): 12-Hour Cooling Period twist",
+        "verbalCta": "Asar (38-47s, 72-89%): 70% verbal CTA asking viewers to vote SAFE?",
+        "loopOutro": "Outro (47-53s) loops back cleanly to hook sentence"
+      },
+      "selfScore": {
+        "clickability": 9,
+        "retention": 9,
+        "shareability": 9,
+        "fixApplied": "Tightened Doc beat to 6s and added a cliffhanger bridge at the end of Point 1 leading directly into the 12-hour cooling period twist in Point 2."
+      }
+    },
+    "verified": {
+      "circular": "RBI/DPSS/2026-27/475 dated November 05, 2026",
+      "para31f": "prohibit access to mobile payment application while remote access is live",
+      "para31g": "cooling period of minimum 12 hours on registered mobile number or email ID change",
+      "para3": "immediate for Large & Medium non-bank PSOs; April 01, 2028 for small non-bank PSOs"
+    }
+  }
+}
