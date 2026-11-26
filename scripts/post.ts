@@ -149,15 +149,21 @@ async function main() {
   const prev = slotKey ? (await ledgerStatus([slotKey]).catch(() => []))[0] : undefined;
   let youtubeId = prev?.youtube_id ?? "";
   if (flag("youtube")) {
-    youtubeId = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env[`${cfg.youtubeTokenSecret}_CLIENT`] || process.env.YT_CLIENT_SECRET_JSON });
-    console.log(`[YouTube] https://youtube.com/shorts/${youtubeId} scheduled for ${publishAt}`);
-    if (slotKey) await ledgerRecord({ ...slotKey, status: "DONE", youtubeId, meta: flag("meta") ? "social" : "off" }).then(() => console.log(`[ledger] ${channel} ${date} slot ${slot} recorded`), (x: Error) => console.error(`[ledger] ${x.message}`));
+    if (youtubeId) {
+      console.log(`[YouTube] already scheduled: https://youtube.com/shorts/${youtubeId} for ${publishAt}`);
+    } else {
+      youtubeId = await uploadYouTube({ video, meta, publishAt, tokenJson: process.env[cfg.youtubeTokenSecret] ?? process.env.YT_TOKEN_JSON, clientSecretJson: process.env[`${cfg.youtubeTokenSecret}_CLIENT`] || process.env.YT_CLIENT_SECRET_JSON });
+      console.log(`[YouTube] https://youtube.com/shorts/${youtubeId} scheduled for ${publishAt}`);
+      const metaState = flag("meta") ? "social" : flag("meta-pending") ? "pending" : "off";
+      if (slotKey) await ledgerRecord({ ...slotKey, status: "DONE", youtubeId, meta: metaState }).then(() => console.log(`[ledger] ${channel} ${date} slot ${slot} recorded (${metaState})`), (x: Error) => console.error(`[ledger] ${x.message}`));
+    }
   }
   // --meta: social fan-out after YouTube is public — Instagram +5 min, Facebook teaser +10, Pinterest pin +15.
   if (flag("meta")) {
     if (!youtubeId) throw new Error("social posts need the YouTube video (run with --youtube)");
     const failed = await fanout({ cfg, meta, video, youtubeId, publishAt, key: `${channel}/${tag}`, done: (prev?.social ?? {}) as Parameters<typeof fanout>[0]["done"],
       record: async (platform, result) => { if (slotKey) await ledgerSocial(slotKey, platform, result); } });
+    if (slotKey && !failed) await ledgerRecord({ ...slotKey, status: "DONE", youtubeId, meta: "social" }).catch((x: Error) => console.error(`[ledger] ${x.message}`));
     if (failed) throw new Error(`${failed} social platform(s) failed — check them before posting again (they are not retried automatically)`);
   }
 }

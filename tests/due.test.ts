@@ -1,4 +1,4 @@
-import { candidates, CATCHUP_SINCE } from "../scripts/due";
+import { bufferCandidates, candidates, CATCHUP_SINCE } from "../scripts/due";
 
 const at = (iso: string) => Date.parse(iso);
 const keys = (xs: { channel: string; date: string; slot: number; late: boolean }[]) => xs.map((x) => `${x.channel}:${x.date}:${x.slot}${x.late ? ":late" : ""}`);
@@ -50,5 +50,15 @@ describe("due slots", () => {
     process.env.LIVE_EPICBHARATSAGA = "false";
     expect(keys(candidates(runTime, 1, "epicbharatsaga", false))).toEqual([]);
     delete process.env.LIVE_EPICBHARATSAGA;
+  });
+
+  it("bufferCandidates returns today + next N days of live slots", () => {
+    // 2026-11-23T02:00:00Z = 07:30 IST -> 2026-11-23 pm (19:00 IST) + 2026-11-24 am (09:00 IST) are valid
+    process.env.START_UNPAPER_SHORT = "2026-11-23";
+    process.env.LIVE_UNPAPER_SHORT = "true";
+    const c = keys(bufferCandidates(at("2026-11-23T02:00:00Z"), 2, "unpaper-short"));
+    expect(c).toEqual(["unpaper-short:2026-11-23:1", "unpaper-short:2026-11-24:0"]);
+    delete process.env.START_UNPAPER_SHORT;
+    delete process.env.LIVE_UNPAPER_SHORT;
   });
 });

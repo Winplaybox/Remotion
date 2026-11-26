@@ -55,7 +55,16 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20", cache: "npm" }
       - run: npm ci
-      # Unpaper daily episodes: a plain content/unpaper/daily/YYYY-MM-DD-(am|pm).json commit is enough.
+      - name: Restore Unpaper daily cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            content/unpaper/daily
+            public/unpaper/daily
+          key: unpaper-daily-restore-miss
+          restore-keys: |
+            unpaper-daily-
+      # Unpaper daily episodes: rebuild index from restored cache + committed files.
       - run: npm run unpaper:index
       - id: due
         shell: bash
@@ -192,6 +201,17 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "20", cache: "npm" }
       - run: npm ci
+      - name: Restore Unpaper daily cache
+        if: matrix.channel == 'unpaper-short'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            content/unpaper/daily
+            public/unpaper/daily
+            output/unpaper-short
+          key: unpaper-daily-restore-miss
+          restore-keys: |
+            unpaper-daily-
       - run: npm run unpaper:index
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
