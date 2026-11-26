@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 /**
- * Generate upcoming Unpaper daily episodes using Gemini 2.5 Flash + Google Search grounding.
+ * Generate upcoming Unpaper daily episodes from real official RSS/Atom feeds
+ * using GitHub Models (GITHUB_TOKEN, free in Actions) or Gemini API (GEMINI_API_KEY).
  *
  * Usage:
  *   node scripts/unpaper/generate-daily.mjs [--days 2] [--max 2] [--dry]
- *
- * Env:
- *   GEMINI_API_KEY   Required
- *   GEMINI_MODEL     Optional (default: gemini-2.5-flash)
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -23,11 +20,14 @@ const opt = (k, def) => (args.includes(k) ? args[args.indexOf(k) + 1] : def);
 const dry = args.includes("--dry");
 const days = Math.max(1, Number(opt("--days", "2")) || 2);
 const maxCreate = Math.max(1, Number(opt("--max", "2")) || 2);
-const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-const apiKey = process.env.GEMINI_API_KEY;
 
-if (!apiKey) {
-  console.error("GEMINI_API_KEY is not set");
+const ghToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+const ghModel = process.env.GH_MODELS_MODEL || "openai/gpt-4o-mini";
+const geminiKey = process.env.GEMINI_API_KEY;
+const geminiModel = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+
+if (!ghToken && !geminiKey) {
+  console.error("Neither GITHUB_TOKEN nor GEMINI_API_KEY is set");
   process.exit(1);
 }
 
@@ -41,10 +41,12 @@ const existingFiles = fs.existsSync(dailyDir)
   : [];
 
 const existingTopics = [];
+const usedUrls = new Set();
 for (const f of existingFiles) {
   try {
     const ep = JSON.parse(fs.readFileSync(path.join(dailyDir, f), "utf8"));
     existingTopics.push(`${ep.id}: ${ep.title} (${ep.sourceUrl})`);
+    if (ep.sourceUrl) usedUrls.add(ep.sourceUrl);
   } catch {}
 }
 
@@ -52,7 +54,6 @@ const missingSlots = [];
 for (let d = 0; d <= days; d++) {
   const date = istDate(d);
   for (const slot of ["am", "pm"]) {
-    // Skip today's AM if it's already past 08:30 IST
     if (d === 0 && slot === "am") {
       const istHour = new Date(Date.now() + 5.5 * 3600_000).getUTCHours();
       if (istHour >= 8) continue;
@@ -69,37 +70,140 @@ if (!missingSlots.length) {
   process.exit(0);
 }
 
+const FEEDS = [
+  { issuer: "Reserve Bank of India", series: "Rule Badla", url: "https://www.rbi.org.in/pressreleases_rss.xml" },
+  { issuer: "Press Information Bureau (Govt of India)", series: "Fine Print", url: "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3" },
+  { issuer: "LiveLaw (Supreme Court / High Court)", series: "Fine Print", url: "https://www.livelaw.in/rss/top-stories" },
+  { issuer: "arXiv AI Research", series: "Fine Print", url: "https://export.arxiv.org/rss/cs.AI" }
+];
+
+const stripXml = (s = "") =>
+  s.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+
+async function fetchFeedItems() {
+  const items = [];
+  for (const feed of FEEDS) {
+    try {
+      const res = await fetch(feed.url, { headers: { "User-Agent": "UnpaperBot/1.0" }, signal: AbortSignal.timeout(12000) });
+      if (!res.ok) continue;
+      const xml = await res.text();
+      for (const m of xml.matchAll(/<item\b[^>]*>([\s\S]*?)<\/item>/gi)) {
+        const block = m[1];
+        const title = stripXml(block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]);
+        const link = stripXml(block.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1]);
+        const desc = stripXml(block.match(/<description[^>]*>([\s\S]*?)<\/description>/i)?.[1]);
+        const pubDate = stripXml(block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)?.[1]);
+        if (title && link && /^https?:\/\//.test(link) && !usedUrls.has(link)) {
+          items.push({ issuer: feed.issuer, series: feed.series, title, link, desc: desc.slice(0, 700), pubDate });
+        }
+        if (items.length >= 24) break;
+      }
+    } catch (e) {
+      console.warn(`[unpaper:generate] Feed skip (${feed.issuer}): ${e.message}`);
+    }
+  }
+  return items;
+}
+
+async function fetchPageSnippet(url) {
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(12000) });
+    if (!res.ok) return "";
+    const text = await res.text();
+    return text
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 3500);
+  } catch {
+    return "";
+  }
+}
+
+async function callLLM(prompt) {
+  if (ghToken) {
+    const res = await fetch("https://models.github.ai/inference/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${ghToken}`
+      },
+      body: JSON.stringify({
+        model: ghModel,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.4,
+        max_tokens: 3500
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const text = data.choices?.[0]?.message?.content || "";
+      const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+      if (match) return JSON.parse(match[1]);
+    } else {
+      console.warn(`[unpaper:generate] GitHub Models ${res.status}: ${await res.text()}`);
+    }
+  }
+
+  if (geminiKey) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiKey}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }
+      })
+    });
+    if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
+    const data = await res.json();
+    const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || "").join("\n").trim();
+    const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
+    if (!match) throw new Error(`No JSON found in Gemini response:\n${text.slice(0, 500)}`);
+    return JSON.parse(match[1]);
+  }
+
+  throw new Error("All LLM providers failed");
+}
+
+const candidates = await fetchFeedItems();
+if (!candidates.length) {
+  console.error("[unpaper:generate] No fresh RSS items found.");
+  process.exit(1);
+}
+
 const targets = missingSlots.slice(0, maxCreate);
 console.log(`[unpaper:generate] Missing slots: ${missingSlots.map((s) => s.key).join(", ")}. Generating: ${targets.map((s) => s.key).join(", ")}`);
 
-async function callGemini(prompt) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      tools: [{ google_search: {} }],
-      generationConfig: { temperature: 0.4, maxOutputTokens: 4096 }
-    })
-  });
-  if (!res.ok) {
-    throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
-  }
-  const data = await res.json();
-  const text = (data.candidates?.[0]?.content?.parts || []).map((p) => p.text || "").join("\n").trim();
-  const match = text.match(/```json\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
-  if (!match) throw new Error(`No JSON found in Gemini response:\n${text.slice(0, 500)}`);
-  return JSON.parse(match[1]);
-}
-
 let created = 0;
-for (const { date, slot, key } of targets) {
-  const prompt = `You are the lead researcher and scriptwriter for "Unpaper" ("Jo document sab share karte hain, par koi padhta nahi, hum 60 sec mein padh ke batate hain").
-Use Google Search to find ONE recent, high-impact, real official document from India or global tech/AI (RBI circular/draft, SEBI circular, Supreme Court order, Govt of India notification/PIB, or landmark arXiv AI paper) from the last 14 days that affects everyday Indians.
+for (let i = 0; i < targets.length; i++) {
+  const { date, slot, key } = targets[i];
+  const pick = candidates.find((c) => !usedUrls.has(c.link));
+  if (!pick) break;
+  usedUrls.add(pick.link);
 
-DO NOT repeat any of these already-covered topics:
-${existingTopics.join("\n") || "(none)"}
+  const pageText = await fetchPageSnippet(pick.link);
+  const sourceContext = `Issuer: ${pick.issuer}
+Title: ${pick.title}
+Date: ${pick.pubDate || date}
+URL: ${pick.link}
+Summary: ${pick.desc}
+Extracted text: ${pageText || pick.desc}`;
+
+  const prompt = `You are the lead researcher and scriptwriter for "Unpaper" ("Jo document sab share karte hain, par koi padhta nahi, hum 60 sec mein padh ke batate hain").
+Create ONE 60-second vertical Short episode strictly grounded in this real official document below. Do NOT invent numbers, dates, or quotes that are not in the source text.
+
+${sourceContext}
 
 Target slot: ${date} (${slot === "am" ? "09:00 IST" : "19:00 IST"})
 
@@ -108,42 +212,42 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
   "date": "${date}",
   "slot": "${slot}",
   "id": "ep-${key}-short-slug",
-  "series": "Fine Print" | "Budget Decoded" | "Rule Badla",
+  "series": "${pick.series}",
   "title": "Catchy Hinglish title (< 90 chars)",
-  "sourceUrl": "https://... (direct official document/circular/order URL)",
+  "sourceUrl": "${pick.link}",
   "source": {
-    "title": "Exact official document title",
-    "date": "DD Mon YYYY",
-    "issuer": "Issuing body (e.g. Reserve Bank of India / SEBI / Supreme Court of India)"
+    "title": "${pick.title.replace(/"/g, '\\"')}",
+    "date": "${date}",
+    "issuer": "${pick.issuer}"
   },
   "script": {
     "hook": {
-      "number": "Short punchy stat or phrase (e.g. '1 Click = Freeze')",
+      "number": "Short punchy stat or 2-3 word hook",
       "line": "3-5 word hook",
       "caption": "Roman Hinglish hook caption",
       "tts": "Devanagari Hindi narration (English tech/legal terms in Latin script are fine)",
       "seconds": 5,
-      "proof": { "source": "Short issuer", "page": "Para / Page", "date": "DD Mon YYYY" }
+      "proof": { "source": "${pick.issuer}", "page": "Doc · Summary", "date": "${date}" }
     },
     "doc": {
       "name": "Short doc name",
-      "issuer": "Issuing body",
-      "date": "DD Mon YYYY",
+      "issuer": "${pick.issuer}",
+      "date": "${date}",
       "image": "daily/${key}/doc-1.jpg",
       "caption": "Roman Hinglish doc intro",
       "tts": "Devanagari Hindi narration",
       "seconds": 7,
-      "proof": { "source": "Short issuer", "page": "Para / Page", "date": "DD Mon YYYY" }
+      "proof": { "source": "${pick.issuer}", "page": "Doc · Header", "date": "${date}" }
     },
     "points": [
       {
         "title": "Point 1 title",
         "page": "daily/${key}/doc-1.jpg",
         "box": [0.0623, 0.32, 0.83, 0.08],
-        "quote": "Short verbatim English quote from the official document (1-2 sentences)",
+        "quote": "Short verbatim English quote from the source text (1-2 sentences)",
         "decoded": "Roman Hinglish 1-line takeaway",
-        "proof": { "source": "Short issuer", "page": "Para / Page", "date": "DD Mon YYYY" },
-        "prop": "rupee" | "gavel" | "house" | "chart",
+        "proof": { "source": "${pick.issuer}", "page": "Point 1", "date": "${date}" },
+        "prop": "rupee",
         "caption": "Roman Hinglish caption",
         "tts": "Devanagari Hindi narration",
         "seconds": 9
@@ -152,10 +256,10 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
         "title": "Point 2 title",
         "page": "daily/${key}/doc-2.jpg",
         "box": [0.0623, 0.14, 0.83, 0.08],
-        "quote": "Short verbatim English quote from the official document",
+        "quote": "Short verbatim English quote from the source text",
         "decoded": "Roman Hinglish 1-line takeaway",
-        "proof": { "source": "Short issuer", "page": "Para / Page", "date": "DD Mon YYYY" },
-        "prop": "rupee" | "gavel" | "house" | "chart",
+        "proof": { "source": "${pick.issuer}", "page": "Point 2", "date": "${date}" },
+        "prop": "chart",
         "caption": "Roman Hinglish caption",
         "tts": "Devanagari Hindi narration",
         "seconds": 10
@@ -164,10 +268,10 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
         "title": "Point 3 title",
         "page": "daily/${key}/doc-2.jpg",
         "box": [0.0623, 0.42, 0.83, 0.08],
-        "quote": "Short verbatim English quote from the official document",
+        "quote": "Short verbatim English quote from the source text",
         "decoded": "Roman Hinglish 1-line takeaway",
-        "proof": { "source": "Short issuer", "page": "Para / Page", "date": "DD Mon YYYY" },
-        "prop": "rupee" | "gavel" | "house" | "chart",
+        "proof": { "source": "${pick.issuer}", "page": "Point 3", "date": "${date}" },
+        "prop": "gavel",
         "caption": "Roman Hinglish caption",
         "tts": "Devanagari Hindi narration",
         "seconds": 9
@@ -175,15 +279,15 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
     ],
     "asar": {
       "lines": ["3 short Roman Hinglish bullet points on personal impact"],
-      "proof": { "source": "Short issuer", "page": "Para / Page", "date": "DD Mon YYYY" },
+      "proof": { "source": "${pick.issuer}", "page": "Impact", "date": "${date}" },
       "prop": "rupee",
       "caption": "Roman Hinglish personal impact",
       "tts": "Devanagari Hindi narration",
       "seconds": 10
     },
     "outro": {
-      "caption": "Question for comments + Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
-      "tts": "Devanagari Hindi outro with comment question + Subscribe करो Unpaper",
+      "caption": "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
+      "tts": "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर.",
       "seconds": 7
     }
   },
@@ -201,7 +305,7 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
     "categoryId": "27",
     "language": "hi"
   },
-  "pinnedComment": "Official Source: <url>\\nAgla kaunsa document decode karein? Comment karo 👇"
+  "pinnedComment": "Official Source: ${pick.link}\\nAgla kaunsa document decode karein? Comment karo 👇"
 }
 
 Rules:
@@ -210,10 +314,11 @@ Rules:
 - "seo.title" must be <= 100 chars.
 - "id" must match /^[a-z0-9][a-z0-9-]*$/.`;
 
-  const ep = await callGemini(prompt);
+  const ep = await callLLM(prompt);
   ep.date = date;
   ep.slot = slot;
-  ep.id = ep.id.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
+  ep.sourceUrl = pick.link;
+  ep.id = (ep.id || `ep-${key}`).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, "");
   ep.seo.title = `${ep.seo.title}`.slice(0, 100);
 
   const outJson = path.join(dailyDir, `${key}.json`);
