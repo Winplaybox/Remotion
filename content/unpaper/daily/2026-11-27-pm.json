@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-27",
+  "slot": "pm",
+  "id": "ep-2026-11-27-pm",
+  "series": "Rule Badla",
+  "title": "RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November 27, 2026",
+  "sourceUrl": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64051",
+  "source": {
+    "title": "RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November 27, 2026",
+    "date": "2026-11-27",
+    "issuer": "Reserve Bank of India"
+  },
+  "script": {
+    "hook": {
+      "number": "Official Update",
+      "line": "Reserve Bank of India",
+      "caption": "Reserve Bank of India ka naya official update: RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November.",
+      "tts": "Reserve Bank of India का नया official update आया है. RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November.",
+      "seconds": 5,
+      "proof": {
+        "source": "Reserve Bank of India",
+        "page": "Doc · Summary",
+        "date": "2026-11-27"
+      }
+    },
+    "doc": {
+      "name": "RBI to conduct 3-day Variable Rate Repo (VRR) auct",
+      "issuer": "Reserve Bank of India",
+      "date": "2026-11-27",
+      "image": "daily/2026-11-27-pm/doc-1.jpg",
+      "caption": "Official document: RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November 27, 2026.",
+      "tts": "यह official document Reserve Bank of India की तरफ से जारी किया गया है.",
+      "seconds": 7,
+      "proof": {
+        "source": "Reserve Bank of India",
+        "page": "Doc · Header",
+        "date": "2026-11-27"
+      }
+    },
+    "points": [
+      {
+        "title": "Key Point 1",
+        "page": "daily/2026-11-27-pm/doc-1.jpg",
+        "box": [
+          0.0623,
+          0.32,
+          0.83,
+          0.08
+        ],
+        "quote": "Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30 AM to 10:00 AM November 30, 2026 (Monday) 2.",
+        "decoded": "Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30",
+        "proof": {
+          "source": "Reserve Bank of India",
+          "page": "Point 1",
+          "date": "2026-11-27"
+        },
+        "prop": "rupee",
+        "caption": "Point 1: Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30 AM to 10:00 AM November ",
+        "tts": "पहला ज़रूरी point. Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30 AM to 10:00 AM November ",
+        "seconds": 9
+      },
+      {
+        "title": "Key Point 2",
+        "page": "daily/2026-11-27-pm/doc-2.jpg",
+        "box": [
+          0.0623,
+          0.1057,
+          0.83,
+          0.073
+        ],
+        "quote": "The operational guidelines for the auction will be same as given in Reserve Bank’s Press Release 2021-2022/1572 dated January 20, 2022 .",
+        "decoded": "The operational guidelines for the auction will be same as given in Reserve Bank’s Pr",
+        "proof": {
+          "source": "Reserve Bank of India",
+          "page": "Point 2",
+          "date": "2026-11-27"
+        },
+        "prop": "chart",
+        "caption": "Point 2: The operational guidelines for the auction will be same as given in Reserve Bank’s Press Release 2021-2022/157",
+        "tts": "दूसरा ज़रूरी point. The operational guidelines for the auction will be same as given in Reserve Bank’s Press Release 2021-2022/157",
+        "seconds": 10
+      },
+      {
+        "title": "Key Point 3",
+        "page": "daily/2026-11-27-pm/doc-2.jpg",
+        "box": [
+          0.0623,
+          0.42,
+          0.83,
+          0.08
+        ],
+        "quote": "Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30 AM to 10:00 AM November 30, 2026 (Monday) 2.",
+        "decoded": "Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30",
+        "proof": {
+          "source": "Reserve Bank of India",
+          "page": "Point 3",
+          "date": "2026-11-27"
+        },
+        "prop": "gavel",
+        "caption": "Point 3: Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30 AM to 10:00 AM November ",
+        "tts": "तीसरा ज़रूरी point. Notified Amount (₹ crore) Tenor (day) Window Timing Date of Reversal 1 75,000 3 09:30 AM to 10:00 AM November ",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Official source: Reserve Bank of India",
+        "Full verified link description mein hai",
+        "Agla document kaunsa decode karein? Comment karo"
+      ],
+      "proof": {
+        "source": "Reserve Bank of India",
+        "page": "Impact",
+        "date": "2026-11-27"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Reserve Bank of India ke is update ka poora source link description mein diya gaya hai.",
+      "tts": "आप पर असर. Reserve Bank of India के इस update का पूरा source link description में दिया गया है.",
+      "seconds": 10
+    },
+    "outro": {
+      "caption": "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
+      "tts": "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर.",
+      "seconds": 7
+    }
+  },
+  "cta": {
+    "comment": "Kaunsa document decode karein? Comment karo.",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: naya official document breakdown",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November 27, 20 | Unpaper #shorts",
+    "description": "RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November 27, 2026\n\nOfficial Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64051\n\nUnpaper — Decode What Matters.\n#Unpaper #shorts",
+    "tags": [
+      "Unpaper",
+      "Reserve Bank of India",
+      "India news",
+      "official update",
+      "shorts"
+    ],
+    "caption": "RBI to conduct 3-day Variable Rate Repo (VRR) auction under LAF on November 27, 2026\n\nOfficial Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64051\n#Unpaper #reels",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Official Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64051\nAgla kaunsa document decode karein? Comment karo 👇"
+}
