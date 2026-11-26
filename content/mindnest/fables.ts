@@ -21,6 +21,8 @@ interface LangInfo {
   moral: string;
   /** Last line spoken after the moral: the daily "see you tomorrow" return line (made for kids: no comment / subscribe push). `{m}` = the moral. */
   outro: string;
+  /** StoryVisualEngine V2 episode: closing line inviting kids back tomorrow (made for kids: no subscribe ask). */
+  goodbye: string;
   /** Latin script: headlines can split words; others are kept as one unit per line (bidi / CJK safe). */
   latin: boolean;
   hashtags: string;
@@ -28,17 +30,17 @@ interface LangInfo {
 }
 
 export const LANGS: Record<MindNestLang, LangInfo> = {
-  hi: { code: "hi", name: "Hindi", handle: "@HindiMindNestTales", moral: "आज की सीख", outro: "आज की सीख: {m} कल फिर मिलेंगे, एक नई कहानी के साथ!", latin: false, hashtags: "#kahani #bachonkikahani #moralstories #hindistories #shorts", series: "Bachchon ki Kahani" },
-  es: { code: "es", name: "Spanish", handle: "@SpanishMindNestTales", moral: "MORALEJA", outro: "La moraleja de hoy: {m} ¡Mañana volvemos con un cuento nuevo!", latin: true, hashtags: "#cuentos #cuentosinfantiles #fabulas #cuentosparaniños #shorts", series: "Cuentos" },
-  ar: { code: "ar", name: "Arabic", handle: "@ArabicMindNestTales", moral: "العبرة", outro: "عبرة اليوم: {m} نلتقي غدًا مع قصة جديدة!", latin: false, hashtags: "#قصص_اطفال #حكايات #قصص #shorts", series: "قصص أطفال" },
-  de: { code: "de", name: "German", handle: "@GermanMindNestTales", moral: "DIE MORAL", outro: "Die Moral von heute: {m} Morgen gibt es eine neue Geschichte!", latin: true, hashtags: "#gutenachtgeschichte #kindergeschichten #fabeln #märchen #shorts", series: "Geschichten" },
-  ja: { code: "ja", name: "Japanese", handle: "@JapaneseMindNestTales", moral: "きょうのおしえ", outro: "きょうのおしえ。{m} あしたも、あたらしいおはなしで、あおうね！", latin: false, hashtags: "#絵本 #童話 #読み聞かせ #子供向け #shorts", series: "おはなし" },
-  ko: { code: "ko", name: "Korean", handle: "@KoreanMindNestTales", moral: "오늘의 교훈", outro: "오늘의 교훈: {m} 내일 새로운 이야기로 다시 만나요!", latin: false, hashtags: "#동화 #어린이동화 #교훈 #동화책 #shorts", series: "동화" },
-  en: { code: "en", name: "English", handle: "@EnglishMindNestTales", moral: "MORAL", outro: "Today's moral: {m} See you tomorrow with a brand-new story!", latin: true, hashtags: "#bedtimestories #kidsstories #moralstories #fables #shorts", series: "Bedtime Stories" },
-  pt: { code: "pt", name: "Portuguese", handle: "@PortugueseMindNestTales", moral: "MORAL", outro: "A moral de hoje: {m} Até amanhã com uma nova história!", latin: true, hashtags: "#historinhas #historiasinfantis #fabulas #historiaparadormir #shorts", series: "Historinhas" },
-  fr: { code: "fr", name: "French", handle: "@FrenchMindNestTales", moral: "LA MORALE", outro: "La morale du jour : {m} À demain pour une nouvelle histoire !", latin: true, hashtags: "#histoirepourenfants #contes #fables #histoiredusoir #shorts", series: "Histoires" },
-  vi: { code: "vi", name: "Vietnamese", handle: "@VietnameseMindNestTales", moral: "BÀI HỌC", outro: "Bài học hôm nay: {m} Hẹn gặp lại ngày mai với một câu chuyện mới nhé!", latin: true, hashtags: "#truyenthieunhi #truyenngungon #truyenkechobe #shorts", series: "Truyện thiếu nhi" },
-  fil: { code: "fil", name: "Filipino", handle: "@FilipinoMindNestTales", moral: "ARAL", outro: "Ang aral ngayon: {m} Bukas, may bagong kuwento ulit!", latin: true, hashtags: "#kwentongpambata #pabula #kwento #aralingbuhay #shorts", series: "Kwentong Pambata" }
+  hi: { code: "hi", name: "Hindi", handle: "@HindiMindNestTales", moral: "आज की सीख", outro: "आज की सीख: {m} कल फिर मिलेंगे, एक नई कहानी के साथ!", goodbye: "कल फिर मिलेंगे, एक नई कहानी के साथ!", latin: false, hashtags: "#kahani #bachonkikahani #moralstories #hindistories #shorts", series: "Bachchon ki Kahani" },
+  es: { code: "es", name: "Spanish", handle: "@SpanishMindNestTales", moral: "MORALEJA", outro: "La moraleja de hoy: {m} ¡Mañana volvemos con un cuento nuevo!", goodbye: "¡Nos vemos mañana con un cuento nuevo!", latin: true, hashtags: "#cuentos #cuentosinfantiles #fabulas #cuentosparaniños #shorts", series: "Cuentos" },
+  ar: { code: "ar", name: "Arabic", handle: "@ArabicMindNestTales", moral: "العبرة", outro: "عبرة اليوم: {m} نلتقي غدًا مع قصة جديدة!", goodbye: "نلتقي غدًا مع قصة جديدة!", latin: false, hashtags: "#قصص_اطفال #حكايات #قصص #shorts", series: "قصص أطفال" },
+  de: { code: "de", name: "German", handle: "@GermanMindNestTales", moral: "DIE MORAL", outro: "Die Moral von heute: {m} Morgen gibt es eine neue Geschichte!", goodbye: "Bis morgen, mit einer neuen Geschichte!", latin: true, hashtags: "#gutenachtgeschichte #kindergeschichten #fabeln #märchen #shorts", series: "Geschichten" },
+  ja: { code: "ja", name: "Japanese", handle: "@JapaneseMindNestTales", moral: "きょうのおしえ", outro: "きょうのおしえ。{m} あしたも、あたらしいおはなしで、あおうね！", goodbye: "またあした、あたらしいおはなしで あおうね！", latin: false, hashtags: "#絵本 #童話 #読み聞かせ #子供向け #shorts", series: "おはなし" },
+  ko: { code: "ko", name: "Korean", handle: "@KoreanMindNestTales", moral: "오늘의 교훈", outro: "오늘의 교훈: {m} 내일 새로운 이야기로 다시 만나요!", goodbye: "내일 새로운 이야기로 또 만나요!", latin: false, hashtags: "#동화 #어린이동화 #교훈 #동화책 #shorts", series: "동화" },
+  en: { code: "en", name: "English", handle: "@EnglishMindNestTales", moral: "MORAL", outro: "Today's moral: {m} See you tomorrow with a brand-new story!", goodbye: "See you tomorrow with a brand-new story!", latin: true, hashtags: "#bedtimestories #kidsstories #moralstories #fables #shorts", series: "Bedtime Stories" },
+  pt: { code: "pt", name: "Portuguese", handle: "@PortugueseMindNestTales", moral: "MORAL", outro: "A moral de hoje: {m} Até amanhã com uma nova história!", goodbye: "Até amanhã com uma nova história!", latin: true, hashtags: "#historinhas #historiasinfantis #fabulas #historiaparadormir #shorts", series: "Historinhas" },
+  fr: { code: "fr", name: "French", handle: "@FrenchMindNestTales", moral: "LA MORALE", outro: "La morale du jour : {m} À demain pour une nouvelle histoire !", goodbye: "À demain pour une nouvelle histoire !", latin: true, hashtags: "#histoirepourenfants #contes #fables #histoiredusoir #shorts", series: "Histoires" },
+  vi: { code: "vi", name: "Vietnamese", handle: "@VietnameseMindNestTales", moral: "BÀI HỌC", outro: "Bài học hôm nay: {m} Hẹn gặp lại ngày mai với một câu chuyện mới nhé!", goodbye: "Hẹn gặp lại ngày mai với một câu chuyện mới nhé!", latin: true, hashtags: "#truyenthieunhi #truyenngungon #truyenkechobe #shorts", series: "Truyện thiếu nhi" },
+  fil: { code: "fil", name: "Filipino", handle: "@FilipinoMindNestTales", moral: "ARAL", outro: "Ang aral ngayon: {m} Bukas, may bagong kuwento ulit!", goodbye: "Kita-kits bukas sa isang bagong kuwento!", latin: true, hashtags: "#kwentongpambata #pabula #kwento #aralingbuhay #shorts", series: "Kwentong Pambata" }
 };
 
 interface Text { title: [string, string]; s: [string, string, string, string]; moral: [string, string] }
@@ -555,6 +557,24 @@ const keep = (lang: MindNestLang, s: string) => (LANGS[lang].latin ? s : s.repla
 const strip = (s: string) => s.trim();
 
 type Scene = Omit<StoryDioramaInput["scenes"][number], "fig">;
+
+/** Plain text of fable n in `lang` (StoryVisualEngine V2 episodes): title, the four story pages, moral, closing line. */
+export function mindNestText(lang: MindNestLang, n: number) {
+  const f = fable(n);
+  const t = f.text[lang];
+  const L = LANGS[lang];
+  const moral = `${t.moral[0]} ${t.moral[1]}`;
+  return {
+    id: f.id,
+    title: [strip(t.title[0]), strip(t.title[1])] as [string, string],
+    story: t.s.map(strip),
+    moral: [strip(t.moral[0]), strip(t.moral[1])] as [string, string],
+    moralLabel: L.moral,
+    /** Spoken on the moral page: the outro's lead-in ("आज की सीख:") + the moral, without the subscribe ask. */
+    moralSpoken: `${L.outro.split("{m}")[0]!.trim()} ${moral}`,
+    goodbye: L.goodbye
+  };
+}
 
 /** Post n on the `lang` channel: the same fable n in every language. */
 export function mindNestForDay(lang: MindNestLang, n: number): StoryDiorama {
