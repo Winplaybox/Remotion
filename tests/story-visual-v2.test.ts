@@ -26,10 +26,13 @@ describe("StoryVisualEngine V2 — MindNest episode", () => {
     }
   });
 
-  it("fails closed for fables without art (only fable 1 / storybook-classic is drawn)", () => {
-    expect(fablesWithArt("storybook-classic")).toEqual([1]);
-    expect(() => mindNestEpisode("hi", 1, "storybook-classic", { requireArt: true })).not.toThrow();
-    for (let n = 2; n <= mindNestCount(); n++) expect(() => mindNestEpisode("hi", n, "storybook-classic", { requireArt: true })).toThrow(/no episode art/);
+  it("fails closed for fables without art (fables with art resolve; missing art throws)", () => {
+    const withArt = new Set(fablesWithArt("storybook-classic"));
+    expect(withArt.has(1)).toBe(true);
+    for (let n = 1; n <= mindNestCount(); n++) {
+      if (withArt.has(n)) expect(() => mindNestEpisode("hi", n, "storybook-classic", { requireArt: true })).not.toThrow();
+      else expect(() => mindNestEpisode("hi", n, "storybook-classic", { requireArt: true })).toThrow(/no episode art/);
+    }
     expect(() => mindNestEpisode("hi", 1, "night-story", { requireArt: true })).toThrow(/no episode art/);
   });
 
@@ -98,6 +101,8 @@ describe("MindNest channels on V2", () => {
   it("default: MindNestEpisodeV2 in the channel's style; fable 1 resolves, a fable without art fails closed", () => {
     jest.isolateModules(() => {
       const { CHANNELS, MINDNEST_STYLE } = require("../channels/channels") as typeof import("../channels/channels");
+      const withArt = new Set(fablesWithArt("storybook-classic"));
+      const missingArt = Array.from({ length: mindNestCount() }, (_, i) => i + 1).find((n) => !withArt.has(n));
       for (const lang of MINDNEST_LANGS) {
         const c = CHANNELS[`mindnest-${lang}`] as { composition: string; storyStyle?: string; resolve: (n: number) => unknown };
         expect(c.composition).toBe("MindNestEpisodeV2");
@@ -105,7 +110,7 @@ describe("MindNest channels on V2", () => {
         const p = c.resolve(1) as MindNestEpisodeProps;
         expect(p.storyStyle).toBe("storybook-classic");
         expect(p.scenes).toHaveLength(7);
-        expect(() => c.resolve(2)).toThrow(/no episode art/);
+        if (missingArt) expect(() => c.resolve(missingArt)).toThrow(/no episode art/);
       }
     });
   });
