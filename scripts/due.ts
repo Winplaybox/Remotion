@@ -35,16 +35,49 @@ export function candidates(from: number, hours: number, only: string | undefined
   return out;
 }
 
+/** Slots in [today .. today + bufferDays] that are live, not skipped, and have not yet passed. */
+export function bufferCandidates(from: number, bufferDays: number, only: string | undefined): (SlotKey & { channel: ChannelId; late: boolean })[] {
+  const out: (SlotKey & { channel: ChannelId; late: boolean })[] = [];
+  for (let dayOffset = 0; dayOffset <= bufferDays; dayOffset++) {
+    const date = todayIST(new Date(from + dayOffset * 86_400_000));
+    for (const channel of Object.keys(CHANNELS) as ChannelId[]) {
+      if (only && only !== channel) continue;
+      if (!isLive(channel, from) || date < startDateOf(channel) || !isPostDay(channel, date)) continue;
+      CHANNELS[channel].slots.forEach((hhmm, slot) => {
+        const t = Date.parse(slotTimeISO(date, hhmm));
+        if (t < from - 30 * 60_000) return;
+        const why = (CHANNELS[channel] as ChannelConfig).skip?.(postNumber(channel, date, slot));
+        if (why) { console.error(`[due] skip ${channel} ${date} slot ${slot}: ${why}`); return; }
+        out.push({ channel, date, slot, late: false });
+      });
+    }
+  }
+  return out;
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const arg = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
   // Anchor to the top of the hour so a late-starting run still picks the same window.
   const from = arg("from") ? Date.parse(arg("from")!) : Math.floor(Date.now() / 3_600_000) * 3_600_000;
   const useLedger = ledgerEnabled() && !args.includes("--no-ledger");
-  let due = candidates(from, Number(arg("hours") ?? 1), arg("channel"), useLedger);
+  const bufferDaysArg = arg("buffer-days");
+  const isBuffer = bufferDaysArg !== undefined;
+  let due = isBuffer
+    ? bufferCandidates(from, Math.max(0, Number(bufferDaysArg) || 0), arg("channel"))
+    : candidates(from, Number(arg("hours") ?? 1), arg("channel"), useLedger);
   if (useLedger) {
     try {
-      const done = new Set((await ledgerStatus(due)).map((r) => `${r.channel}|${String(r.date).slice(0, 10)}|${r.slot}`));
+      const rows = await ledgerStatus(due);
+      const done = new Set(
+        rows
+          .filter((r) => {
+            if (isBuffer) return !!(r.youtube_id || r.status === "DONE");
+            const metaPending = (r as { meta?: string }).meta === "pending" || (r.channel === "unpaper-short" && !!r.youtube_id && !r.social?.instagram && !r.social?.facebook);
+            return !metaPending;
+          })
+          .map((r) => `${r.channel}|${String(r.date).slice(0, 10)}|${r.slot}`)
+      );
       due = due.filter((d) => !done.has(`${d.channel}|${d.date}|${d.slot}`));
     } catch (e) {
       // Ledger down: never catch up blindly (could double-post Reels); keep the normal window only.

@@ -19,7 +19,8 @@ const args = process.argv.slice(2);
 const opt = (k, def) => (args.includes(k) ? args[args.indexOf(k) + 1] : def);
 const dry = args.includes("--dry");
 const days = Math.max(1, Number(opt("--days", "2")) || 2);
-const maxCreate = Math.max(1, Number(opt("--max", "2")) || 2);
+const maxCreate = Math.max(1, Number(opt("--max", "6")) || 6);
+const pruneDays = Number(opt("--prune-days", "4")) || 4;
 
 const ghToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const ghModel = process.env.GH_MODELS_MODEL || "gpt-4o-mini";
@@ -72,8 +73,9 @@ if (!missingSlots.length) {
 
 const FEEDS = [
   { issuer: "Reserve Bank of India", series: "Rule Badla", url: "https://www.rbi.org.in/pressreleases_rss.xml" },
+  { issuer: "Reserve Bank of India", series: "Rule Badla", url: "https://www.rbi.org.in/notifications_rss.xml" },
+  { issuer: "Securities and Exchange Board of India (SEBI)", series: "Fine Print", url: "https://www.sebi.gov.in/sebirss.xml" },
   { issuer: "Press Information Bureau (Govt of India)", series: "Fine Print", url: "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1&Regid=3" },
-  { issuer: "LiveLaw (Supreme Court / High Court)", series: "Fine Print", url: "https://www.livelaw.in/rss/top-stories" },
   { issuer: "arXiv AI Research", series: "Fine Print", url: "https://export.arxiv.org/rss/cs.AI" }
 ];
 
@@ -213,12 +215,29 @@ URL: ${pick.link}
 Summary: ${pick.desc}
 Extracted text: ${pageText || pick.desc}`;
 
-  const prompt = `You are the lead researcher and scriptwriter for "Unpaper" ("Jo document sab share karte hain, par koi padhta nahi, hum 60 sec mein padh ke batate hain").
-Create ONE 60-second vertical Short episode strictly grounded in this real official document below. Do NOT invent numbers, dates, or quotes that are not in the source text.
+  const prompt = `You are the lead growth strategist and scriptwriter for "Unpaper" ("Jo document sab share karte hain, par koi padhta nahi, hum 60 sec mein padh ke batate hain").
+Create ONE high-retention ~52-second vertical Short episode strictly grounded in this real official document below. Do NOT invent numbers, dates, or quotes that are not in the source text.
 
 ${sourceContext}
 
 Target slot: ${date} (${slot === "am" ? "09:00 IST" : "19:00 IST"})
+
+Apply the 5-Phase Viral Blueprint:
+1. Outlier Angle: Pick the single most surprising, pocket-hitting, or counter-intuitive rule/stat for ordinary Indians (never a dry summary).
+2. Curiosity-Gap Title: Brainstorm 3 curiosity-gap titles under 55 chars (including #shorts) and put the strongest one in both "title" and "seo.title" (<= 55 chars!).
+3. Retention Script (~52s total):
+   - hook (4s): 0-3s pattern-interrupt with a shocking number/consequence.
+   - doc (6s): Show the real official document.
+   - point 1 (9s): Core rule + end with a cliffhanger question leading into point 2.
+   - point 2 (10s, 40-50% mark): Mid-video re-hook ("Yahi sabse bada twist hai...").
+   - point 3 (9s): Climax proof/penalty/exception.
+   - asar (9s, ~70% mark): Personal impact + 70% verbal CTA asking a specific question for comments. Set cta.commentAt = 36.
+   - outro (5s): Seamless loop outro whose last phrase flows directly back into the hook's opening words!
+4. Engagement & SEO:
+   - pinnedComment: A single polarizing 1-word question (e.g. "SAFE?", "FAIR?", "BAN?", "SCAM?", "TRUST?").
+   - seo.description: Crisp 3-line summary including the exact official sourceUrl and 5 targeted hashtags.
+   - seo.caption: Short IG/FB Reels caption with 5 targeted hashtags.
+5. Self-Score: Mentally score Clickability, Retention, Shareability out of 10 and strengthen the weakest beat before outputting.
 
 Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exact structure:
 {
@@ -226,7 +245,7 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
   "slot": "${slot}",
   "id": "ep-${key}-short-slug",
   "series": "${pick.series}",
-  "title": "Catchy Hinglish title (< 90 chars)",
+  "title": "Curiosity-gap Hinglish title (< 55 chars, ending with #shorts)",
   "sourceUrl": "${pick.link}",
   "source": {
     "title": "${pick.title.replace(/"/g, '\\"')}",
@@ -236,10 +255,10 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
   "script": {
     "hook": {
       "number": "Short punchy stat or 2-3 word hook",
-      "line": "3-5 word hook",
-      "caption": "Roman Hinglish hook caption",
+      "line": "3-5 word pattern-interrupt hook",
+      "caption": "Roman Hinglish 0-3s hook caption",
       "tts": "Devanagari Hindi narration (English tech/legal terms in Latin script are fine)",
-      "seconds": 5,
+      "seconds": 4,
       "proof": { "source": "${pick.issuer}", "page": "Doc · Summary", "date": "${date}" }
     },
     "doc": {
@@ -249,7 +268,7 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
       "image": "daily/${key}/doc-1.jpg",
       "caption": "Roman Hinglish doc intro",
       "tts": "Devanagari Hindi narration",
-      "seconds": 7,
+      "seconds": 6,
       "proof": { "source": "${pick.issuer}", "page": "Doc · Header", "date": "${date}" }
     },
     "points": [
@@ -261,8 +280,8 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
         "decoded": "Roman Hinglish 1-line takeaway",
         "proof": { "source": "${pick.issuer}", "page": "Point 1", "date": "${date}" },
         "prop": "rupee",
-        "caption": "Roman Hinglish caption",
-        "tts": "Devanagari Hindi narration",
+        "caption": "Roman Hinglish caption ending with cliffhanger into Point 2",
+        "tts": "Devanagari Hindi narration ending with cliffhanger",
         "seconds": 9
       },
       {
@@ -273,8 +292,8 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
         "decoded": "Roman Hinglish 1-line takeaway",
         "proof": { "source": "${pick.issuer}", "page": "Point 2", "date": "${date}" },
         "prop": "chart",
-        "caption": "Roman Hinglish caption",
-        "tts": "Devanagari Hindi narration",
+        "caption": "40-50% mid-video re-hook twist in Roman Hinglish",
+        "tts": "Devanagari Hindi narration starting with mid-video twist",
         "seconds": 10
       },
       {
@@ -285,46 +304,48 @@ Return ONLY a valid JSON object (wrapped in \`\`\`json ... \`\`\`) with this exa
         "decoded": "Roman Hinglish 1-line takeaway",
         "proof": { "source": "${pick.issuer}", "page": "Point 3", "date": "${date}" },
         "prop": "gavel",
-        "caption": "Roman Hinglish caption",
+        "caption": "Roman Hinglish climax caption",
         "tts": "Devanagari Hindi narration",
         "seconds": 9
       }
     ],
     "asar": {
-      "lines": ["3 short Roman Hinglish bullet points on personal impact"],
+      "lines": ["3 short Roman Hinglish bullet points on personal impact + comment prompt"],
       "proof": { "source": "${pick.issuer}", "page": "Impact", "date": "${date}" },
       "prop": "rupee",
-      "caption": "Roman Hinglish personal impact",
-      "tts": "Devanagari Hindi narration",
-      "seconds": 10
+      "caption": "Roman Hinglish personal impact + 70% verbal CTA question",
+      "tts": "Devanagari Hindi narration with verbal CTA question",
+      "seconds": 9
     },
     "outro": {
-      "caption": "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
-      "tts": "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर.",
-      "seconds": 7
+      "caption": "Subscribe karo Unpaper — kyunki agli baar...",
+      "tts": "Subscribe करो Unpaper और यह video share करो, क्योंकि अगली बार...",
+      "seconds": 5
     }
   },
   "cta": {
-    "comment": "Specific question for viewers",
+    "comment": "Specific polarizing question for viewers",
+    "commentAt": 36,
     "question": "Kaunsa document decode karein? Comment karo.",
     "nextTeaser": "Next: related follow-up teaser",
     "crossPost": "Poora breakdown YouTube par / slides Instagram par"
   },
   "seo": {
-    "title": "<= 100 chars ending with #shorts",
-    "description": "Summary bullets + Official source URL + Instagram/FB links + #shorts",
-    "tags": ["8-14 relevant English + Hindi tags", "Unpaper"],
-    "caption": "Instagram/Facebook Reels caption with emojis + hashtags",
+    "title": "< 55 chars curiosity-gap title ending with #shorts",
+    "description": "3-line summary + Official source URL + 5 targeted hashtags",
+    "tags": ["6-12 relevant English + Hindi tags", "Unpaper"],
+    "caption": "Instagram/Facebook Reels caption with emojis + 5 targeted hashtags",
     "categoryId": "27",
     "language": "hi"
   },
-  "pinnedComment": "Official Source: ${pick.link}\\nAgla kaunsa document decode karein? Comment karo 👇"
+  "pinnedComment": "SAFE?"
 }
 
 Rules:
 - Every "tts" field MUST contain Devanagari Hindi script (English technical terms in Latin are fine).
 - Every "proof" field must have non-empty source, page, and date.
-- "seo.title" must be <= 100 chars.
+- "seo.title" must be <= 55 chars and end with #shorts.
+- "pinnedComment" must be a 1-word polarizing question (e.g. "SAFE?", "FAIR?", "BAN?").
 - "id" must match /^[a-z0-9][a-z0-9-]*$/.`;
 
   const sents = (pageText || pick.desc || pick.title)
@@ -473,6 +494,21 @@ Rules:
   console.log(`[unpaper:generate] Created ${key}.json -> ${ep.title}`);
 }
 
-if (!dry && created > 0) {
+if (!dry && pruneDays > 0) {
+  const cutoff = istDate(-pruneDays);
+  const keepFixtures = new Set(["2026-11-23-pm", "2026-11-24-am"]);
+  for (const f of fs.readdirSync(dailyDir)) {
+    const m = f.match(/^(\d{4}-\d{2}-\d{2})-(am|pm)\.json$/);
+    if (!m) continue;
+    const key = `${m[1]}-${m[2]}`;
+    if (m[1] < cutoff && !keepFixtures.has(key)) {
+      fs.rmSync(path.join(dailyDir, f), { force: true });
+      fs.rmSync(path.join(publicDailyDir, key), { recursive: true, force: true });
+      console.log(`[unpaper:generate] Pruned expired cache slot ${key}`);
+    }
+  }
+}
+
+if (!dry) {
   execFileSync("node", [path.join(root, "scripts", "unpaper", "index-daily.mjs")], { stdio: "inherit" });
 }
