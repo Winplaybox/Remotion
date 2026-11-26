@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-28",
+  "slot": "am",
+  "id": "ep-2026-11-28-am",
+  "series": "Rule Badla",
+  "title": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+  "sourceUrl": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64050",
+  "source": {
+    "title": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+    "date": "2026-11-28",
+    "issuer": "Reserve Bank of India"
+  },
+  "script": {
+    "hook": {
+      "number": "Official Update",
+      "line": "Reserve Bank of India",
+      "caption": "Reserve Bank of India ka naya official update: Reserve Money and Money Supply for the fortnight ended on November 15, 2026.",
+      "tts": "Reserve Bank of India का नया official update आया है. Reserve Money and Money Supply for the fortnight ended on November 15, 2026.",
+      "seconds": 5,
+      "proof": {
+        "source": "Reserve Bank of India",
+        "page": "Doc · Summary",
+        "date": "2026-11-28"
+      }
+    },
+    "doc": {
+      "name": "Reserve Money and Money Supply for the fortnight e",
+      "issuer": "Reserve Bank of India",
+      "date": "2026-11-28",
+      "image": "daily/2026-11-28-am/doc-1.jpg",
+      "caption": "Official document: Reserve Money and Money Supply for the fortnight ended on November 15, 2026.",
+      "tts": "यह official document Reserve Bank of India की तरफ से जारी किया गया है.",
+      "seconds": 7,
+      "proof": {
+        "source": "Reserve Bank of India",
+        "page": "Doc · Header",
+        "date": "2026-11-28"
+      }
+    },
+    "points": [
+      {
+        "title": "Key Point 1",
+        "page": "daily/2026-11-28-am/doc-1.jpg",
+        "box": [
+          0.0623,
+          0.1096,
+          0.83,
+          0.0746
+        ],
+        "quote": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "decoded": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "proof": {
+          "source": "Reserve Bank of India",
+          "page": "Point 1",
+          "date": "2026-11-28"
+        },
+        "prop": "rupee",
+        "caption": "Point 1: Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "tts": "पहला ज़रूरी point. Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "seconds": 9
+      },
+      {
+        "title": "Key Point 2",
+        "page": "daily/2026-11-28-am/doc-2.jpg",
+        "box": [
+          0.0623,
+          0.1057,
+          0.83,
+          0.073
+        ],
+        "quote": "The Reserve Bank has today released data on Reserve Money and Money Supply for the fortnight ended on November 15, 2026. Ajit Prasad &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp",
+        "decoded": "The Reserve Bank has today released data on Reserve Money and Money Supply for the fo",
+        "proof": {
+          "source": "Reserve Bank of India",
+          "page": "Point 2",
+          "date": "2026-11-28"
+        },
+        "prop": "chart",
+        "caption": "Point 2: The Reserve Bank has today released data on Reserve Money and Money Supply for the fortnight ended on November",
+        "tts": "दूसरा ज़रूरी point. The Reserve Bank has today released data on Reserve Money and Money Supply for the fortnight ended on November",
+        "seconds": 10
+      },
+      {
+        "title": "Key Point 3",
+        "page": "daily/2026-11-28-am/doc-2.jpg",
+        "box": [
+          0.0623,
+          0.1057,
+          0.83,
+          0.073
+        ],
+        "quote": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "decoded": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "proof": {
+          "source": "Reserve Bank of India",
+          "page": "Point 3",
+          "date": "2026-11-28"
+        },
+        "prop": "gavel",
+        "caption": "Point 3: Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "tts": "तीसरा ज़रूरी point. Reserve Money and Money Supply for the fortnight ended on November 15, 2026",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Official source: Reserve Bank of India",
+        "Full verified link description mein hai",
+        "Agla document kaunsa decode karein? Comment karo"
+      ],
+      "proof": {
+        "source": "Reserve Bank of India",
+        "page": "Impact",
+        "date": "2026-11-28"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Reserve Bank of India ke is update ka poora source link description mein diya gaya hai.",
+      "tts": "आप पर असर. Reserve Bank of India के इस update का पूरा source link description में दिया गया है.",
+      "seconds": 10
+    },
+    "outro": {
+      "caption": "Kaunsa document decode karein? Comment karo. Subscribe karo Unpaper. Poora breakdown YouTube par, slides Instagram par.",
+      "tts": "कौन सा document decode करें? Comment करो. Subscribe करो Unpaper. पूरा breakdown YouTube पर, slides Instagram पर.",
+      "seconds": 7
+    }
+  },
+  "cta": {
+    "comment": "Kaunsa document decode karein? Comment karo.",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: naya official document breakdown",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026 | Unpaper #shorts",
+    "description": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026\n\nOfficial Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64050\n\nUnpaper — Decode What Matters.\n#Unpaper #shorts",
+    "tags": [
+      "Unpaper",
+      "Reserve Bank of India",
+      "India news",
+      "official update",
+      "shorts"
+    ],
+    "caption": "Reserve Money and Money Supply for the fortnight ended on November 15, 2026\n\nOfficial Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64050\n#Unpaper #reels",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Official Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64050\nAgla kaunsa document decode karein? Comment karo 👇"
+}
