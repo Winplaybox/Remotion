@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-29",
+  "slot": "am",
+  "id": "ep-2026-11-29-am",
+  "series": "Fine Print",
+  "title": "Hindi mein AI use karna 13.7x mehenga kyun?",
+  "sourceUrl": "https://arxiv.org/abs/2611.13058",
+  "source": {
+    "title": "The Indic Token Tax in 2026: Measuring Tokenizer Disparity and Its Cost for the Languages of India",
+    "date": "2026-11-15",
+    "issuer": "arXiv (cs.CL)"
+  },
+  "script": {
+    "hook": {
+      "number": "13.7x Tax",
+      "line": "The Indic Token Tax in 2026",
+      "caption": "Same sawal, same AI — par Indian language mein poochhne pe 13.7x zyada tokens lagte hain! Nayi 2026 arXiv study ne khola secret 'Token Tax'.",
+      "tts": "Same सवाल, same AI — पर Indian language में पूछने पर तेरह point सात गुना ज़्यादा tokens लगते हैं! नई 2026 arXiv study ने खोला secret Token Tax.",
+      "seconds": 4,
+      "proof": {
+        "source": "arXiv:2611.13058",
+        "page": "Abstract · 2026",
+        "date": "15 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "The Indic Token Tax in 2026 (arXiv:2611.13058)",
+      "issuer": "arXiv (cs.CL)",
+      "date": "15 Nov 2026",
+      "image": "daily/2026-11-29-am/doc-1.jpg",
+      "caption": "Research Paper: 9 public tokenizers (GPT-4o, Qwen2.5, DeepSeek-V3, Sarvam) tested across 25 Indian languages & 13,732 Hinglish pairs.",
+      "tts": "यह 2026 arXiv research paper नौ public tokenizers को पच्चीस भारतीय भाषाओं और तेरह हज़ार Hinglish pairs पर test करता है.",
+      "seconds": 6,
+      "proof": {
+        "source": "arXiv:2611.13058",
+        "page": "FLORES-200 & PHINC",
+        "date": "15 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "GPT-4o: 1.57x Hindi to 13.7x Santali",
+        "page": "daily/2026-11-29-am/doc-1.jpg",
+        "box": [
+          0.0655,
+          0.2282,
+          0.8546,
+          0.0414
+        ],
+        "quote": "On GPT-4o's tokenizer the same content needs between 1.57 times (Hindi) and 5.01 times (Odia) the tokens of English, and 13.7 times for Santali in Ol Chiki script; GPT-4's tokenizer needs up to 12.8 times.",
+        "decoded": "Hindi 1.57x, Odia 5.01x, Santali 13.7x zyada tokens vs English",
+        "proof": {
+          "source": "arXiv:2611.13058",
+          "page": "Abstract · GPT-4o",
+          "date": "15 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 1: GPT-4o pe same content ke liye Hindi mein 1.57x, Odia mein 5.01x aur Santali (Ol Chiki) mein 13.7x zyada tokens lagte hain!",
+        "tts": "पहला point. GPT-4o पर same content के लिए Hindi में 1.57x, Odia में 5.01x और Santali में 13.7x ज़्यादा tokens लगते हैं.",
+        "seconds": 9
+      },
+      {
+        "title": "Real Bill Shock: ₹56,640 vs ₹1,02,829",
+        "page": "daily/2026-11-29-am/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.1198,
+          0.8553,
+          0.0604
+        ],
+        "quote": "In an illustrative scenario using official list prices accessed on 5 November 2026 and stated assumptions, a support bot handling 100,000 chats a month on GPT-4o would cost about INR 56,640 in English and INR 102,829 in Marathi; these are estimates, not measured production costs.",
+        "decoded": "1 lakh chats/month: English ₹56,640 vs Marathi ₹1,02,829",
+        "proof": {
+          "source": "arXiv:2611.13058",
+          "page": "Abstract · Cost Model",
+          "date": "15 Nov 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 2 (Asli Jhatka): 1 lakh chats/month wale support bot ka estimated bill English mein ₹56,640 aur Marathi mein ₹1,02,829 — lagbhag double!",
+        "tts": "पर असली झटका bill देखकर लगता है. एक लाख chats वाले support bot का खर्च English में छप्पन हज़ार, और Marathi में एक लाख दो हज़ार से ज़्यादा!",
+        "seconds": 11
+      },
+      {
+        "title": "Sarvam-30B/105B Beats Western Models",
+        "page": "daily/2026-11-29-am/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.2695,
+          0.8619,
+          0.0414
+        ],
+        "quote": "Sarvam-30B/105B is the only third-party tokenizer that stays below 2.6 times on every language (median 1.53).",
+        "decoded": "Sarvam-30B/105B har Indian language pe 2.6x se neeche (median 1.53)",
+        "proof": {
+          "source": "arXiv:2611.13058",
+          "page": "Abstract · Sarvam",
+          "date": "15 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 3: 9 tokenizers mein sirf Sarvam-30B/105B har bhasha pe 2.6x se neeche raha (median 1.53) — warna context window bhi jaldi bharta hai.",
+        "tts": "तीसरा point. नौ tokenizers में सिर्फ Sarvam-30B/105B हर भाषा में 2.6x से नीचे रहा, वरना context window भी जल्दी भर जाता है.",
+        "seconds": 10
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Indian languages = zyada tokens, slow speed, 2x bill",
+        "Indic tokenizers (Sarvam) cut token tax",
+        "Alag pricing honi chahiye? Comment mein likho"
+      ],
+      "proof": {
+        "source": "arXiv:2611.13058",
+        "page": "Summary · Impact",
+        "date": "15 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Kya AI companies ko Indian languages ke liye alag pricing rakhni chahiye? Comment mein likho aur apne tech doston ko share karo!",
+      "tts": "आप पर असर. क्या AI companies को Indian languages के लिए अलग pricing रखनी चाहिए? Comment में लिखो और अपने tech दोस्तों को share करो!",
+      "seconds": 8
+    },
+    "outro": {
+      "caption": "Poora breakdown YouTube par, slides Instagram par — kyunki agle AI prompt mein aap bhi poochhoge...",
+      "tts": "पूरा breakdown YouTube पर, slides Instagram पर — क्योंकि अगले AI prompt में आप भी पूछोगे...",
+      "seconds": 4
+    }
+  },
+  "cta": {
+    "comment": "Alag pricing honi chahiye?",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: naya official document breakdown",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Hindi mein AI use karna 13.7x mehenga kyun? #shorts",
+    "description": "arXiv:2611.13058 'The Indic Token Tax in 2026' reveals why Indian languages cost 1.57x–13.7x more tokens on GPT-4o.\nOfficial Paper: https://arxiv.org/abs/2611.13058\n#AITokenTax #IndicAI #ChatGPTIndia #TechResearch #Unpaper",
+    "tags": [
+      "AITokenTax",
+      "IndicAI",
+      "ChatGPTIndia",
+      "TechResearch",
+      "Unpaper"
+    ],
+    "caption": "Hindi mein AI use karna 13.7x mehenga kyun? The Indic Token Tax in 2026 decoded.\n\nOfficial Paper: https://arxiv.org/abs/2611.13058\n#AITokenTax #IndicAI #ChatGPTIndia #TechResearch #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Unfair?"
+}

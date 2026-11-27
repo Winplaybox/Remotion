@@ -1,0 +1,148 @@
+{
+  "date": "2026-11-28",
+  "slot": "pm",
+  "id": "ep-2026-11-28-pm",
+  "series": "Rule Badla",
+  "title": "Cash bhejne pe RBI ka naya ₹5,000 lock",
+  "sourceUrl": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13752&Mode=0",
+  "source": {
+    "title": "Reserve Bank of India (Domestic Money Transfer) Directions, 2026",
+    "date": "2026-11-11",
+    "issuer": "Reserve Bank of India"
+  },
+  "script": {
+    "hook": {
+      "number": "₹5,000 Cap",
+      "line": "RBI Cash Transfer Rule 2026",
+      "caption": "UPI ke zamane mein bhi agar aap ya aapki family cash money transfer karti hai — RBI ka naya ₹5,000 lock rule turant jaan lo.",
+      "tts": "UPI के ज़माने में भी अगर आप या आपकी family cash money transfer करती है, तो RBI का नया पाँच हज़ार रुपये का lock rule तुरंत जान लो.",
+      "seconds": 4,
+      "proof": {
+        "source": "RBI DMT Directions · 2026",
+        "page": "Para 9 · Cap",
+        "date": "11 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "RBI (Domestic Money Transfer) Directions, 2026",
+      "issuer": "Reserve Bank of India",
+      "date": "11 Nov 2026",
+      "image": "daily/2026-11-28-pm/doc-1.jpg",
+      "caption": "Official document: RBI/DPSS/2026-27/476 — Domestic Money Transfer Directions, 2026. Effective immediately.",
+      "tts": "यह official RBI notification 11 November 2026 को जारी हुआ है, जो सभी banks और payment operators पर लागू है.",
+      "seconds": 6,
+      "proof": {
+        "source": "RBI DMT Directions · 2026",
+        "page": "Ref · 2026-27/476",
+        "date": "11 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Cash Pay-out: ₹10,000/tx, ₹25,000/month",
+        "page": "daily/2026-11-28-pm/doc-1.jpg",
+        "box": [
+          0.0655,
+          0.2075,
+          0.8178,
+          0.0417
+        ],
+        "quote": "The maximum amount that may be transferred under the Cash Pay-out Service shall be ₹10,000 per transaction, subject to an overall monthly ceiling of ₹25,000 per beneficiary.",
+        "decoded": "Bina bank account cash delivery pe ₹10,000/tx aur ₹25,000/month cap",
+        "proof": {
+          "source": "RBI DMT Directions · 2026",
+          "page": "Para 7 · Cash Pay-out",
+          "date": "11 Nov 2026"
+        },
+        "prop": "rupee",
+        "caption": "Point 1: Account se bina-bank-account wale recipient ko cash bhejne pe ₹10,000 per transaction aur ₹25,000 monthly ceiling.",
+        "tts": "पहला point. Account से बिना bank account वाले recipient को cash भेजने पर दस हज़ार प्रति transaction और पच्चीस हज़ार monthly limit है.",
+        "seconds": 9
+      },
+      {
+        "title": "Branch vs BC Agent: 10x Limit Gap",
+        "page": "daily/2026-11-28-pm/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.1198,
+          0.8525,
+          0.0797
+        ],
+        "quote": "A walk-in customer at a bank branch can remit funds up to ₹50,000 to the bank account of a beneficiary through NEFT. Banks are also permitted to allow such customers to transfer funds to a bank account of a beneficiary through Business Correspondents (BCs), ATMs, etc., up to a maximum amount of ₹5,000 per transaction with a monthly cap of ₹25,000 per remitter.",
+        "decoded": "Twist: Branch NEFT ₹50,000, par BC/ATM pe sirf ₹5,000/tx",
+        "proof": {
+          "source": "RBI DMT Directions · 2026",
+          "page": "Para 8-9 · Cash Pay-in",
+          "date": "11 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 2 (Twist): Bank branch se walk-in NEFT ₹50,000 tak allowed hai, par BC agent ya ATM se sirf ₹5,000 per transaction aur ₹25,000 monthly cap!",
+        "tts": "पर असली twist यहाँ है. Bank branch से walk-in NEFT पचास हज़ार तक allowed है, पर BC agent या ATM से सिर्फ पाँच हज़ार प्रति transaction की limit है.",
+        "seconds": 11
+      },
+      {
+        "title": "Mandatory KYC, AFA & Velocity Checks",
+        "page": "daily/2026-11-28-pm/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.2885,
+          0.8612,
+          0.0794
+        ],
+        "quote": "Every transaction undertaken by a remitter shall be validated by an Additional Factor of Authentication (AFA). Banks and non-banks, as applicable, shall put in place robust systems of safeguards, including velocity checks and alerts to customers regarding credits into accounts using the facilities provided under these Directions.",
+        "decoded": "Har cash transfer pe verified mobile + OVD KYC + AFA + velocity alert",
+        "proof": {
+          "source": "RBI DMT Directions · 2026",
+          "page": "Para 11 & 15",
+          "date": "11 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 3: Har cash pay-in ke liye verified mobile, OVD KYC aur Additional Factor of Authentication zaroori hai — saath mein real-time velocity checks.",
+        "tts": "तीसरा point. हर cash transfer के लिए verified mobile, OVD KYC और Additional Factor of Authentication ज़रूरी है, साथ में real-time fraud alerts भी.",
+        "seconds": 10
+      }
+    ],
+    "asar": {
+      "lines": [
+        "BC agent se ₹5,000/tx, branch NEFT ₹50,000",
+        "Har transaction pe AFA + RBI Ombudsman cover",
+        "Kya ₹25,000 monthly cap kaafi hai? Comment karo"
+      ],
+      "proof": {
+        "source": "RBI DMT Directions · 2026",
+        "page": "Para 22 · Ombudsman",
+        "date": "11 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Agar aapka koi relative cash remittance use karta hai, toh unhe yeh video abhi bhejo aur comment mein batao — kya ₹25,000 monthly cap kaafi hai?",
+      "tts": "आप पर असर. अगर आपका कोई relative cash remittance use करता है, तो उन्हें यह video अभी भेजो और comment में बताओ — क्या पच्चीस हज़ार monthly limit काफी है?",
+      "seconds": 8
+    },
+    "outro": {
+      "caption": "Poora breakdown YouTube par, slides Instagram par — aur agar aap sochte ho cash transfer khatam ho gaya, toh dekho...",
+      "tts": "पूरा breakdown YouTube पर, slides Instagram पर — और अगर आप सोचते हो cash transfer खत्म हो गया, तो...",
+      "seconds": 4
+    }
+  },
+  "cta": {
+    "comment": "₹25,000 monthly cap kaafi hai?",
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: India ka hidden AI Token Tax",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Cash bhejne pe RBI ka naya ₹5,000 lock #shorts",
+    "description": "RBI Domestic Money Transfer Directions 2026: Cash Pay-out ₹10,000/tx & BC Cash Pay-in ₹5,000/tx caps explained.\nOfficial RBI Source: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13752&Mode=0\n#RBIRules #MoneyTransfer #PersonalFinanceIndia #UPI #Unpaper",
+    "tags": [
+      "RBIRules",
+      "MoneyTransfer",
+      "PersonalFinanceIndia",
+      "UPI",
+      "Unpaper"
+    ],
+    "caption": "Cash bhejne pe RBI ka naya ₹5,000 lock — 2026 DMT Directions decoded.\n\nOfficial RBI Source: https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=13752&Mode=0\n#RBIRules #MoneyTransfer #PersonalFinanceIndia #UPI #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Enough?"
+}
