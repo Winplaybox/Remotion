@@ -7,6 +7,9 @@ import e3 from "./2026-11-27-pm.json";
 import e4 from "./2026-11-28-am.json";
 import e5 from "./2026-11-28-pm.json";
 import e6 from "./2026-11-29-am.json";
+import e7 from "./2026-11-29-pm.json";
+import e8 from "./2026-11-30-am.json";
+import e9 from "./2026-11-30-pm.json";
 
 export const UNPAPER_DAILY: Record<string, unknown> = {
   "2026-11-23-pm": e0,
@@ -16,4 +19,7 @@ export const UNPAPER_DAILY: Record<string, unknown> = {
   "2026-11-28-am": e4,
   "2026-11-28-pm": e5,
   "2026-11-29-am": e6,
+  "2026-11-29-pm": e7,
+  "2026-11-30-am": e8,
+  "2026-11-30-pm": e9,
 };

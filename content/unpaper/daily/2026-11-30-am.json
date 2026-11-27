@@ -1,0 +1,150 @@
+{
+  "date": "2026-11-30",
+  "slot": "am",
+  "id": "ep-2026-11-30-am-rbi-money-mule",
+  "series": "Rule Badla",
+  "title": "Bina police ke bank debit hold! RBI rule #shorts",
+  "sourceUrl": "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64062",
+  "source": {
+    "title": "RBI Issues Amendment Directions on ‘Suspected Money Mule Accounts to Prevent Cyber-enabled Financial Frauds’ (Press Release: 2026-2027/1584)",
+    "date": "27 Nov 2026",
+    "issuer": "Reserve Bank of India"
+  },
+  "script": {
+    "hook": {
+      "number": "Debit Hold",
+      "line": "RBI Money Mule SOP 2026",
+      "caption": "Agar aapke account mein koi suspect transfer aaya, toh bina court order aapka apna bank khud temporary debit hold laga sakta hai!",
+      "tts": "अगर आपके खाते में कोई suspect पैसा आया, तो बिना court order आपका अपना bank खुद temporary debit hold लगा सकता है.",
+      "seconds": 4,
+      "proof": {
+        "source": "RBI PR 2026-2027/1584",
+        "page": "Para 1 · SOP",
+        "date": "27 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "RBI Money Mule Amendment Directions",
+      "issuer": "Reserve Bank of India · PR 1584",
+      "date": "27 Nov 2026",
+      "image": "daily/2026-11-30-am/doc-1.jpg",
+      "caption": "Official RBI Press Release (27 Nov 2026): Cyber-enabled fraud aur money mule accounts rokne ke liye final Amendment Directions jari.",
+      "tts": "यह 27 November 2026 की official RBI press release है, जिसमें money mule accounts पर final Amendment Directions जारी किए गए हैं.",
+      "seconds": 6,
+      "proof": {
+        "source": "RBI PR 2026-2027/1584",
+        "page": "Header · 27 Nov 2026",
+        "date": "27 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Suo Moto Temporary Debit Hold",
+        "page": "daily/2026-11-30-am/doc-1.jpg",
+        "box": [
+          0.0655,
+          0.2282,
+          0.8658,
+          0.0604
+        ],
+        "quote": "The draft Amendment Directions proposed a Standard Operating Procedure (SOP) laying down a uniform, time-bound procedure for banks to suo moto place temporary debit holds on amounts or accounts suspected to be linked to money mule activity and cyber-enabled financial frauds,",
+        "decoded": "Bank khud suspect amount ya account par temporary debit hold laga sakega",
+        "proof": {
+          "source": "RBI PR 2026-2027/1584",
+          "page": "Para 1 · Debit Hold",
+          "date": "27 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 1: Cyber fraud ya money mule link ka shak hone par bank suo moto — yani khud se — suspect amount ya account par temporary debit hold laga sakta hai. Par agar aap genuine customer ho toh kya?",
+        "tts": "पहला point. Cyber fraud या money mule का शक होने पर bank खुद से suspect amount या पूरे account पर temporary debit hold लगा सकता है. पर अगर आप genuine customer हैं तो बाहर कैसे निकलेंगे?",
+        "seconds": 9
+      },
+      {
+        "title": "Time-Bound Unfreeze & Customer Shield",
+        "page": "daily/2026-11-30-am/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.1198,
+          0.8121,
+          0.0414
+        ],
+        "quote": "and to remove such holds in coordination with Law Enforcement Agencies (LEAs), while protecting genuine customers from inconvenience.",
+        "decoded": "Twist: Uniform time-bound SOP — LEAs ke saath hold hatane ka process bhi fixed",
+        "proof": {
+          "source": "RBI PR 2026-2027/1584",
+          "page": "Para 1 · LEA Coordination",
+          "date": "27 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 2 (Twist): Yahi sabse bada twist hai! RBI ne sirf hold power nahi di — ek uniform, time-bound SOP banaya hai jisse Law Enforcement Agencies ke saath hold hat sake aur genuine customers na phansein!",
+        "tts": "यही सबसे बड़ा twist है! RBI ने सिर्फ़ hold की power नहीं दी — एक uniform, time-bound SOP बनाया है जिससे police के साथ मिलकर hold हट सके और genuine customers परेशान न हों!",
+        "seconds": 10
+      },
+      {
+        "title": "6 Bank Types · July 2027 (Ya Pehle!)",
+        "page": "daily/2026-11-30-am/doc-2.jpg",
+        "box": [
+          0.0655,
+          0.2505,
+          0.848,
+          0.0414
+        ],
+        "quote": "Accordingly, the Reserve Bank has today issued the following Amendment Directions, which shall come into effect from July 1, 2027, or from such earlier date as a bank may decide to implement the SOP.",
+        "decoded": "Commercial, SFB, Payments, RRB, LAB, UCB sab pe laagu — 1 July 2027 ya pehle",
+        "proof": {
+          "source": "RBI PR 2026-2027/1584",
+          "page": "Para 2 · Effective Date",
+          "date": "27 Nov 2026"
+        },
+        "caption": "Point 3: Commercial, Small Finance, Payments, Local Area, Regional Rural aur Urban Co-op — sabhi 6 bank types cover hain. Rule July 1, 2027 se laagu hoga, ya usse pehle agar aapka bank adopt kare!",
+        "tts": "तीसरा point. Commercial, Small Finance, Payments, RRB और Co-operative — सभी 6 तरह के banks पर लागू. यह 1 July 2027 से शुरू होगा, या उससे पहले अगर आपका bank इसे लागू कर दे.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Commission ke liye kisi anjaan ka paisa mat lo",
+        "Bank khud time-bound debit hold laga aur hata sakega",
+        "Kya banks ko bina police freeze power milni chahiye? Comment karo"
+      ],
+      "proof": {
+        "source": "RBI PR 2026-2027/1584",
+        "page": "Para 1–2 · Summary",
+        "date": "27 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Apna account kabhi kisi aur ke transfers ke liye rent mat karo. Comment mein batao — kya banks ko yeh suo moto freeze power milni chahiye? Doston ko share karo!",
+      "tts": "आप पर असर. अपना bank account कभी किसी अनजान के transfers के लिए use मत होने दें. Comment में बताओ — क्या banks को यह power मिलनी चाहिए? यह video तुरंत share करो.",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Poora breakdown YouTube par, slides Instagram par — kyunki agli baar...",
+      "tts": "पूरा breakdown YouTube पर, slides Instagram पर — क्योंकि अगली बार...",
+      "seconds": 5
+    }
+  },
+  "cta": {
+    "comment": "Banks ko suo moto debit hold power milni chahiye?",
+    "commentAt": 36,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: AI Hindi-Tamil mein 2x galat kyun?",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Bina police ke bank debit hold! RBI rule #shorts",
+    "description": "RBI issues final Amendment Directions (PR 2026-2027/1584) on suspected money mule accounts: uniform time-bound SOP for suo moto temporary debit holds & LEA-coordinated release.\nOfficial RBI Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64062\n#RBIRules #MoneyMule #CyberFraud #BankFreeze #Unpaper",
+    "tags": [
+      "RBI money mule rules",
+      "bank account debit hold",
+      "cyber fraud RBI SOP",
+      "suo moto account freeze",
+      "RBI KYC amendment 2026",
+      "UPI fraud India",
+      "Unpaper"
+    ],
+    "caption": "Ab bank khud suspect amount ya account par temporary debit hold laga sakta hai! ⚠️🏦 RBI Money Mule Amendment Directions (27 Nov 2026) decoded.\n\nOfficial RBI Source: https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=64062\n#RBIRules #MoneyMule #CyberFraud #BankFreeze #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Fair?"
+}
