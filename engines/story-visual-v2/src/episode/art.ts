@@ -99,8 +99,29 @@ const PATIENCE_STORYBOOK: EpisodeArt = {
   ]
 };
 
+
+/** Fable 2 "kindness" — Storybook Classic V2 (auto-generated). */
+const FABLE_2_STORYBOOK: EpisodeArt = {
+  dir: "mindnest-v2/storybook-classic/fable-2",
+  title: { bg: "bg-p1.jpg", emblem: "emblem.webp" },
+  pages: [
+    { bg: "bg-p1.jpg", particles: "pollen", particleColor: "#FFE7A0",
+      actors: [{ src: "p1-pair.webp", w: 860, x: 540, y: 1545, enter: "hop", idle: "breathe" }] },
+    { bg: "bg-p2.jpg", particles: "petals", particleColor: "#F4A6C0",
+      actors: [{ src: "p2-leap.webp", w: 560, x: 500, y: 1560, enter: "slide-left", idle: "breathe" }] },
+    { bg: "bg-p3.jpg", particles: "leaves", particleColor: "#C9973E",
+      actors: [{ src: "p3-muddy.webp", w: 560, x: 540, y: 1585, enter: "drop", idle: "sad" }] },
+    { bg: "bg-p4.jpg", particles: "pollen", particleColor: "#FFF2C0",
+      actors: [{ src: "p4-calm.webp", w: 900, x: 540, y: 1550, enter: "rise", idle: "breathe" }] },
+    { bg: "bg-p5.jpg", particles: "petals", particleColor: "#FFC46B", glow: "rgba(255,196,110,0.55)",
+      actors: [{ src: "p5-hug.webp", w: 820, x: 540, y: 1560, enter: "hop", idle: "breathe" }] },
+    { bg: "bg-outro.jpg", particles: "fireflies", particleColor: "#FFD877", glow: "rgba(255,206,110,0.45)",
+      actors: [{ src: "outro-wave.webp", w: 820, x: 540, y: 1565, enter: "rise", idle: "wave" }] }
+  ]
+};
+
 const ART: Partial<Record<StoryStyleId, Record<number, EpisodeArt>>> = {
-  "storybook-classic": { 1: PATIENCE_STORYBOOK }
+  "storybook-classic": { 1: PATIENCE_STORYBOOK, 2: FABLE_2_STORYBOOK }
 };
 
 export function episodeArtFor(style: StoryStyleId, fable: number): EpisodeArt | null {
