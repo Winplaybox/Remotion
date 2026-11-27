@@ -617,6 +617,6 @@ export function mindNestMeta(lang: MindNestLang, n: number) {
     caption: `${title} 🐆\n${L.moral}: ${moral}\n${L.hashtags.replace(" #shorts", "")} #reels`,
     language: L.code,
     categoryId: "1",
-    madeForKids: true
+    madeForKids: false
   };
 }
