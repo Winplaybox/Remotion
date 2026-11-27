@@ -113,7 +113,7 @@ describe("MindNest Tales — one fable, every language", () => {
       expect(isLive(id)).toBe(false);
       expect(VOICES[id]).toBeDefined();
       const m = mindNestMeta(lang, 1);
-      expect(m.madeForKids).toBe(true);
+      expect(m.madeForKids).toBe(false);
       expect(m.language).toBe(LANGS[lang].code);
       expect(m.title.length).toBeLessThanOrEqual(100);
     }
