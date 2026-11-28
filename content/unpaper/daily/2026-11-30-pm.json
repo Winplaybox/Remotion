@@ -1,0 +1,150 @@
+{
+  "date": "2026-11-30",
+  "slot": "pm",
+  "id": "ep-2026-11-30-pm-ai-multilingual-gap",
+  "series": "Fine Print",
+  "title": "AI Hindi-Tamil mein 2x galat kyun? Study #shorts",
+  "sourceUrl": "https://arxiv.org/abs/2611.33307",
+  "source": {
+    "title": "Lost in Translation, Not in Confidence: Benchmarking and Calibrating Multilingual Decision Models",
+    "date": "24 Nov 2026",
+    "issuer": "arXiv (cs.CL · NTU Singapore & NUS)"
+  },
+  "script": {
+    "hook": {
+      "number": "2x Error",
+      "line": "AI Confidence Trap in India",
+      "caption": "Same AI, same sawaal — par English se Tamil ya Hindi mein aate hi AI ke galat hone ka risk DOUBLE ho jata hai, bina confidence kam hue!",
+      "tts": "वही AI, वही सवाल — पर भाषा बदलते ही AI के गलत होने का खतरा दोगुना हो जाता है, वो भी पूरे confidence के साथ.",
+      "seconds": 4,
+      "proof": {
+        "source": "arXiv:2611.33307",
+        "page": "Abstract · p.1",
+        "date": "24 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "Lost in Translation, Not in Confidence",
+      "issuer": "arXiv:2611.33307 · NTU & NUS",
+      "date": "24 Nov 2026",
+      "image": "daily/2026-11-30-pm/doc-1.jpg",
+      "caption": "2026 Research Paper: 25 top open-weight AI decision models ko 17 tasks aur 14 languages (Hindi & Tamil samet) par test kiya gaya.",
+      "tts": "यह 24 November 2026 का arXiv research paper है, जो 25 top AI decision models को Hindi और Tamil समेत 14 भाषाओं में test करता है.",
+      "seconds": 6,
+      "proof": {
+        "source": "arXiv:2611.33307",
+        "page": "p.1 · Fig 1",
+        "date": "24 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "95% English → 90% Tamil Accuracy",
+        "page": "daily/2026-11-30-pm/doc-1.jpg",
+        "box": [
+          0.1404,
+          0.3968,
+          0.3263,
+          0.0877
+        ],
+        "quote": "Every model loses accuracy in every language, from about 2 points in high-resource languages to 8 in Tamil, while confidence falls only half as much: a threshold set for 95% accuracy in English yields 90% in Tamil.",
+        "decoded": "Tamil mein error 5% se badhkar 10% (2x!) — Hindi mein bhi -4.8 pt drop",
+        "proof": {
+          "source": "arXiv:2611.33307",
+          "page": "Abstract & Table 1",
+          "date": "24 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 1: Har model ki accuracy giri (Tamil mein -7.8 pts, Hindi mein -4.8 pts), par confidence aadha hi gira! English ka 5% error rule Tamil mein 10% error ban jata hai. Par kya top leaderboard models safe hain?",
+        "tts": "पहला point. हर model की accuracy गिरी — Tamil में nearly 8 points और Hindi में 4.8 points, पर confidence आधा ही गिरा! English का 5% error rule Tamil में 10% error बन जाता है. पर क्या top leaderboard models इससे बच जाते हैं?",
+        "seconds": 9
+      },
+      {
+        "title": "Leaderboard Rank Dhokha Deta Hai",
+        "page": "daily/2026-11-30-pm/doc-2.jpg",
+        "box": [
+          0.1123,
+          0.5717,
+          0.3831,
+          0.0821
+        ],
+        "quote": "Language (60%) and base model (34%) explain almost all accuracy-loss variance: all eight Qwen3.8 models lose 13.6–17.8 points in Tamil versus 2.9–5.7 for the other 17, while board rank predicts only moderately",
+        "decoded": "Twist: Top rank ka bharosa mat karo — 8 Qwen3.8 models Tamil mein 13.6–17.8 pt gire!",
+        "proof": {
+          "source": "arXiv:2611.33307",
+          "page": "p.2 · Base Attribution",
+          "date": "24 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 2 (Twist): Yahi sabse bada twist hai! English leaderboard rank se kuch pata nahi chalta — Qwen3.8 ke sabhi 8 models Tamil mein 13.6 se 17.8 points gir gaye!",
+        "tts": "यही सबसे बड़ा twist है! English leaderboard rank धोखा देती है — Qwen3.8 के सभी 8 models Tamil में 13.6 से 17.8 points तक गिर गए!",
+        "seconds": 10
+      },
+      {
+        "title": "LLM-Translated Tests Hide the Bug",
+        "page": "daily/2026-11-30-pm/doc-2.jpg",
+        "box": [
+          0.1123,
+          0.376,
+          0.3831,
+          0.0498
+        ],
+        "quote": "On paired items, LLM translations outscore human ones in all 23 benchmark–language pairs (12 significantly), reducing measured deficits",
+        "decoded": "AI se translate kiye test mein models aasaan score laate hain — asli gap chhup jata hai",
+        "proof": {
+          "source": "arXiv:2611.33307",
+          "page": "p.2 · Benchmark Bias",
+          "date": "24 Nov 2026"
+        },
+        "caption": "Point 3: Aur yeh error chhupta kyun hai? Jab companies English tests ko LLM se translate karti hain, toh models 23 mein se har pair par artificially zyada score dikhate hain!",
+        "tts": "तीसरा point. यह गलती छुपती क्यों है? क्योंकि जब companies English tests को LLM से translate करती हैं, तो models सभी 23 pairs में artificially बेहतर score दिखाते हैं!",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Hindi/Tamil AI bots ko alag calibrate karna zaroori hai",
+        "English confidence threshold se Indian users ko galat jawab milte hain",
+        "Kya aap AI par Hindi-Tamil mein bharosa karte ho? Comment karo"
+      ],
+      "proof": {
+        "source": "arXiv:2611.33307",
+        "page": "p.1–2 · Summary",
+        "date": "24 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: Jo AI customer support ya guardrails English threshold par chalte hain, woh Hindi-Tamil mein galat decision approve kar sakte hain. Kya aap AI par regional bhasha mein bharosa karte ho? Comment karo!",
+      "tts": "आप पर असर. जो AI customer bots English threshold पर चलते हैं, वे Hindi और Tamil में गलत decision को भी सही मान लेते हैं. क्या आप AI पर भारतीय भाषाओं में भरोसा करते हैं? Comment करो!",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Poora breakdown YouTube par, slides Instagram par — kyunki aksar...",
+      "tts": "पूरा breakdown YouTube पर, slides Instagram पर — क्योंकि अक्सर...",
+      "seconds": 5
+    }
+  },
+  "cta": {
+    "comment": "Regional language mein AI pe bharosa hai?",
+    "commentAt": 36,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: naya official document breakdown",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "AI Hindi-Tamil mein 2x galat kyun? Study #shorts",
+    "description": "arXiv:2611.33307 evaluates 25 AI decision models across 14 languages: accuracy drops up to 7.8 pts in Tamil & 4.8 pts in Hindi while confidence lags—doubling error rates at English thresholds.\nOfficial Paper: https://arxiv.org/abs/2611.33307\n#MultilingualAI #IndicAI #AIBenchmark #TechResearch #Unpaper",
+    "tags": [
+      "multilingual AI accuracy",
+      "Hindi Tamil AI error",
+      "arXiv 2611.33307",
+      "AI overconfidence",
+      "Indic AI benchmark",
+      "LLM calibration",
+      "Unpaper"
+    ],
+    "caption": "Same AI, par English ke mukable Tamil aur Hindi mein error rate DOUBLE kyun ho jata hai? 🤖🇮🇳 arXiv:2611.33307 decoded.\n\nOfficial Paper: https://arxiv.org/abs/2611.33307\n#MultilingualAI #IndicAI #AIBenchmark #TechResearch #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Trust?"
+}

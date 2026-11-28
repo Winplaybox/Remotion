@@ -1,0 +1,150 @@
+{
+  "date": "2026-11-29",
+  "slot": "pm",
+  "id": "ep-2026-11-29-pm-sc-food-warning",
+  "series": "Rule Badla",
+  "title": "Chips pe ab RED WARNING? SC ka bada order #shorts",
+  "sourceUrl": "https://www.sci.gov.in/view-pdf/?diary_no=359882025&type=j&order_date=2026-11-26&from=latest_judgements_order",
+  "source": {
+    "title": "3S and Our Health Society v. Union of India & Ors. (2026 INSC 1275 · MA 1177/2025 in W.P.(C) No. 437/2024)",
+    "date": "26 Nov 2026",
+    "issuer": "Supreme Court of India (J.B. Pardiwala & K. Vinod Chandran, JJ.)"
+  },
+  "script": {
+    "hook": {
+      "number": "3 Warnings",
+      "line": "Packaged Food Front Label",
+      "caption": "Har packet ek silent shart hai — ab chips, biscuits aur cold drinks ke FRONT par Supreme Court ne alag warning labels order kar diye!",
+      "tts": "हर पैकेट अब एक silent इम्तिहान है — क्योंकि आपकी chips, biscuits और cold drink पर Supreme Court ने सीधे front warning अनिवार्य कर दी है.",
+      "seconds": 4,
+      "proof": {
+        "source": "SC · 2026 INSC 1275",
+        "page": "p.3 & p.127",
+        "date": "26 Nov 2026"
+      }
+    },
+    "doc": {
+      "name": "3S & Our Health Society v. Union of India",
+      "issuer": "Supreme Court of India · 2026 INSC 1275",
+      "date": "26 Nov 2026",
+      "image": "daily/2026-11-29-pm/doc-1.jpg",
+      "caption": "Official SC Judgment (131 pages, 26 Nov 2026): Informed food choice ko Article 21 Right to Health ka hissa maana gaya.",
+      "tts": "यह 26 November 2026 का Supreme Court का 131 page का judgment है, जिसने साफ कहा कि सही food label आपका Article 21 का हक है.",
+      "seconds": 6,
+      "proof": {
+        "source": "SC · 2026 INSC 1275",
+        "page": "Cover · p.1",
+        "date": "26 Nov 2026"
+      }
+    },
+    "points": [
+      {
+        "title": "Total Sugar & Saturated Fat",
+        "page": "daily/2026-11-29-pm/doc-2.jpg",
+        "box": [
+          0.2929,
+          0.4318,
+          0.5985,
+          0.135
+        ],
+        "quote": "The FSSAI shall ensure that the FoPNL treats “total sugars” and “saturated fat”, rather than “added sugar” and “added fat”, as the nutrients-of-concern, alongside “salt”, in alignment with its own long-standing consensus existing prior to the DGI, 2024.",
+        "decoded": "Added sugar loophole band — total sugars, saturated fat aur salt count honge",
+        "proof": {
+          "source": "SC · 2026 INSC 1275",
+          "page": "p.127 · Para 222(a)(i)",
+          "date": "26 Nov 2026"
+        },
+        "prop": "chart",
+        "caption": "Point 1: Sirf 'added sugar' aur 'added fat' nahi — ab TOTAL sugars, saturated fat aur salt gina jayega! Par packet ke front par yeh dikhega kaise — star rating ya kuch aur?",
+        "tts": "पहला point. अब सिर्फ़ added sugar और added fat नहीं, बल्कि total sugars, saturated fat और salt गिना जाएगा. पर packet के front पर यह दिखेगा कैसे — star rating या कुछ और?",
+        "seconds": 9
+      },
+      {
+        "title": "3 Separate Warning Hexagons",
+        "page": "daily/2026-11-29-pm/doc-3.jpg",
+        "box": [
+          0.2929,
+          0.4877,
+          0.5984,
+          0.135
+        ],
+        "quote": "The FSSAI shall ensure that the FoPNL provides for a separate hexagon for each nutrient-of-concern, each containing the words “High Fat”, “High Sugar”, “High Salt”, respectively alongside their corresponding pictograms, rather than a single combined hexagon.",
+        "decoded": "Twist: Combined label reject! 'High Fat', 'High Sugar', 'High Salt' ke alag hexagons",
+        "proof": {
+          "source": "SC · 2026 INSC 1275",
+          "page": "p.128 · Para 222(b)(ii)",
+          "date": "26 Nov 2026"
+        },
+        "prop": "gavel",
+        "caption": "Point 2 (Twist): Yahi sabse bada twist hai! Court ne single combined warning reject kar di — ab 'High Fat', 'High Sugar', 'High Salt' ke liye alag-alag pictogram hexagons lagenge!",
+        "tts": "यही सबसे बड़ा twist है! Court ने single combined warning reject कर दी — अब High Fat, High Sugar और High Salt के लिए अलग-अलग pictogram hexagons लगेंगे!",
+        "seconds": 10
+      },
+      {
+        "title": "4%–5% Front Panel Size",
+        "page": "daily/2026-11-29-pm/doc-3.jpg",
+        "box": [
+          0.2929,
+          0.6416,
+          0.5986,
+          0.1348
+        ],
+        "quote": "The FSSAI shall fix the size of each hexagon in proportion to the principal display panel of the package, such that each hexagon occupies not less than 4%/5% of that panel as evidenced by international practices, unless explicit reasons to the contrary exist as stated in Section 18(2)(a)(ii).",
+        "decoded": "Har hexagon front pack ka kam se kam 4%–5% hissa gherega + 10 weeks mein report",
+        "proof": {
+          "source": "SC · 2026 INSC 1275",
+          "page": "p.128 · Para 222(b)(iii)",
+          "date": "26 Nov 2026"
+        },
+        "caption": "Point 3: Chhota fine-print trick bhi band! Har warning hexagon front panel ke kam se kam 4%–5% size ka hoga — aur FSSAI ko 10 weeks mein progress affidavit dena hai.",
+        "tts": "तीसरा point. छोटा fine-print भी बंद! हर warning hexagon front panel के कम से कम 4 से 5 percent size का होगा — और FSSAI को 10 weeks में report देनी है.",
+        "seconds": 9
+      }
+    ],
+    "asar": {
+      "lines": [
+        "Pack palat kar chhota table padhna nahi padega",
+        "FSSAI ko ~4 months mein draft rule laana hoga",
+        "Kya har snack par yeh warning honi chahiye? Comment karo"
+      ],
+      "proof": {
+        "source": "SC · 2026 INSC 1275",
+        "page": "p.19 & p.130 · Para 223",
+        "date": "26 Nov 2026"
+      },
+      "prop": "rupee",
+      "caption": "Aap par asar: FSSAI ko lagbhag 4 months mein rule final karna hai aur school ke 50m ke andar junk ads pehle se banned hain. Aap batao — kya har packet par yeh warning zaroori hai? Share karo!",
+      "tts": "आप पर असर. FSSAI को लगभग 4 महीने में rule final करना है. आप comment में बताओ — क्या हर packaged snack पर यह front warning ज़रूरी है? अपने family group में ज़रूर share करो.",
+      "seconds": 9
+    },
+    "outro": {
+      "caption": "Poora breakdown YouTube par, slides Instagram par — aur yaad rakho, dukaan se uthaya gaya...",
+      "tts": "पूरा breakdown YouTube पर, slides Instagram पर — और याद रखो, दुकान से उठाया गया...",
+      "seconds": 5
+    }
+  },
+  "cta": {
+    "comment": "Kya har snack par front warning honi chahiye?",
+    "commentAt": 36,
+    "question": "Kaunsa document decode karein? Comment karo.",
+    "nextTeaser": "Next: Bina police ke bank debit hold!",
+    "crossPost": "Poora breakdown YouTube par / slides Instagram par"
+  },
+  "seo": {
+    "title": "Chips pe ab RED WARNING? SC ka bada order #shorts",
+    "description": "Supreme Court (2026 INSC 1275) orders FSSAI to mandate separate 'High Fat', 'High Sugar' & 'High Salt' front-of-pack warning hexagons counting total sugars & saturated fat.\nOfficial SC Judgment: https://www.sci.gov.in/view-pdf/?diary_no=359882025&type=j&order_date=2026-11-26&from=latest_judgements_order\n#SupremeCourt #FoodLabels #FSSAI #PackagedFood #Unpaper",
+    "tags": [
+      "Supreme Court food label order",
+      "FSSAI warning labels",
+      "High Fat High Sugar High Salt",
+      "3S and Our Health Society",
+      "2026 INSC 1275",
+      "packaged food India",
+      "Unpaper"
+    ],
+    "caption": "Chips, biscuits aur cold drinks ke FRONT par ab 'High Fat', 'High Sugar', 'High Salt' ke alag warning hexagons! 🛑📦 Supreme Court ka 26 Nov 2026 order decoded.\n\nOfficial SC Judgment: https://www.sci.gov.in/view-pdf/?diary_no=359882025&type=j&order_date=2026-11-26&from=latest_judgements_order\n#SupremeCourt #FoodLabels #FSSAI #PackagedFood #Unpaper",
+    "categoryId": "27",
+    "language": "hi"
+  },
+  "pinnedComment": "Mandatory?"
+}
